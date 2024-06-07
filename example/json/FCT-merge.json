@@ -1,0 +1,122 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Zhuhai FCT Equipment API",
+    "version": "1.0.0",
+    "description": "FCT,Functional Circuit Test,station 1,board test,board function test,electronic test,Functional in Circuit Test,SMT test,PCBA test,功能性电路测试,电路功能测试,PCBA测试,SMT测试,板端测试,电路板测试,电子测试,第1个测试,第1工站"
+  },
+  "servers": [
+    {
+      "url": "http://192.168.2.201:8090/v1/zhuhai"
+    }
+  ],
+  "tags": [
+    {
+      "name": "FCT",
+      "description": "FCT设备"
+    }
+  ],
+  "paths": {
+    "/FCT": {
+      "post": {
+        "tags": [
+          "FCT"
+        ],
+        "summary": "控制FCT抽屉进出，开始测试；查询抽屉1/抽屉2的状态或结果，查询状态或结果",
+        "description": "FCT(Functional Circuit Test,station 1,board test,board function test,electronic test,Functional in Circuit Test,SMT test,PCBA test,功能性电路测试,电路功能测试,PCBA测试,SMT测试,板端测试,电路板测试,电子测试,第1个测试,第1工站)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "Fixture1_in",
+                      "Fixture1_out",
+                      "Fixture2_in",
+                      "Fixture2_out",
+                      "Fixture1_start",
+                      "Fixture2_start",
+                      "start",
+                      "Fixture1_status",
+                      "Fixture2_status",
+                      "Fixture1_result",
+                      "Fixture2_result",
+                      "status",
+                      "result"
+                    ],
+                    "description": "操作类型，可选择Fixture1_in(抽屉1进/关闭)|Fixture1_out(抽屉1出/打开)|Fixture2_in(抽屉2进/关闭)|Fixture2_out(抽屉2出/打开)|Fixture1_start(抽屉1开始测试)|Fixture2_start(抽屉2开始测试)|start(开始测试)|Fixture1_status(查询抽屉1状态)|Fixture2_status(查询抽屉2状态)|Fixture1_result(获取抽屉1结果)|Fixture2_result(获取抽屉2结果)|status(获取状态)|result(获取结果)",
+                    "example": {
+                      "operation": "Fixture1_in"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "During testing",
+                        "Test completed,waiting for retrieval",
+                        "Fixture empty waiting for material insert"
+                      ],
+                      "description": "status(设备状态)"
+                    },
+                    "extra": {
+                      "type": "string",
+                      "description": "额外说明"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "业务状态码"
+                    },
+                    "result": {
+                      "type": "string",
+                      "description": "结果"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "描述信息"
+                    }
+                  }
+                },
+                "examples": {
+                  "successResponse": {
+                    "value": {
+                      "code": 200,
+                      "message": "OK"
+                    }
+                  },
+                  "statusResponse": {
+                    "value": {
+                      "status": "测试中",
+                      "extra": "正在测试中，请稍后"
+                    }
+                  },
+                  "resultResponse": {
+                    "value": {
+                      "code": 200,
+                      "message": "PASS"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Zhuhai MDC service API",
+    "version": "1.0.0",
+    "description": "MDC, 原始数据，傅里叶变换, FFT, Fourier Transform"
+  },
+  "servers": [
+    {
+      "url": "http://192.168.2.201:8090/v1/zhuhai"
+    }
+  ],
+  "tags": [
+    {
+      "name": "MDC",
+      "description": "MDC服务"
+    }
+  ],
+  "paths": {
+    "/MDC": {
+      "get": {
+        "tags": [
+          "MDC"
+        ],
+        "summary": "获取设备原始数据，FFT数据",
+        "description": "get rawData or fftData of AUT, AFT, FCT, ASS, LAS",
+        "parameters": [
+          {
+            "name": "equipment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AUT",
+                "AFT",
+                "FCT",
+                "ASS",
+                "LAS"
+              ]
+            },
+            "description": "AUT(Acoustic test, Audio test, Acoustic performance test, Audio performance test, station 3, module test, speaker test, microphone test, 声学测试)|AFT(成品测试)|FCT(功能性电路测试)|ASS(模拟组装机)|LAS(镭射)"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "micphone",
+                "speaker",
+                "aut",
+                "aft",
+                "fct",
+                "ass",
+                "default"
+              ]
+            },
+            "description": "micphone(麦克风)|speaker(扬声器)|aut(Audio test)|aft(All Function Test)|fct(board function test)|ass(automated assembly)|default(默认)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功的响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "description": "业务状态码"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "micphone",
+                        "speaker",
+                        "aut",
+                        "aft",
+                        "fct",
+                        "ass",
+                        "default"
+                      ],
+                      "description": "数据类型"
+                    },
+                    "equipment": {
+                      "type": "string",
+                      "enum": [
+                        "AUT",
+                        "AFT",
+                        "FCT",
+                        "ASS",
+                        "LAS"
+                      ],
+                      "description": "通道数据"
+                    }
+                  }
+                },
+                "examples": {
+                  "successResponse": {
+                    "value": {
+                      "code": 200,
+                      "kind": "micphone",
+                      "equipment": "AUT"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

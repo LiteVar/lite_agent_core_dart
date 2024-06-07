@@ -1,0 +1,109 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Zhuhai LAS Equipment API",
+    "version": "1.0.0",
+    "description": "LAS,laser engraving machine,Engraving process,laser process,laser,laser marking,station 5,第5工站,激光打标机,打标机,镭射机,镭射,雕刻工序,镭射工序"
+  },
+  "servers": [
+    {
+      "url": "http://192.168.2.201:8090/v1/zhuhai"
+    }
+  ],
+  "tags": [
+    {
+      "name": "LAS",
+      "description": "LAS设备"
+    }
+  ],
+  "paths": {
+    "/LAS1": {
+      "post": {
+        "tags": [
+          "LAS"
+        ],
+        "summary": "LAS设备开始或停止打印；查询状态和打印状态",
+        "description": "LAS(laser engraving machine,Engraving process,laser process,laser,laser marking,station 5,第5工站,激光打标机,打标机,镭射机,镭射,雕刻工序,镭射工序)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "stop",
+                      "status"
+                    ],
+                    "description": "操作类型，可选择start(开始打印)|stop(停止打印)|status(查询状态)",
+                    "example": {
+                      "operation": "start"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "Idle",
+                        "running"
+                      ],
+                      "description": "status(设备状态)"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "业务状态码"
+                    },
+                    "print_status": {
+                      "type": "string",
+                      "enum": [
+                        "Printing not finished",
+                        "Printing complete"
+                      ],
+                      "description": "打印状态"
+                    }
+                  }
+                },
+                "examples": {
+                  "startResponse": {
+                    "value": {
+                      "code": 200,
+                      "status": "running"
+                    }
+                  },
+                  "stopResponse": {
+                    "value": {
+                      "code": 200,
+                      "status": "Idle"
+                    }
+                  },
+                  "statusResponse": {
+                    "value": {
+                      "status": "running",
+                      "print_status": "Printing complete",
+                      "code": 200
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

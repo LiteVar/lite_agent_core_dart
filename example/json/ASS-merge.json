@@ -1,0 +1,157 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Zhuhai ASS Equipment API",
+    "version": "1.0.0",
+    "description": "ASS,assembly machine,station 2,assembly station,assemble automation,automated assembly,simulated assembly,组装机,模拟组装机,第2工站,组装工站,装配工站,设备组装,自动组装,自动化组装,设备装配"
+  },
+  "servers": [
+    {
+      "url": "http://192.168.2.201:8090/v1/zhuhai"
+    }
+  ],
+  "tags": [
+    {
+      "name": "ASS",
+      "description": "ASS设备"
+    }
+  ],
+  "paths": {
+    "/ASS1": {
+      "post": {
+        "tags": [
+          "ASS"
+        ],
+        "summary": "ASS设备开始或结束测试；查询状态，结果，数据或进度",
+        "description": "ASS(assembly machine,station 2,assembly station,assemble automation,automated assembly,simulated assembly,组装机,模拟组装机,第2工站,组装工站,装配工站,设备组装,自动组装,自动化组装,设备装配)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "start",
+                      "stop",
+                      "status",
+                      "result",
+                      "data",
+                      "progress"
+                    ],
+                    "description": "start(开始测试)|stop(结束测试)|status(查询状态)|result(查询结果)|data(获取数据)|progress(获取进度)",
+                    "example": {
+                      "operation": "start"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "description": "业务状态码"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "描述说明"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "Idle",
+                        "running"
+                      ],
+                      "description": "status(设备状态)"
+                    },
+                    "result": {
+                      "type": "string",
+                      "description": "结果"
+                    },
+                    "total_steps": {
+                      "type": "integer",
+                      "description": "总步数"
+                    },
+                    "recent_step": {
+                      "type": "integer",
+                      "description": "已完成步数"
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "description": "进度数"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "总数"
+                    },
+                    "pass": {
+                      "type": "integer",
+                      "description": "通过数"
+                    },
+                    "fail": {
+                      "type": "integer",
+                      "description": "失败数"
+                    }
+                  }
+                },
+                "examples": {
+                  "startResponse": {
+                    "value": {
+                      "code": 200,
+                      "message": "操作成功"
+                    }
+                  },
+                  "stopResponse": {
+                    "value": {
+                      "code": 200,
+                      "message": "操作成功"
+                    }
+                  },
+                  "statusResponse": {
+                    "value": {
+                      "status": "running",
+                      "code": 200
+                    }
+                  },
+                  "resultResponse": {
+                    "value": {
+                      "code": 200,
+                      "result": "pass"
+                    }
+                  },
+                  "dataResponse": {
+                    "value": {
+                      "code": 200,
+                      "total": 100,
+                      "pass": 89,
+                      "fail": 11
+                    }
+                  },
+                  "progressResponse": {
+                    "value": {
+                      "code": 200,
+                      "total_steps": 101,
+                      "recent_step": 31,
+                      "progress": 31
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

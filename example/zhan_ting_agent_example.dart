@@ -26,7 +26,7 @@ LLMRunner _buildLLMRunner() {
     apiKey: env["apiKey"]!,
     model: "gpt-3.5-turbo",
   );
-  return LLMRunner(llmConfig.baseUrl, llmConfig.apiKey, llmConfig.model);
+  return LLMRunner(llmConfig);
 }
 
 Future<List<ToolRunner>> _buildToolRunnerList() async {

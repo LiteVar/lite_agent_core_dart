@@ -10,7 +10,10 @@ class LLMConfig {
   String baseUrl;
   String apiKey;
   String model;
-  LLMConfig({required this.baseUrl, required this.apiKey, required this.model});
+  double temperature;
+  int maxTokens;
+  double topP;
+  LLMConfig({required this.baseUrl, required this.apiKey, required this.model, this.temperature = 0.0, this.maxTokens = 4096, this.topP = 1.0});
 }
 
 // 在Agent系统内的角色

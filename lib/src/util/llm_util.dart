@@ -5,12 +5,11 @@ import 'package:opentool_dart/opentool_dart.dart';
 import '../model.dart';
 
 class LLMRunner {
-  late String _model;
+  late LLMConfig llmConfig;
 
-  LLMRunner(String baseUrl, String apiKey, String model) {
-    OpenAI.baseUrl = baseUrl;
-    OpenAI.apiKey = apiKey;
-    _model = model;
+  LLMRunner(this.llmConfig) {
+    OpenAI.baseUrl = llmConfig.baseUrl;
+    OpenAI.apiKey = llmConfig.apiKey;
   }
 
   Future<AgentMessage> requestLLM({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList }) async {
@@ -19,13 +18,14 @@ class LLMRunner {
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
     OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat.create(
-      model: _model,
+      model: llmConfig.model,
       responseFormat: {"type": "text"},
       seed: 6,
       messages: requestMessageList,
       tools: tools,
-      temperature: 0,
-      maxTokens: 4096,
+      temperature: llmConfig.temperature,
+      maxTokens: llmConfig.maxTokens,
+      topP: llmConfig.topP
     );
     TokenUsage tokenUsage = TokenUsage(promptTokens: chatCompletion.usage.promptTokens, completionTokens: chatCompletion.usage.completionTokens, totalTokens: chatCompletion.usage.totalTokens);
 

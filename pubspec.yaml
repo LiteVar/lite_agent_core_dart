@@ -14,10 +14,8 @@ dependencies:
   http: ^1.2.1
   openapi_dart: ^0.1.2
   openrpc_dart: ^0.1.1
-  opentool_dart:
-    path: /Users/jan/Project/openspec_dart/opentool_dart
-  openmodbus_dart:
-    path: /Users/jan/Project/openspec_dart/openmodbus_dart
+  opentool_dart: ^0.1.2
+  openmodbus_dart: ^0.1.0
 
 dev_dependencies:
   lints: ^3.0.0

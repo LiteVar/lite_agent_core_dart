@@ -8,12 +8,14 @@ import 'simple_agent.dart';
 abstract class SessionAgent extends LLM {
   late AgentSession session;
   final Dispatcher _dispatcher = Dispatcher();
+  final int timeoutSeconds;
+  Timer? timer;
 
   Future<String> buildSystemMessage();
 
   Future<List<FunctionModel>?> buildFunctionModelList();
 
-  SessionAgent({required super.llmRunner, required this.session});
+  SessionAgent({required super.llmRunner, required this.session, required this.timeoutSeconds});
 
   void userToAgent(AgentMessageType type, String message) {
 
@@ -77,6 +79,7 @@ abstract class SessionAgent extends LLM {
     session.addAgentMessage(agentMessage);
     Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.DONE));
     _dispatcher.dispatch(clientCommand);
+    startCountDown();
   }
 
   Future<void> _toLLM(AgentMessage agentMessage) async {
@@ -102,11 +105,21 @@ abstract class SessionAgent extends LLM {
     Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.STOP));
     _dispatcher.dispatch(clientCommand);
     _dispatcher.stop();
+    startCountDown();
   }
 
-  void reset() {
-    stop();
-    session.resetMessage();
+  void clear() {
+    if(_dispatcher.isListening()) {
+      stop();
+    }
+    session.clearMessage();
+    timer?.cancel();
+  }
+
+  void startCountDown() {
+    timer = Timer(Duration(seconds: timeoutSeconds), (){
+      clear();
+    });
   }
 }
 
@@ -122,14 +135,21 @@ class Command {
 class Dispatcher {
   final StreamController<Command> _streamController = StreamController<Command>();
   late StreamSubscription<Command> _subscription;
+  bool _isListening = false;
 
   Dispatcher() {
     if(!_streamController.hasListener) {
+      _isListening = true;
       _subscription = _streamController.stream.listen((command) async => await command.execute());
     }
   }
 
   void dispatch(Command command) => command.execute();
 
-  void stop() => _subscription.cancel();
+  void stop() {
+    _subscription.cancel();
+    _isListening = false;
+  }
+
+  bool isListening() => _isListening;
 }

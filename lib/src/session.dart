@@ -5,7 +5,7 @@ class AgentSession {
   List<AgentMessage> agentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
 
-  void resetMessage() {
+  void clearMessage() {
     agentMessageList = [];
   }
 

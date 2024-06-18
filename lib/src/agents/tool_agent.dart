@@ -8,7 +8,7 @@ class ToolAgent extends SessionAgent {
   List<ToolRunner> toolRunnerList;
   String systemPrompt;
 
-  ToolAgent({required super.llmRunner, required super.session, required this.toolRunnerList, this.systemPrompt = ""});
+  ToolAgent({required super.llmRunner, required super.session, required this.toolRunnerList, this.systemPrompt = "", super.timeoutSeconds = 3600});
 
   @override
   Future<String> buildSystemMessage() async => systemPrompt;

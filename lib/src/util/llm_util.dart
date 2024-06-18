@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dart_openai/dart_openai.dart';
-import 'package:lite_agent_core/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../model.dart';
 
@@ -28,8 +27,9 @@ class LLMRunner {
       temperature: 0,
       maxTokens: 4096,
     );
+    TokenUsage tokenUsage = TokenUsage(promptTokens: chatCompletion.usage.promptTokens, completionTokens: chatCompletion.usage.completionTokens, totalTokens: chatCompletion.usage.totalTokens);
 
-    AgentMessage agentMessage = _toAgentMessage(chatCompletion.choices.first.message, tokenUsage: chatCompletion.usage.totalTokens);
+    AgentMessage agentMessage = _toAgentMessage(chatCompletion.choices.first.message, tokenUsage: tokenUsage);
 
     return agentMessage;
   }
@@ -38,13 +38,13 @@ class LLMRunner {
     List<OpenAIFunctionProperty> openAIFunctionPropertyList = [];
     functionModel.parameters.properties.forEach((String name, Property property) {
       switch(property.type) {
-        case OpenAIFunctionProperty.functionTypeBoolean: openAIFunctionPropertyList.add(OpenAIFunctionProperty.boolean(name: name, description: property.description, isRequired: property.required));
-        case OpenAIFunctionProperty.functionTypeInteger: openAIFunctionPropertyList.add(OpenAIFunctionProperty.integer(name: name, description: property.description, isRequired: property.required));
-        case OpenAIFunctionProperty.functionTypeNumber: openAIFunctionPropertyList.add(OpenAIFunctionProperty.number(name: name, description: property.description, isRequired: property.required));
-        case OpenAIFunctionProperty.functionTypeString: openAIFunctionPropertyList.add(OpenAIFunctionProperty.string(name: name, description: property.description, isRequired: property.required, enumValues: property.enum_));
+        case PropertyType.boolean: openAIFunctionPropertyList.add(OpenAIFunctionProperty.boolean(name: name, description: property.description, isRequired: property.required));
+        case PropertyType.integer: openAIFunctionPropertyList.add(OpenAIFunctionProperty.integer(name: name, description: property.description, isRequired: property.required));
+        case PropertyType.number: openAIFunctionPropertyList.add(OpenAIFunctionProperty.number(name: name, description: property.description, isRequired: property.required));
+        case PropertyType.string: openAIFunctionPropertyList.add(OpenAIFunctionProperty.string(name: name, description: property.description, isRequired: property.required, enumValues: property.enum_));
       }
     });
-    OpenAIFunctionModel openAIFunctionModel = OpenAIFunctionModel.withParameters(name: functionModel.name, parameters: openAIFunctionPropertyList);
+    OpenAIFunctionModel openAIFunctionModel = OpenAIFunctionModel.withParameters(name: functionModel.name, description: functionModel.description, parameters: openAIFunctionPropertyList);
     OpenAIToolModel openAIToolModel = OpenAIToolModel(type: "function", function: openAIFunctionModel);
     return openAIToolModel;
   }
@@ -52,7 +52,7 @@ class LLMRunner {
   OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(AgentMessage agentMessage) {
 
     //系统预置文字
-    if(agentMessage.from == AgentRole.SYSTEM && agentMessage.type == AgentMessageType.TEXT) {
+    if(agentMessage.from == AgentRole.SYSTEM && agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.system,
         content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)]
@@ -60,7 +60,7 @@ class LLMRunner {
     }
 
     //大模型返回的纯文本
-    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.TEXT) {
+    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)]
@@ -68,7 +68,7 @@ class LLMRunner {
     }
 
     //大模型返回的图片
-    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.IMAGE_URL) {
+    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.imageUrl) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)]
@@ -76,7 +76,7 @@ class LLMRunner {
     }
 
     //大模型返回的函数调用
-    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
+    if(agentMessage.from == AgentRole.LLM && agentMessage.type == AgentMessageType.functionCallList) {
       List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
       List<OpenAIResponseToolCall> openAIResponseToolCallList = functionCallList.map((FunctionCall functionCall) {
         return _toOpenAIResponseToolCall(functionCall);
@@ -90,7 +90,7 @@ class LLMRunner {
     }
 
     //Agent转发工具返回的调用结果
-    if(agentMessage.from == AgentRole.AGENT && agentMessage.type == AgentMessageType.TOOL_RETURN) {
+    if(agentMessage.from == AgentRole.AGENT && agentMessage.type == AgentMessageType.toolReturn) {
       ToolReturn toolReturn = agentMessage.message as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.tool,
@@ -118,7 +118,7 @@ class LLMRunner {
 
   }
 
-  AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {int tokenUsage = 0}) {
+  AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {TokenUsage? tokenUsage}) {
 
     dynamic message;
 
@@ -128,12 +128,13 @@ class LLMRunner {
       Map<String, dynamic> parameters = jsonDecode(openAIResponseToolCall.function.arguments);
       return FunctionCall(id: id, name: name, parameters: parameters);
     }).toList();
+
     if(message!= null) {
-      return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.FUNCTION_CALL_LIST, message: message, tokenUsage: tokenUsage);
+      return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.functionCallList, message: message, tokenUsage: tokenUsage);
     }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
-    return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.TEXT, message: message, tokenUsage: tokenUsage);
+    return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.text, message: message, tokenUsage: tokenUsage);
   }
 }
 

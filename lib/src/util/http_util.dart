@@ -27,9 +27,9 @@ class HttpAPIResponse {
   };
 }
 
-Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest, {String? apiKey}) async {
+Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest, {String? authorization}) async {
   Map<String, String> headers = {'Content-Type': 'application/json'};
-  if(apiKey != null) headers.addAll({'Authorization': apiKey});
+  if(authorization != null) headers.addAll({'Authorization': authorization});
 
   Uri fullUrl;
   http.Response response;

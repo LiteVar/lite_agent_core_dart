@@ -1,4 +1,4 @@
-name: lite_agent_core
+name: lite_agent_core_dart
 description: LiteAgent Core package
 version: 0.0.1
 # repository: https://github.com/my_org/my_repo
@@ -8,11 +8,16 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  modbus_client_tcp: ^1.2.1
+  modbus_client_serial: ^1.2.1+1
   dart_openai: ^5.1.0
   http: ^1.2.1
   openapi_dart: ^0.1.2
   openrpc_dart: ^0.1.1
-  opentool_dart: ^0.1.1
+  opentool_dart:
+    path: /Users/jan/Project/openspec_dart/opentool_dart
+  openmodbus_dart:
+    path: /Users/jan/Project/openspec_dart/openmodbus_dart
 
 dev_dependencies:
   lints: ^3.0.0

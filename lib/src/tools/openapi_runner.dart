@@ -1,14 +1,15 @@
-import 'package:lite_agent_core/src/model.dart';
-import 'package:lite_agent_core/src/util/http_util.dart';
-import 'tool_interface.dart';
+import '../model.dart';
+import '../util/http_util.dart';
+import 'tool_runner.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
 class OpenAPIRunner extends ToolRunner {
   OpenAPI openAPI;
   Map<String, String> functionToolNameMap = {};
+  String? authorization;
 
-  OpenAPIRunner(this.openAPI);
+  OpenAPIRunner(this.openAPI, {this.authorization});
 
   @override
   List<FunctionModel> parse() {
@@ -23,7 +24,7 @@ class OpenAPIRunner extends ToolRunner {
         Map<String, Property> properties = {};
         openapiParameters?.forEach((Parameter parameter) {
           String key = parameter.name;
-          Property property = Property(type: parameter.schema?.type??"", description: parameter.schema?.description??"", required: parameter.required??false);
+          Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.schema?.description??"", required: parameter.required??false);
           properties.addAll({key: property});
         });
         Parameters opentoolParameters= Parameters(type: "object", properties: properties);
@@ -64,7 +65,7 @@ class OpenAPIRunner extends ToolRunner {
     List<String>? requiredList = requestBody?.content["application/json"]?.schema?.required;
     requestBody?.content["application/json"]?.schema?.properties?.forEach((name, property) {
       String key = name;
-      Property value = Property(type: property.type, description: property.description??"", required: requiredList?.contains(name)??false, enum_: property.enum_);
+      Property value = Property(type: _PropertyTypeEnumMap[property.type]!, description: property.description??"", required: requiredList?.contains(name)??false, enum_: property.enum_);
       properties.addAll({key: value});
     });
     Parameters opentoolParameters= Parameters(type: "object", properties: properties);
@@ -75,7 +76,7 @@ class OpenAPIRunner extends ToolRunner {
     Map<String, Property> properties = {};
     parameters?.forEach((Parameter parameter) {
       String key = parameter.name;
-      Property property = Property(type: parameter.schema?.type??"", description: parameter.schema?.description??"", required: parameter.required??false, enum_: parameter.schema?.enum_);
+      Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.schema?.description??"", required: parameter.required??false, enum_: parameter.schema?.enum_);
       properties.addAll({key: property});
     });
     Parameters opentoolParameters= Parameters(type: "object", properties: properties);
@@ -102,7 +103,7 @@ class OpenAPIRunner extends ToolRunner {
     String path = toolName.replaceFirst(method, "");
     HttpAPIRequest httpAPIRequest = HttpAPIRequest(method: method, baseUrl: baseUrl, path: path, params: functionCall.parameters);
 
-    HttpAPIResponse httpAPIResponse = await requestHttpAPI(httpAPIRequest);
+    HttpAPIResponse httpAPIResponse = await requestHttpAPI(httpAPIRequest, authorization: authorization);
     return ToolReturn(id: functionCall.id, result: httpAPIResponse.toJson());
   }
 
@@ -111,4 +112,23 @@ class OpenAPIRunner extends ToolRunner {
     return functionToolNameMap.containsKey(functionName);
   }
 
+}
+
+const _PropertyTypeEnumMap = {
+  'boolean': PropertyType.boolean,
+  'integer': PropertyType.integer,
+  'number': PropertyType.number,
+  'string': PropertyType.string,
+};
+
+enum ApiKeyType {
+  basic,
+  bearer
+}
+
+String convertToAuthorization(ApiKeyType type, String ApiKey) {
+  switch(type) {
+    case ApiKeyType.basic: return "Basic " + ApiKey;
+    case ApiKeyType.bearer: return "Bearer " + ApiKey;
+  }
 }

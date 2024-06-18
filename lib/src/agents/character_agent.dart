@@ -1,5 +1,5 @@
-import 'package:lite_agent_core/lite_agent_core.dart';
 
+import '../model.dart';
 import 'simple_agent.dart';
 
 // only character prompt, run once.
@@ -10,8 +10,8 @@ abstract class CharacterAgent extends SimpleAgent {
 
   @override
   Future<AgentMessage> userToAgent(String prompt) async {
-    AgentMessage systemMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.TEXT, message: character);
-    AgentMessage userMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.TEXT, message: prompt);
+    AgentMessage systemMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: character);
+    AgentMessage userMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: prompt);
 
     List<AgentMessage> agentLlmMessageList = [
       systemMessage,

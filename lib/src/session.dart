@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'model.dart';
 
-class Session {
+class AgentSession {
   List<AgentMessage> agentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
 

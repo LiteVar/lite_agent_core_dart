@@ -1,3 +1,4 @@
+
 class HttpConfig {
   String host;
   String port;
@@ -26,7 +27,14 @@ class AgentRole {
   static String USER = "user";   // 用户
   static String AGENT = "agent";  // Agent本身
   static String LLM = "llm";    // 大模型
-  static String TOOL = "tool";
+  static String TOOL = "tool";  // 外部工具
+  static String CLIENT = "client";  // 调用的外部程序，承载当前操作状态，例如[START]、[STOP]、[DONE]
+}
+
+class TaskStatus {
+  static String START = "[TASK_START]";
+  static String STOP = "[TASK_STOP]";
+  static String DONE = "[TASK_DONE]";
 }
 
 // enum AgentMessageType {
@@ -36,11 +44,18 @@ class AgentRole {
 //   TOOL_RETURN         // Map<String, dynamic>
 // }
 
-class AgentMessageType {
-  static String TEXT = "text";
-  static String IMAGE_URL = "image_url";
-  static String FUNCTION_CALL_LIST = "function_call_list";
-  static String TOOL_RETURN = "tool_return";
+// class AgentMessageType {
+//   static String TEXT = "text";
+//   static String IMAGE_URL = "image_url";
+//   static String FUNCTION_CALL_LIST = "function_call_list";
+//   static String TOOL_RETURN = "tool_return";
+// }
+
+enum AgentMessageType {
+  text,
+  imageUrl,
+  functionCallList,
+  toolReturn
 }
 
 class FunctionCall {
@@ -49,6 +64,14 @@ class FunctionCall {
   late Map<String, dynamic> parameters;
 
   FunctionCall({required this.id, required this.name, required this.parameters});
+
+  factory FunctionCall.fromJson(Map<String, dynamic> json) {
+    return FunctionCall(
+        id: json['id'],
+        name: json['name'],
+        parameters: json['parameters']
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -60,15 +83,24 @@ class FunctionCall {
 }
 
 class ToolReturn {
+  static String DONE = "[TOOL_RETURN_DONE]";
+
   late String id;
   late Map<String, dynamic> result;
 
   ToolReturn({required this.id, required this.result});
 
+  factory ToolReturn.fromJson(Map<String, dynamic> json) {
+    return ToolReturn(
+        id: json['id'],
+        result: json['result']
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'resutl': result
+      'result': result
     };
   }
 }
@@ -76,18 +108,35 @@ class ToolReturn {
 class AgentMessage {
   late String from;
   late String to;
-  late String type;
+  late AgentMessageType type;
   late dynamic message;
-  int tokenUsage = 0; //When role is llm, this is current llm calling token usage
-  AgentMessage({required this.from, required this.to,required this.type, required this.message, this.tokenUsage = 0});
+  TokenUsage? tokenUsage; //When role is llm, this is current llm calling token usage
+  DateTime createTime  = DateTime.now();
+  AgentMessage({required this.from, required this.to,required this.type, required this.message, this.tokenUsage});
 
   Map<String, dynamic> toJson() => {
     'from': from,
     'to': to,
     'type': type,
     'message': message,
-    'tokenUsage': tokenUsage,
+    'tokenUsage': tokenUsage == null ? null: tokenUsage!.toJson(),
+    'createTime': createTime.toIso8601String()
   };
+}
+
+class TokenUsage {
+  final int promptTokens;
+  final int completionTokens;
+  final int totalTokens;
+
+  TokenUsage({required this.promptTokens, required this.completionTokens, required this.totalTokens});
+
+  Map<String, dynamic> toJson() => {
+    'promptTokens': promptTokens,
+    'completionTokens': completionTokens,
+    'totalTokens': totalTokens
+  };
+
 }
 
 // enum UserAgentChatRole {

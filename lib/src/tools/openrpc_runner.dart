@@ -1,4 +1,4 @@
-import 'tool_interface.dart';
+import 'tool_runner.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 

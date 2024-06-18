@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:lite_agent_core/lite_agent_core.dart';
-import 'package:lite_agent_core/src/tools/tool_interface.dart';
+import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:dotenv/dotenv.dart';
 
 String prompt = "查询AUT测试结果";
 
 Future<void> main() async {
-  ToolAgent zhanTingAgent = ToolAgent(llmRunner: _buildLLMRunner(), session: _buildSession(), toolRunnerList: await _buildToolRunnerList());
-  zhanTingAgent.character = _buildCharacter();
-  zhanTingAgent.userToAgent(prompt);
+  ToolAgent zhanTingAgent = ToolAgent(
+      llmRunner: _buildLLMRunner(),
+      session: _buildSession(),
+      toolRunnerList: await _buildToolRunnerList(),
+      systemPrompt: _buildSystemPrompt()
+  );
+  zhanTingAgent.userToAgent(AgentMessageType.text, prompt);
 }
 
 LLMRunner _buildLLMRunner() {
@@ -39,8 +42,8 @@ Future<List<ToolRunner>> _buildToolRunnerList() async {
   return toolRunnerList;
 }
 
-Session _buildSession() {
-  Session session = Session();
+AgentSession _buildSession() {
+  AgentSession session = AgentSession();
   session.addAgentMessageListener((AgentMessage agentMessage) {
     String system = "🖥SYSTEM";
     String user = "👤USER";
@@ -49,10 +52,10 @@ Session _buildSession() {
     String tool = "🔧TOOL";
 
     String message = "";
-    if(agentMessage.type == AgentMessageType.TEXT) message = agentMessage.message as String;
-    if(agentMessage.type == AgentMessageType.IMAGE_URL) message = agentMessage.message as String;
-    if(agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) message = jsonEncode((agentMessage.message as List<FunctionCall>).map((functionCall) => functionCall.toJson()).toList());
-    if(agentMessage.type == AgentMessageType.TOOL_RETURN) message = jsonEncode(agentMessage.message as ToolReturn);
+    if(agentMessage.type == AgentMessageType.text) message = agentMessage.message as String;
+    if(agentMessage.type == AgentMessageType.imageUrl) message = agentMessage.message as String;
+    if(agentMessage.type == AgentMessageType.functionCallList) message = jsonEncode((agentMessage.message as List<FunctionCall>).map((functionCall) => functionCall.toJson()).toList());
+    if(agentMessage.type == AgentMessageType.toolReturn) message = jsonEncode(agentMessage.message as ToolReturn);
 
     String from = "";
     if(agentMessage.from == AgentRole.SYSTEM) {from = system ; message = "\n$message";}
@@ -69,14 +72,14 @@ Session _buildSession() {
     if(agentMessage.to == AgentRole.TOOL) to = tool;
 
     if(from.isNotEmpty && to.isNotEmpty) {
-      print("$from -> $to: [${agentMessage.type.toUpperCase()}] $message");
+      print("$from -> $to: [${agentMessage.type.name}] $message");
     }
 
   });
   return session;
 }
 
-String _buildCharacter() {
+String _buildSystemPrompt() {
   return
     '# 角色和职能\n'
     '\n'

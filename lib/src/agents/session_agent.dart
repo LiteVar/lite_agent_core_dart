@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'package:lite_agent_core/src/agents/simple_agent.dart';
-import 'package:lite_agent_core/src/tools/tool_interface.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
 import '../model.dart';
 import '../session.dart';
+import 'simple_agent.dart';
 
 abstract class SessionAgent extends LLM {
-  late Session session;
+  late AgentSession session;
   final Dispatcher _dispatcher = Dispatcher();
 
   Future<String> buildSystemMessage();
@@ -16,8 +15,12 @@ abstract class SessionAgent extends LLM {
 
   SessionAgent({required super.llmRunner, required this.session});
 
-  void userToAgent(String message) {
-    AgentMessage userAgentMessage = AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.TEXT, message: message);
+  void userToAgent(AgentMessageType type, String message) {
+
+    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.START));
+    _dispatcher.dispatch(clientCommand);
+
+    AgentMessage userAgentMessage = AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: type, message: message);
     if(session.agentMessageList.isEmpty) {  // 如果会话为空，初始化会话
       Command initCommand = Command(_initSystemMessage, userAgentMessage);
       _dispatcher.dispatch(initCommand);
@@ -31,28 +34,28 @@ abstract class SessionAgent extends LLM {
 
     Command? nextCommand;
     if(agentMessage.from == AgentRole.USER) {
-      AgentMessage newAgentMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.TEXT, message: agentMessage.message as String);
+      AgentMessage newAgentMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: agentMessage.message as String);
       nextCommand = Command(_toLLM, newAgentMessage); //转发用户请求给大模型
     } else if(agentMessage.from == AgentRole.LLM) {
-      if(agentMessage.type == AgentMessageType.TEXT) {
-        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.TEXT, message: agentMessage.message);
+      if(agentMessage.type == AgentMessageType.text) {
+        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.text, message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是文字，转发给用户
-      } else if(agentMessage.type == AgentMessageType.IMAGE_URL) {
-        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.IMAGE_URL, message: agentMessage.message);
+      } else if(agentMessage.type == AgentMessageType.imageUrl) {
+        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.imageUrl, message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是图片，转发给用户
-      } else if(agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
-        AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.FUNCTION_CALL_LIST, message: agentMessage.message);
+      } else if(agentMessage.type == AgentMessageType.functionCallList) {
+        AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.functionCallList, message: agentMessage.message);
         nextCommand = Command(_toTool, agentToolMessage); // 如果大模型返回的是调用参数，转发大模型的返回给工具
       }
     } else if(agentMessage.from == AgentRole.TOOL) {
-      if(agentMessage.type == AgentMessageType.TOOL_RETURN) { // 如果工具返回的是结果，仅仅保留，先不处理
-        AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.TOOL_RETURN, message: agentMessage.message);
+      if(agentMessage.type == AgentMessageType.toolReturn) { // 如果工具返回的是结果，仅仅保留，先不处理
+        AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn, message: agentMessage.message);
         session.addAgentMessage(agentLLMMessage);
-      } else if(agentMessage.type == AgentMessageType.TEXT) { // 如果工具返回执行结束，则通知LLM处理
-        // AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.TOOL_RETURN_LIST, message: agentMessage.message);
+      } else if(agentMessage.type == AgentMessageType.text) { // 如果工具返回执行结束，则通知LLM处理
+        // AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn_LIST, message: agentMessage.message);
         String toolAgentMessageText = agentMessage.message as String;
-        if (toolAgentMessageText == TOOL_RETURN_FINISH) {
-          AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.TEXT, message: agentMessage.message);
+        if (toolAgentMessageText == ToolReturn.DONE) {
+          AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.text, message: agentMessage.message);
           nextCommand = Command(_toLLM, agentToolMessage);
         }
       }
@@ -64,7 +67,7 @@ abstract class SessionAgent extends LLM {
   Future<void> _initSystemMessage(AgentMessage agentMessage) async {
     String systemMessage = await buildSystemMessage();
     if(systemMessage.isNotEmpty) {
-      AgentMessage systemAgentMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.TEXT, message: systemMessage);
+      AgentMessage systemAgentMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemMessage);
       toAgent(systemAgentMessage);
     }
     toAgent(agentMessage);
@@ -72,6 +75,8 @@ abstract class SessionAgent extends LLM {
 
   Future<void> _toUser(AgentMessage agentMessage) async {
     session.addAgentMessage(agentMessage);
+    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.DONE));
+    _dispatcher.dispatch(clientCommand);
   }
 
   Future<void> _toLLM(AgentMessage agentMessage) async {
@@ -87,10 +92,20 @@ abstract class SessionAgent extends LLM {
     requestTools(agentMessage);
   }
 
+  Future<void> _toClient(AgentMessage agentMessage) async {
+    session.addAgentMessage(agentMessage);
+  }
+
   Future<void> requestTools(AgentMessage agentMessage);
 
-  void reset() {
+  void stop() {
+    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.STOP));
+    _dispatcher.dispatch(clientCommand);
     _dispatcher.stop();
+  }
+
+  void reset() {
+    stop();
     session.resetMessage();
   }
 }

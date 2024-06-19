@@ -27,9 +27,13 @@ class LLMRunner {
       maxTokens: llmConfig.maxTokens,
       topP: llmConfig.topP
     );
+
+
     TokenUsage tokenUsage = TokenUsage(promptTokens: chatCompletion.usage.promptTokens, completionTokens: chatCompletion.usage.completionTokens, totalTokens: chatCompletion.usage.totalTokens);
 
-    AgentMessage agentMessage = _toAgentMessage(chatCompletion.choices.first.message, tokenUsage: tokenUsage);
+    Completions completions = Completions(tokenUsage: tokenUsage, id: chatCompletion.id, model: llmConfig.model);
+
+    AgentMessage agentMessage = _toAgentMessage(chatCompletion.choices.first.message, completions: completions);
 
     return agentMessage;
   }
@@ -118,7 +122,7 @@ class LLMRunner {
 
   }
 
-  AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {TokenUsage? tokenUsage}) {
+  AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {Completions? completions}) {
 
     dynamic message;
 
@@ -130,11 +134,11 @@ class LLMRunner {
     }).toList();
 
     if(message!= null) {
-      return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.functionCallList, message: message, tokenUsage: tokenUsage);
+      return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.functionCallList, message: message, completions: completions);
     }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
-    return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.text, message: message, tokenUsage: tokenUsage);
+    return AgentMessage(from: AgentRole.LLM, to:AgentRole.AGENT, type: AgentMessageType.text, message: message, completions: completions);
   }
 }
 

@@ -1,4 +1,6 @@
 
+import 'package:lite_agent_core_dart/lite_agent_core.dart';
+
 class HttpConfig {
   String host;
   String port;
@@ -113,18 +115,34 @@ class AgentMessage {
   late String to;
   late AgentMessageType type;
   late dynamic message;
-  TokenUsage? tokenUsage; //When role is llm, this is current llm calling token usage
+  Completions? completions;
   DateTime createTime  = DateTime.now();
-  AgentMessage({required this.from, required this.to,required this.type, required this.message, this.tokenUsage});
+  AgentMessage({required this.from, required this.to,required this.type, required this.message, this.completions});
 
   Map<String, dynamic> toJson() => {
     'from': from,
     'to': to,
     'type': type,
     'message': message,
-    'tokenUsage': tokenUsage == null ? null: tokenUsage!.toJson(),
+    if(completions != null) 'completions': completions!.toJson(),
     'createTime': createTime.toIso8601String()
   };
+}
+
+class Completions {
+
+  TokenUsage tokenUsage; //When role is llm, this is current llm calling token usage
+  String id;  //When role is llm, this is current /chat/completions return message id
+  String model;
+
+  Completions({required this.tokenUsage, required this.id, required this.model});
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'tokenUsage': tokenUsage.toJson(),
+    'model': model
+  };
+
 }
 
 class TokenUsage {

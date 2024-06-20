@@ -21,14 +21,7 @@ class OpenAPIRunner extends ToolRunner {
         String method = HttpAPIMethodType.get;
         String functionName = convertToFunctionName("$method$path");
         List<Parameter>? openapiParameters = pathItem.get!.parameters;
-        Map<String, Property> properties = {};
-        openapiParameters?.forEach((Parameter parameter) {
-          String key = parameter.name;
-          Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.schema?.description??"", required: parameter.required??false);
-          properties.addAll({key: property});
-        });
-        Parameters opentoolParameters= Parameters(type: "object", properties: properties);
-        FunctionModel functionModel = FunctionModel(name: functionName, description: pathItem.description??"", parameters: opentoolParameters);
+        FunctionModel functionModel = _queryParamsConvertToFunctionModel(functionName, pathItem.get!.description??"", openapiParameters);
         functionModelList.add(functionModel);
       }
 
@@ -53,7 +46,7 @@ class OpenAPIRunner extends ToolRunner {
         String method = HttpAPIMethodType.delete;
         String functionName = convertToFunctionName("$method$path");
         List<Parameter>? openapiParameters  = pathItem.delete!.parameters;
-        FunctionModel functionModel = _queryParamsConvertToFunctionModel(functionName, pathItem.description??"", openapiParameters);
+        FunctionModel functionModel = _queryParamsConvertToFunctionModel(functionName, pathItem.delete!.description??"", openapiParameters);
         functionModelList.add(functionModel);
       }
     });
@@ -76,7 +69,7 @@ class OpenAPIRunner extends ToolRunner {
     Map<String, Property> properties = {};
     parameters?.forEach((Parameter parameter) {
       String key = parameter.name;
-      Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.schema?.description??"", required: parameter.required??false, enum_: parameter.schema?.enum_);
+      Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.description??"", required: parameter.required??false, enum_: parameter.schema?.enum_);
       properties.addAll({key: property});
     });
     Parameters opentoolParameters= Parameters(type: "object", properties: properties);

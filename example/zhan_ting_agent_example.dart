@@ -31,7 +31,14 @@ LLMRunner _buildLLMRunner() {
 
 Future<List<ToolRunner>> _buildToolRunnerList() async {
   String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
-  List<String> fileNameList = ["AFT-merge.json", "ASS-merge.json", "AUT-merge.json", "FCT-merge.json", "LAS-merge.json", "MDC-service.json"];
+  List<String> fileNameList = [
+    "AFT-merge.json",
+    "ASS-merge.json",
+    "AUT-merge.json",
+    "FCT-merge.json",
+    "LAS-merge.json",
+    "MDC-service.json"
+  ];
 
   List<ToolRunner> toolRunnerList = [];
   for (String fileName in fileNameList) {

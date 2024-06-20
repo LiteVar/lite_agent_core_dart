@@ -1,6 +1,3 @@
-
-import 'package:lite_agent_core_dart/lite_agent_core.dart';
-
 class HttpConfig {
   String host;
   String port;
@@ -18,15 +15,6 @@ class LLMConfig {
   LLMConfig({required this.baseUrl, required this.apiKey, required this.model, this.temperature = 0.0, this.maxTokens = 4096, this.topP = 1.0});
 }
 
-// 在Agent系统内的角色
-// enum AgentRole {
-//   SYSTEM, // 系统，用于存放预置的说明
-//   USER,   // 用户
-//   AGENT,  // Agent本身
-//   LLM,    // 大模型
-//   TOOL    //外部工具
-// }
-
 class AgentRole {
   static String SYSTEM = "system"; // 系统，用于存放预置的说明
   static String USER = "user";   // 用户
@@ -41,20 +29,6 @@ class TaskStatus {
   static String STOP = "[TASK_STOP]";
   static String DONE = "[TASK_DONE]";
 }
-
-// enum AgentMessageType {
-//   TEXT,               // String
-//   IMAGE_URL,          // URL String
-//   FUNCTION_CALL_LIST, // List<FunctionCall>
-//   TOOL_RETURN         // Map<String, dynamic>
-// }
-
-// class AgentMessageType {
-//   static String TEXT = "text";
-//   static String IMAGE_URL = "image_url";
-//   static String FUNCTION_CALL_LIST = "function_call_list";
-//   static String TOOL_RETURN = "tool_return";
-// }
 
 enum AgentMessageType {
   text,
@@ -87,8 +61,12 @@ class FunctionCall {
   }
 }
 
+class ToolsStatus {
+  static String START = "[TOOLS_START]";
+  static String DONE = "[TOOLS_DONE]";
+}
+
 class ToolReturn {
-  static String DONE = "[TOOL_RETURN_DONE]";
 
   late String id;
   late Map<String, dynamic> result;
@@ -159,24 +137,6 @@ class TokenUsage {
   };
 
 }
-
-// enum UserAgentChatRole {
-//   user,
-//   agent,
-// }
-
-// class UserAgentChatMessage {
-//   late UserAgentChatRole role;
-//   late String text;
-//   UserAgentChatMessage({required this.role, required this.text});
-//
-//   Map<String, dynamic> toJson() => {
-//     'role': role,
-//     'text': text
-//   };
-// }
-
-
 
 class AgentPrompt {
   final String text;

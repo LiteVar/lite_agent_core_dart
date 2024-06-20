@@ -2,7 +2,7 @@ import 'dart:async';
 import 'session_agent.dart';
 import '../model.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import '../tools/tool_runner.dart';
+import '../runner/tool_runner.dart';
 
 class ToolAgent extends SessionAgent {
   List<ToolRunner> toolRunnerList;
@@ -29,10 +29,11 @@ class ToolAgent extends SessionAgent {
 
     for (var functionCall in functionCallList) {
       ToolRunner toolRunner = toolRunnerList.firstWhere((ToolRunner toolRunner) => toolRunner.hasFunction(functionCall.name));
-      ToolReturn toolResult = await toolRunner.call(functionCall);
+      ToolReturn toolResult;
+      toolResult = await toolRunner.call(functionCall);
       AgentMessage toolMessage = AgentMessage(from: AgentRole.TOOL, to: AgentRole.AGENT, type: AgentMessageType.toolReturn, message: toolResult);
       toAgent(toolMessage);
     }
-    toAgent(AgentMessage(from: AgentRole.TOOL, to: AgentRole.AGENT, type: AgentMessageType.text, message: ToolReturn.DONE));
+    toAgent(AgentMessage(from: AgentRole.TOOL, to: AgentRole.AGENT, type: AgentMessageType.text, message: ToolsStatus.DONE));
   }
 }

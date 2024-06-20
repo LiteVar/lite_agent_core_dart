@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -36,14 +37,26 @@ Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest, {String? a
   // GET和DELETE，parameters使用queryParams承载
   if (httpAPIRequest.method == HttpAPIMethodType.get || httpAPIRequest.method == HttpAPIMethodType.delete ) {
     fullUrl =  Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path).replace(queryParameters: httpAPIRequest.params);
-    response = await http.get(fullUrl, headers: headers);
+    try {
+      response = await http.get(fullUrl, headers: headers);
+    } on TimeoutException catch(e) {
+      return HttpAPIResponse(statusCode: 504, body: e.toString());
+    } catch(e) {
+      return HttpAPIResponse(statusCode: 500, body: e.toString());
+    }
   } else { // POST和PUT，parameters使用requestBody承载
     fullUrl = Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path);
     http.Request request = http.Request(httpAPIRequest.method, fullUrl);
     request.headers.addAll(headers);
     request.body = json.encode(httpAPIRequest.params);
-    http.StreamedResponse streamedResponse = await request.send();
-    response = await http.Response.fromStream(streamedResponse);
+    try {
+      http.StreamedResponse streamedResponse = await request.send();
+      response = await http.Response.fromStream(streamedResponse);
+    } on TimeoutException catch(e) {
+      return HttpAPIResponse(statusCode: 504, body: e.toString());
+    } catch(e) {
+      return HttpAPIResponse(statusCode: 500, body: e.toString());
+    }
   }
 
   return HttpAPIResponse(statusCode: response.statusCode, body: response.body);

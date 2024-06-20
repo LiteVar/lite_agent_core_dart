@@ -56,8 +56,8 @@ abstract class SessionAgent extends LLM {
       } else if(agentMessage.type == AgentMessageType.text) { // 如果工具返回执行结束，则通知LLM处理
         // AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn_LIST, message: agentMessage.message);
         String toolAgentMessageText = agentMessage.message as String;
-        if (toolAgentMessageText == ToolReturn.DONE) {
-          AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.text, message: agentMessage.message);
+        if (toolAgentMessageText == ToolsStatus.DONE) {
+          AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: agentMessage.message);
           nextCommand = Command(_toLLM, agentToolMessage);
         }
       }
@@ -92,6 +92,8 @@ abstract class SessionAgent extends LLM {
 
   Future<void> _toTool(AgentMessage agentMessage) async {
     session.addAgentMessage(agentMessage);
+    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: ToolsStatus.START));
+    _dispatcher.dispatch(clientCommand);
     requestTools(agentMessage);
   }
 

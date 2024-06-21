@@ -41,16 +41,36 @@ class LLMRunner {
   OpenAIToolModel _buildOpenAIToolModel(FunctionModel functionModel) {
     List<OpenAIFunctionProperty> openAIFunctionPropertyList = [];
     functionModel.parameters.properties.forEach((String name, Property property) {
-      switch(property.type) {
-        case PropertyType.boolean: openAIFunctionPropertyList.add(OpenAIFunctionProperty.boolean(name: name, description: property.description, isRequired: property.required));
-        case PropertyType.integer: openAIFunctionPropertyList.add(OpenAIFunctionProperty.integer(name: name, description: property.description, isRequired: property.required));
-        case PropertyType.number: openAIFunctionPropertyList.add(OpenAIFunctionProperty.number(name: name, description: property.description, isRequired: property.required));
-        case PropertyType.string: openAIFunctionPropertyList.add(OpenAIFunctionProperty.string(name: name, description: property.description, isRequired: property.required, enumValues: property.enum_));
-      }
+      openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(name, property));
     });
     OpenAIFunctionModel openAIFunctionModel = OpenAIFunctionModel.withParameters(name: functionModel.name, description: functionModel.description, parameters: openAIFunctionPropertyList);
     OpenAIToolModel openAIToolModel = OpenAIToolModel(type: "function", function: openAIFunctionModel);
     return openAIToolModel;
+  }
+
+
+
+  OpenAIFunctionProperty _convertToOpenAIFunctionProperty(String name, Property property) {
+    switch(property.type) {
+      case PropertyType.boolean:return OpenAIFunctionProperty.boolean(name: name, description: property.description, isRequired: property.required);
+      case PropertyType.integer: return OpenAIFunctionProperty.integer(name: name, description: property.description, isRequired: property.required);
+      case PropertyType.number: return OpenAIFunctionProperty.number(name: name, description: property.description, isRequired: property.required);
+      case PropertyType.string: return OpenAIFunctionProperty.string(name: name, description: property.description, isRequired: property.required, enumValues: property.enum_);
+      case PropertyType.array: {
+        OpenAIFunctionProperty openAIFunctionProperty = _convertToOpenAIFunctionProperty(name, property.items!);
+        return OpenAIFunctionProperty.array(name: name, description: property.description, isRequired: property.required, items: openAIFunctionProperty);
+      }
+      case PropertyType.object: {
+        Map<String, Property> properties = property.properties!;
+        Map<String, OpenAIFunctionProperty> openAIFunctionProperties = {};
+        properties.forEach((String name, Property property0) {
+          OpenAIFunctionProperty openAIFunctionProperty = _convertToOpenAIFunctionProperty(name, property0);
+          openAIFunctionProperties[name] = openAIFunctionProperty;
+        });
+
+        return OpenAIFunctionProperty.object(name: name, description: property.description, isRequired: property.required, properties: openAIFunctionProperties.values);
+      }
+    }
   }
 
   OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(AgentMessage agentMessage) {

@@ -1,0 +1,84 @@
+{
+  "openrpc": "1.2.1",
+  "info": {
+    "version": "1.0.0",
+    "title": "manage book"
+  },
+  "servers": [{
+    "name": "book server",
+    "url": "http://192.168.2.10:8083/rpc/book",
+	"summary": "book management"
+  }],
+  "methods": [
+    {
+      "name": "findById",
+      "description": "find book via id",
+      "params": [
+        {
+          "name": "id",
+          "description": "id of book",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "result": {
+        "name": "book",
+        "description": "book",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "addBook",
+      "summary": "[name,author]",
+      "description": "add book",
+      "params": [
+        {
+          "name": "name",
+          "description": "name of book",
+          "schema": {
+            "type": "string"
+          }
+        },
+		{
+		  "name": "author",
+          "description": "author of book",
+          "schema": {
+            "type": "string"
+          }
+		}
+      ],
+      "result": {
+        "name": "book",
+        "description": "new book",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "id": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

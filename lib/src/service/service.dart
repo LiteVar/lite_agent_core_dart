@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/src/runner/jsonrpc_runner.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
+import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:uuid/uuid.dart';
 import 'dto.dart';
 
@@ -89,25 +90,20 @@ class AgentService {
   Future<List<ToolRunner>> _buildToolRunnerList(List<OpenSpecDto> openSpecDtoList) async {
     List<ToolRunner> toolRunnerList = [];
     for (OpenSpecDto openSpecDto in openSpecDtoList) {
-      Map<String, dynamic> specJson = jsonDecode(openSpecDto.openSpec);
-      if(specJson.containsKey("openapi")) {
+      if(openSpecDto.protocol == Protocol.openapi) {
         OpenAPI openAPI = await OpenAPILoader().load(openSpecDto.openSpec);
         String? authorization;
         if(openSpecDto.apiKey != null) { convertToAuthorization(openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey); }
         ToolRunner openAPIRunner = OpenAPIRunner(openAPI,  authorization: authorization);
         toolRunnerList.add(openAPIRunner);
-        // } else if(specJson.containsKey("openrpc")) {
-        //   OpenRPC openRPC = await OpenRPCLoader().load(spec);
-        //   ToolRunner openRPCRunner = OpenRPCRunner(openRPC);
-        //   return openRPCRunner;
-      } else {//if(specJson.containsKey("openmodbus")) {
+      } else if(openSpecDto.protocol == Protocol.openmodbus) {
         OpenModbus openModbus = await OpenModbusLoader().load(openSpecDto.openSpec);
         ToolRunner openModbusRunner = OpenModbusRunner(openModbus);
         toolRunnerList.add(openModbusRunner);
-        // } else {
-        //   OpenTool openTool = await OpenToolLoader().load(spec);
-        //   ToolRunner openToolRunner = OpenToolRunner(openTool);
-        //   return openToolRunner;
+      } else if(openSpecDto.protocol == Protocol.jsonrpcHttp) {
+        OpenRPC openRPC = await OpenRPCLoader().load(openSpecDto.openSpec);
+        ToolRunner jsonrpcHttpRunner = JsonRPCRunner(openRPC);
+        toolRunnerList.add(jsonrpcHttpRunner);
       }
     }
     return toolRunnerList;

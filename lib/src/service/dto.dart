@@ -28,12 +28,19 @@ class CapabilityDto {
   Map<String, dynamic> toJson() => _$CapabilityDtoToJson(this);
 }
 
+enum Protocol {
+  openapi,
+  openmodbus,
+  jsonrpcHttp
+}
+
 @JsonSerializable()
 class OpenSpecDto {
   late String openSpec;
   late ApiKeyDto? apiKey;
+  late Protocol protocol;
 
-  OpenSpecDto({required this.openSpec, this.apiKey});
+  OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
 
   factory OpenSpecDto.fromJson(Map<String, dynamic> json) => _$OpenSpecDtoFromJson(json);
 

@@ -56,13 +56,45 @@ class OpenAPIRunner extends ToolRunner {
   FunctionModel _requestBodyConvertToFunctionModel(String functionName, String? description, RequestBody? requestBody) {
     Map<String, Property> properties = {};
     List<String>? requiredList = requestBody?.content["application/json"]?.schema?.required;
-    requestBody?.content["application/json"]?.schema?.properties?.forEach((name, property) {
-      String key = name;
-      Property value = Property(type: _PropertyTypeEnumMap[property.type]!, description: property.description??"", required: requiredList?.contains(name)??false, enum_: property.enum_);
-      properties.addAll({key: value});
+    requestBody?.content["application/json"]?.schema?.properties?.forEach((name, schema) {
+      properties[name] = _convertToProperty(name, schema, requiredList?.contains(name)??false);
     });
     Parameters opentoolParameters= Parameters(type: "object", properties: properties);
     return FunctionModel(name: functionName, description: description??"", parameters: opentoolParameters);
+  }
+
+  Property _convertToProperty(String name, Schema schema, bool required) {
+    PropertyType propertyType = _PropertyTypeEnumMap[schema.type]!;
+    if(propertyType == PropertyType.array) {
+      return Property(
+          type: propertyType,
+          description: schema.description??"",
+          required: required,
+          enum_: schema.enum_,
+          items: _convertToProperty(name, schema.items!, schema.required?.contains(name)??false)
+      );
+    } else if (propertyType == PropertyType.object) {
+      Map<String, Property> properties = {};
+      schema.properties?.forEach((String name, Schema schema){
+        properties[name] = _convertToProperty(name, schema.items!, schema.required?.contains(name)??false);
+      });
+
+      return Property(
+          type: propertyType,
+          description: schema.description??"",
+          required: required,
+          enum_: schema.enum_,
+          properties: properties
+      );
+    } else {
+      return Property(
+          type: propertyType,
+          description: schema.description??"",
+          required: required,
+          enum_: schema.enum_
+      );
+    }
+
   }
 
   FunctionModel _queryParamsConvertToFunctionModel(String functionName, String? description, List<Parameter>? parameters) {
@@ -112,6 +144,8 @@ const _PropertyTypeEnumMap = {
   'integer': PropertyType.integer,
   'number': PropertyType.number,
   'string': PropertyType.string,
+  'array': PropertyType.array,
+  'object': PropertyType.object
 };
 
 enum ApiKeyType {

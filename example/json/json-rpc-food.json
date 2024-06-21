@@ -1,0 +1,130 @@
+{
+  "openrpc": "1.2.1",
+  "info": {
+    "version": "1.0.0",
+    "title": "manage food"
+  },
+  "servers": [{
+    "name": "food server",
+    "url": "http://192.168.2.10:8083/rpc/food",
+	"summary": "food management"
+  }],
+  "methods": [
+    {
+      "name": "showAllFood",
+      "description": "display all food",
+      "params": [
+        {
+          "name": "limit",
+          "description": "How many food to return at one time",
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "result": {
+        "name": "food",
+        "description": "An array of food",
+        "schema": {
+          "type": "array",
+          "items": {
+            "title": "food",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "validDate": {
+                "type": "string",
+				"format": "date"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "addFood",
+      "summary": "[name,weight]",
+      "description": "add food",
+      "params": [
+        {
+          "name": "name",
+          "description": "name of food",
+          "schema": {
+            "type": "String"
+          }
+        },
+		{
+		  "name": "weight",
+          "description": "weight of food",
+          "schema": {
+            "type": "number"
+          }
+		}
+      ],
+      "result": {
+        "name": "food",
+        "description": "new food",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "weight": {
+              "type": "number"
+            },
+            "validDate": {
+              "type": "string",
+			  "format": "date"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "buyFood",
+      "summary": "[{name,weight}]",
+      "description": "buy food",
+      "params": [
+        {
+          "name": "name",
+          "description": "name of food",
+          "schema": {
+            "type": "String"
+          }
+        },
+		{
+		  "name": "weight",
+          "description": "weight of food",
+          "schema": {
+            "type": "number"
+          }
+		}
+      ],
+      "result": {
+        "name": "food",
+        "description": "result of food",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "weight": {
+              "type": "number"
+            },
+            "validDate": {
+              "type": "string",
+			  "format": "date"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

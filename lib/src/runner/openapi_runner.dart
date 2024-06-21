@@ -75,8 +75,8 @@ class OpenAPIRunner extends ToolRunner {
       );
     } else if (propertyType == PropertyType.object) {
       Map<String, Property> properties = {};
-      schema.properties?.forEach((String name, Schema schema){
-        properties[name] = _convertToProperty(name, schema.items!, schema.required?.contains(name)??false);
+      schema.properties?.forEach((String name, Schema schema0){
+        properties[name] = _convertToProperty(name, schema0, schema.required?.contains(name)??false);
       });
 
       return Property(

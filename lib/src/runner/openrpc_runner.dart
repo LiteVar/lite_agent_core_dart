@@ -15,10 +15,6 @@ abstract class OpenRPCRunner extends ToolRunner{
       method.params.forEach((ContentDescriptor contentDescriptor) {
         String name = contentDescriptor.name;
         properties[name] = _convertToProperty(contentDescriptor.name, contentDescriptor.schema, contentDescriptor.required);
-
-        // String key = contentDescriptor.name??"";
-        // Property property = Property(type: _PropertyTypeEnumMap[contentDescriptor.schema.type]!, description: contentDescriptor.description??"", required: contentDescriptor.required);
-        // properties.addAll({key: property});
       });
       Parameters opentoolParameters= Parameters(type: "object", properties: properties);
       FunctionModel functionModel = FunctionModel(name: method.name, description: method.description??"", parameters: opentoolParameters);
@@ -40,8 +36,8 @@ abstract class OpenRPCRunner extends ToolRunner{
       );
     } else if (propertyType == PropertyType.object) {
       Map<String, Property> properties = {};
-      schema.properties?.forEach((String name, Schema schema){
-        properties[name] = _convertToProperty(name, schema.items!, schema.required?.contains(name)??false);
+      schema.properties?.forEach((String name, Schema schema0){
+        properties[name] = _convertToProperty(name, schema0, schema.required?.contains(name)??false);
       });
 
       return Property(

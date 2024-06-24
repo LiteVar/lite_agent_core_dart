@@ -9,13 +9,13 @@ import 'package:openrpc_dart/openrpc_dart.dart';
 String prompt = "查一下book id为1的情况";
 
 Future<void> main() async {
-  ToolAgent zhanTingAgent = ToolAgent(
+  ToolAgent toolAgent = ToolAgent(
       llmRunner: _buildLLMRunner(),
       session: _buildSession(),
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
-  zhanTingAgent.userToAgent(AgentMessageType.text, prompt);
+  toolAgent.userToAgent(AgentMessageType.text, prompt);
 }
 
 LLMRunner _buildLLMRunner() {

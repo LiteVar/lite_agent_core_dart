@@ -41,7 +41,7 @@ class JsonRPCHttpResponse {
 
 class JsonRPCHttpResponseBody {
   late String jsonrpc;
-  late Map<String, dynamic>? result;
+  late dynamic result;
   late JsonRPCHttpResponseBodyError? error;
   late String id;
   JsonRPCHttpResponseBody({required this.jsonrpc, this.result, this.error, required this.id});

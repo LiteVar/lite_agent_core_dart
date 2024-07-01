@@ -10,6 +10,7 @@ abstract class SessionAgent extends LLM {
   final Dispatcher _dispatcher = Dispatcher();
   final int timeoutSeconds;
   Timer? timer;
+  late List<UserMessage> userMessageList;
 
   Future<String> buildSystemMessage();
 
@@ -17,17 +18,27 @@ abstract class SessionAgent extends LLM {
 
   SessionAgent({required super.llmRunner, required this.session, required this.timeoutSeconds});
 
-  void userToAgent(AgentMessageType type, String message) {
+  void userToAgent(List<UserMessage> userMessageList) {
+    this.userMessageList = userMessageList;
 
     Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.START));
     _dispatcher.dispatch(clientCommand);
 
-    AgentMessage userAgentMessage = AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: type, message: message);
+    AgentMessage userAgentMessageAtLast = _convertToAgentMessage(userMessageList.last);
+
     if(session.agentMessageList.isEmpty) {  // 如果会话为空，初始化会话
-      Command initCommand = Command(_initSystemMessage, userAgentMessage);
+      Command initCommand = Command(_initSystemMessage, userAgentMessageAtLast);
       _dispatcher.dispatch(initCommand);
     } else {  // 否则直接分发消息
-      toAgent(userAgentMessage);
+      _buildUserMessageListWithoutLast();
+      toAgent(userAgentMessageAtLast);
+    }
+  }
+
+  AgentMessage _convertToAgentMessage(UserMessage userMessage) {
+    switch(userMessage.type) {
+      case UserMessageType.text: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.text, message: userMessage.message);
+      case UserMessageType.imageUrl: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.imageUrl, message: userMessage.message);
     }
   }
 
@@ -72,7 +83,14 @@ abstract class SessionAgent extends LLM {
       AgentMessage systemAgentMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemMessage);
       toAgent(systemAgentMessage);
     }
+    _buildUserMessageListWithoutLast();
     toAgent(agentMessage);
+  }
+
+  void _buildUserMessageListWithoutLast() {
+    for(int i=0; i< userMessageList.length-1; i++) {
+      session.addAgentMessage(_convertToAgentMessage(userMessageList[i]));
+    }
   }
 
   Future<void> _toUser(AgentMessage agentMessage) async {

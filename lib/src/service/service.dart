@@ -1,11 +1,17 @@
 import 'dart:async';
-import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:lite_agent_core_dart/src/runner/jsonrpc_runner.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:uuid/uuid.dart';
+import '../agents/tool_agent.dart';
+import '../runner/openapi_runner.dart';
+import '../runner/openmodbus_runner.dart';
+import '../runner/tool_runner.dart';
+import '../session.dart';
+import '../util/llm_util.dart';
 import 'dto.dart';
+import '../model.dart';
 
 class AgentService {
 
@@ -41,9 +47,10 @@ class AgentService {
     return sessionDto;
   }
 
-  Future<void> startChat(String sessionId, UserMessageDto userMessageDto) async {
+  Future<void> startChat(String sessionId, List<UserMessageDto> userMessageDtoList) async {
     ToolAgent toolAgent = agents[sessionId]!;
-    toolAgent.userToAgent(_convertToAgentMessageType(userMessageDto.type), userMessageDto.message);
+    List<UserMessage> userMessageList = userMessageDtoList.map((userMessageDto) => _convertToUserMessage(userMessageDto)).toList();
+    toolAgent.userToAgent(userMessageList);
   }
 
   Future<List<AgentMessageDto>> getHistory(String sessionId) async {
@@ -70,10 +77,10 @@ class AgentService {
     agents.remove(sessionId);
   }
 
-  AgentMessageType _convertToAgentMessageType(UserMessageType userMessageType) {
-    switch(userMessageType) {
-      case UserMessageType.text: return AgentMessageType.text;
-      case UserMessageType.imageUrl: return AgentMessageType.imageUrl;
+  UserMessage _convertToUserMessage(UserMessageDto userMessageDto) {
+    switch(userMessageDto.type) {
+      case UserMessageDtoType.text: return UserMessage(type: UserMessageType.text, message: userMessageDto.message as String);
+      case UserMessageDtoType.imageUrl: return UserMessage(type: UserMessageType.imageUrl, message: userMessageDto.message as String);
     }
   }
 

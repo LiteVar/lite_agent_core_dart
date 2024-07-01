@@ -17,7 +17,7 @@ Future<void> main() async {
 
   print("[sessionDto] " + sessionDto.toJson().toString());
 
-  await agentService.startChat(sessionDto.id, UserMessageDto(type: UserMessageType.text, message: prompt));
+  await agentService.startChat(sessionDto.id, [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
 
   print("[prompt] " + prompt);
 
@@ -110,10 +110,7 @@ void listen(String sessionId, AgentMessage agentMessage) {
   if(agentMessage.type == AgentMessageType.text) message = agentMessage.message as String;
   if(agentMessage.type == AgentMessageType.imageUrl) message = agentMessage.message as String;
   if(agentMessage.type == AgentMessageType.functionCallList) {
-    List<dynamic> originalFunctionCallList = agentMessage.message as List<dynamic>;
-    List<FunctionCall> functionCallList = originalFunctionCallList.map((dynamic json){
-      return FunctionCall.fromJson(json);
-    }).toList();
+    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
   if(agentMessage.type == AgentMessageType.toolReturn)  {

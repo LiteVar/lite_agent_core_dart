@@ -53,6 +53,7 @@ const _$ProtocolEnumMap = {
   Protocol.openapi: 'openapi',
   Protocol.openmodbus: 'openmodbus',
   Protocol.jsonrpcHttp: 'jsonrpcHttp',
+  Protocol.opentool: 'opentool',
 };
 
 LLMConfigDto _$LLMConfigDtoFromJson(Map<String, dynamic> json) => LLMConfigDto(
@@ -152,17 +153,17 @@ const _$ApiKeyTypeEnumMap = {
 
 UserMessageDto _$UserMessageDtoFromJson(Map<String, dynamic> json) =>
     UserMessageDto(
-      type: $enumDecode(_$UserMessageTypeEnumMap, json['type']),
+      type: $enumDecode(_$UserMessageDtoTypeEnumMap, json['type']),
       message: json['message'],
     );
 
 Map<String, dynamic> _$UserMessageDtoToJson(UserMessageDto instance) =>
     <String, dynamic>{
-      'type': _$UserMessageTypeEnumMap[instance.type]!,
+      'type': _$UserMessageDtoTypeEnumMap[instance.type]!,
       'message': instance.message,
     };
 
-const _$UserMessageTypeEnumMap = {
-  UserMessageType.text: 'text',
-  UserMessageType.imageUrl: 'imageUrl',
+const _$UserMessageDtoTypeEnumMap = {
+  UserMessageDtoType.text: 'text',
+  UserMessageDtoType.imageUrl: 'imageUrl',
 };

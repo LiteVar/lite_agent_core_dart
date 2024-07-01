@@ -30,13 +30,6 @@ class TaskStatus {
   static String DONE = "[TASK_DONE]";
 }
 
-enum AgentMessageType {
-  text,
-  imageUrl,
-  functionCallList,
-  toolReturn
-}
-
 class FunctionCall {
   late String id;
   late String name;
@@ -86,6 +79,25 @@ class ToolReturn {
       'result': result
     };
   }
+}
+
+enum UserMessageType {
+  text,
+  imageUrl
+}
+
+class UserMessage {
+  late UserMessageType type;
+  late String message;
+
+  UserMessage({required this.type, required this.message});
+}
+
+enum AgentMessageType {
+  text,
+  imageUrl,
+  functionCallList,
+  toolReturn
 }
 
 class AgentMessage {

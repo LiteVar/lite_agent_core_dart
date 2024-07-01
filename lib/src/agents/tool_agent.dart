@@ -27,7 +27,7 @@ class ToolAgent extends SessionAgent {
   Future<void> requestTools(AgentMessage agentMessage) async {
     List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
 
-    for (var functionCall in functionCallList) {
+    for (FunctionCall functionCall in functionCallList) {
       ToolRunner toolRunner = toolRunnerList.firstWhere((ToolRunner toolRunner) => toolRunner.hasFunction(functionCall.name));
       ToolReturn toolResult;
       toolResult = await toolRunner.call(functionCall);

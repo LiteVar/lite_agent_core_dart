@@ -132,14 +132,14 @@ class ApiKeyDto {
   Map<String, dynamic> toJson() => _$ApiKeyDtoToJson(this);
 }
 
-enum UserMessageType {
+enum UserMessageDtoType {
   text,
   imageUrl
 }
 
 @JsonSerializable()
 class UserMessageDto {
-  UserMessageType type;
+  UserMessageDtoType type;
   dynamic message;
 
   UserMessageDto({required this.type, required this.message});

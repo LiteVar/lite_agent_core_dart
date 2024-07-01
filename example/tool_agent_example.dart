@@ -15,7 +15,7 @@ Future<void> main() async {
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
-  toolAgent.userToAgent(AgentMessageType.text, prompt);
+  toolAgent.userToAgent([UserMessage(type: UserMessageType.text, message: prompt)]);
 }
 
 LLMRunner _buildLLMRunner() {

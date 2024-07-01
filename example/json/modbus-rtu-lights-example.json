@@ -1,0 +1,45 @@
+{
+  "openmodbus": "1.0.0",
+  "info": {
+    "title": "Lights Controller",
+    "description": "Lights control example",
+    "version": "1.0.0"
+  },
+  "server": {
+    "type": "rtu",
+    "config": {
+      "port": "COM3",
+      "baudRate": 9600
+    }
+  },
+  "functions": [
+    {
+      "name": "light_1_status",
+      "description": "read 1# light status",
+      "slaveId": 0,
+      "method": "read",
+      "storage": "coils",
+      "address": 0,
+      "count": 1,
+      "result": {
+        "name": "light_1_status",
+        "description": "light 1 is turn on or turn off",
+        "type": "bool"
+      }
+    },
+    {
+      "name": "turn_light_1",
+      "description": "Turn on/off light 1",
+      "slaveId": 0,
+      "method": "write",
+      "storage": "coils",
+      "address": 0,
+      "count": 1,
+      "parameter": {
+        "name": "light_1",
+        "description": "true: turn on, false: turn off",
+        "type": "bool"
+      }
+    }
+  ]
+}

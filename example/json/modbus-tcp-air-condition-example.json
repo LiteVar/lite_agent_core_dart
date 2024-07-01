@@ -1,0 +1,65 @@
+{
+  "openmodbus": "1.0.0",
+  "info": {
+    "title": "Air Condition Controller",
+    "description": "Air condition control example",
+    "version": "1.0.0"
+  },
+  "server": {
+    "type": "tcp",
+    "config": {
+      "url": "127.0.0.1",
+      "port": 502
+    }
+  },
+  "functions": [
+    {
+      "name": "read_current_temperature",
+      "description": "Read current temperature of the building",
+      "slaveId": 0,
+      "method": "read",
+      "storage": "inputRegisters",
+      "address": 0,
+      "count": 1,
+      "result": {
+        "name": "temperature_value",
+        "description": "Current temperature value",
+        "type": "int16",
+        "multiplier": 0.1,
+        "uom": "℃"
+      }
+    },
+    {
+      "name": "set_target_temperature",
+      "description": "Set target temperature of the building",
+      "slaveId": 0,
+      "method": "write",
+      "storage": "holdingRegisters",
+      "address": 1,
+      "count": 1,
+      "parameter": {
+        "name": "temperature_value",
+        "description": "",
+        "type": "int16",
+        "multiplier": 0.1,
+        "uom": "℃"
+      }
+    },
+    {
+      "name": "get_target_temperature",
+      "description": "Get target temperature of the building",
+      "slaveId": 0,
+      "address": 1,
+      "count": 1,
+      "method": "read",
+      "storage": "holdingRegisters",
+      "result": {
+        "name": "temperature_value",
+        "description": "Target temperature value",
+        "type": "int16",
+        "multiplier": 0.1,
+        "uom": "℃"
+      }
+    }
+  ]
+}

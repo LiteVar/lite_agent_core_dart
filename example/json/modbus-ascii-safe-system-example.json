@@ -1,0 +1,45 @@
+{
+  "openmodbus": "1.0.0",
+  "info": {
+    "title": "Safe System Controller",
+    "description": "Safe system control example",
+    "version": "1.0.0"
+  },
+  "server": {
+    "type": "ascii",
+    "config": {
+      "port": "COM3",
+      "baudRate": 9600
+    }
+  },
+  "functions": [
+    {
+      "name": "door_1_status",
+      "description": "read 1# door status",
+      "slaveId": 0,
+      "method": "read",
+      "storage": "coils",
+      "address": 1,
+      "count": 1,
+      "result": {
+        "name": "door_1_status",
+        "description": "door 1 is open or close",
+        "type": "bool"
+      }
+    },
+    {
+      "name": "control_door_1",
+      "description": "Open/close light 1",
+      "slaveId": 0,
+      "method": "write",
+      "storage": "coils",
+      "address": 1,
+      "count": 1,
+      "parameter": {
+        "name": "light_1",
+        "description": "true: open, false: close",
+        "type": "bool"
+      }
+    }
+  ]
+}

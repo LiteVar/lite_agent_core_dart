@@ -31,7 +31,8 @@ class CapabilityDto {
 enum Protocol {
   openapi,
   openmodbus,
-  jsonrpcHttp
+  jsonrpcHttp,
+  opentool
 }
 
 @JsonSerializable()

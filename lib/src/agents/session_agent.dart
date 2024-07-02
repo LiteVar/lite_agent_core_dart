@@ -10,7 +10,7 @@ abstract class SessionAgent extends LLM {
   final Dispatcher _dispatcher = Dispatcher();
   final int timeoutSeconds;
   Timer? timer;
-  late List<UserMessage> userMessageList;
+  // late List<UserMessage> userMessageList;
 
   Future<String> buildSystemMessage();
 
@@ -18,36 +18,35 @@ abstract class SessionAgent extends LLM {
 
   SessionAgent({required super.llmRunner, required this.session, required this.timeoutSeconds});
 
-  void userToAgent(List<UserMessage> userMessageList) {
-    this.userMessageList = userMessageList;
+  void userToAgent(List<Content> contentList) {
 
     Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.START));
     _dispatcher.dispatch(clientCommand);
 
-    AgentMessage userAgentMessageAtLast = _convertToAgentMessage(userMessageList.last);
+    AgentMessage contentMessage = AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.contentList, message: contentList);
 
     if(session.agentMessageList.isEmpty) {  // 如果会话为空，初始化会话
-      Command initCommand = Command(_initSystemMessage, userAgentMessageAtLast);
+      Command initCommand = Command(_initSystemMessage, contentMessage);
       _dispatcher.dispatch(initCommand);
+
     } else {  // 否则直接分发消息
-      _buildUserMessageListWithoutLast();
-      toAgent(userAgentMessageAtLast);
+      toAgent(contentMessage);
     }
   }
 
-  AgentMessage _convertToAgentMessage(UserMessage userMessage) {
-    switch(userMessage.type) {
-      case UserMessageType.text: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.text, message: userMessage.message);
-      case UserMessageType.imageUrl: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.imageUrl, message: userMessage.message);
-    }
-  }
+  // AgentMessage _convertToAgentMessage(Content userMessage) {
+  //   switch(userMessage.type) {
+  //     case ContentType.text: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.text, message: userMessage.message);
+  //     case ContentType.imageUrl: return AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.imageUrl, message: userMessage.message);
+  //   }
+  // }
 
   void toAgent(AgentMessage agentMessage) {
     session.addAgentMessage(agentMessage);
 
     Command? nextCommand;
     if(agentMessage.from == AgentRole.USER) {
-      AgentMessage newAgentMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: agentMessage.message as String);
+      AgentMessage newAgentMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.contentList, message: agentMessage.message as List<Content>);
       nextCommand = Command(_toLLM, newAgentMessage); //转发用户请求给大模型
     } else if(agentMessage.from == AgentRole.LLM) {
       if(agentMessage.type == AgentMessageType.text) {
@@ -83,14 +82,7 @@ abstract class SessionAgent extends LLM {
       AgentMessage systemAgentMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemMessage);
       toAgent(systemAgentMessage);
     }
-    _buildUserMessageListWithoutLast();
     toAgent(agentMessage);
-  }
-
-  void _buildUserMessageListWithoutLast() {
-    for(int i=0; i< userMessageList.length-1; i++) {
-      session.addAgentMessage(_convertToAgentMessage(userMessageList[i]));
-    }
   }
 
   Future<void> _toUser(AgentMessage agentMessage) async {

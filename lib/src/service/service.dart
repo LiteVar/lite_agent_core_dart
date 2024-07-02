@@ -49,7 +49,7 @@ class AgentService {
 
   Future<void> startChat(String sessionId, List<UserMessageDto> userMessageDtoList) async {
     ToolAgent toolAgent = agents[sessionId]!;
-    List<UserMessage> userMessageList = userMessageDtoList.map((userMessageDto) => _convertToUserMessage(userMessageDto)).toList();
+    List<Content> userMessageList = userMessageDtoList.map((userMessageDto) => _convertToContent(userMessageDto)).toList();
     toolAgent.userToAgent(userMessageList);
   }
 
@@ -77,10 +77,10 @@ class AgentService {
     agents.remove(sessionId);
   }
 
-  UserMessage _convertToUserMessage(UserMessageDto userMessageDto) {
+  Content _convertToContent(UserMessageDto userMessageDto) {
     switch(userMessageDto.type) {
-      case UserMessageDtoType.text: return UserMessage(type: UserMessageType.text, message: userMessageDto.message as String);
-      case UserMessageDtoType.imageUrl: return UserMessage(type: UserMessageType.imageUrl, message: userMessageDto.message as String);
+      case UserMessageDtoType.text: return Content(type: ContentType.text, message: userMessageDto.message as String);
+      case UserMessageDtoType.imageUrl: return Content(type: ContentType.imageUrl, message: userMessageDto.message as String);
     }
   }
 

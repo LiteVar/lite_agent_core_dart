@@ -122,6 +122,23 @@ class LLMRunner {
       ).asRequestFunctionMessage(toolCallId: toolReturn.id);
     }
 
+    //Agent转发User的请求
+    if(agentMessage.from == AgentRole.AGENT && agentMessage.type == AgentMessageType.contentList) {
+      List<Content> contentList = agentMessage.message as List<Content>;
+
+      List<OpenAIChatCompletionChoiceMessageContentItemModel> openAIContentList = contentList.map((content) {
+        switch(content.type) {
+          case ContentType.text: return OpenAIChatCompletionChoiceMessageContentItemModel.text(content.message);
+          case ContentType.imageUrl: return OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(content.message);
+        }
+      }).toList();
+
+      return OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: openAIContentList,
+      );
+    }
+
     //Agent文本大模型，fromAgent toLLM
     return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.user,

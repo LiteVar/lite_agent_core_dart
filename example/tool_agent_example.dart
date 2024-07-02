@@ -15,7 +15,7 @@ Future<void> main() async {
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
-  toolAgent.userToAgent([UserMessage(type: UserMessageType.text, message: prompt)]);
+  toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 
 LLMRunner _buildLLMRunner() {
@@ -69,6 +69,7 @@ AgentSession _buildSession() {
     if(agentMessage.type == AgentMessageType.imageUrl) message = agentMessage.message as String;
     if(agentMessage.type == AgentMessageType.functionCallList) message = jsonEncode((agentMessage.message as List<FunctionCall>).map((functionCall) => functionCall.toJson()).toList());
     if(agentMessage.type == AgentMessageType.toolReturn) message = jsonEncode(agentMessage.message as ToolReturn);
+    if(agentMessage.type == AgentMessageType.contentList) message = jsonEncode((agentMessage.message as List<Content>).map((content) => content.toJson()).toList());
 
     String from = "";
     if(agentMessage.from == AgentRole.SYSTEM) {from = system ; message = "\n$message";}

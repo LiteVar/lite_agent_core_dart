@@ -81,23 +81,29 @@ class ToolReturn {
   }
 }
 
-enum UserMessageType {
+enum ContentType {
   text,
   imageUrl
 }
 
-class UserMessage {
-  late UserMessageType type;
+class Content {
+  late ContentType type;
   late String message;
 
-  UserMessage({required this.type, required this.message});
+  Content({required this.type, required this.message});
+
+  Map<String, dynamic> toJson() => {
+    'type': type.name,
+    'message': message,
+  };
 }
 
 enum AgentMessageType {
-  text,
-  imageUrl,
-  functionCallList,
-  toolReturn
+  text,             //String
+  imageUrl,         //String
+  functionCallList, //List<FunctionCall>
+  toolReturn,       //ToolReturn
+  contentList       //List<Content>
 }
 
 class AgentMessage {

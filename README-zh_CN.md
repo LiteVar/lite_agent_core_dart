@@ -26,6 +26,7 @@ Future<void> main() async {
       capabilityDto, 
       listen        // 订阅Agent与用户、客户端、大模型、工具等角色的交互消息 AgentMessage
   ); // 获得Session Id
+  String prompt = "<用户消息，例如：调用某个工具>";
   await agentService.startChat(
       sessionDto.id, // 往此Session Id发起指令
       [UserMessageDto(type: UserMessageType.text, message: prompt)] // 用户指令，支持text/imageUrl
@@ -47,6 +48,7 @@ Future<void> main() async {
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
+  String prompt = "<用户消息，例如：调用某个工具>";
   toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 ```

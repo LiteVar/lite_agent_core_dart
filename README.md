@@ -11,6 +11,12 @@ LLM `AI Agent` multi sessions service.
 
 ## Usage
 
+### Prepare
+
+1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
+2. Run your tool server, which is described in json file.
+3. Use below method to run agent service.
+
 ### Method 1(Recommend): AgentService
 - According to `/example/agent_service_example.dart`
 - Support multi agent session via session id.
@@ -26,6 +32,8 @@ Future<void> main() async {
       capabilityDto,
       listen        // Subscribe AgentMessage, Agent chat with User/Client/LLM/Tools Role
   ); // Get Session Id
+  
+  String prompt = "<USER PROMPT, e.g. call any one tool>";
   await agentService.startChat(
       sessionDto.id, // Start chat with the Session Id
       [UserMessageDto(type: UserMessageType.text, message: prompt)] // User Content List, support type text/imageUrl
@@ -47,6 +55,7 @@ Future<void> main() async {
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
+  String prompt = "<USER PROMPT, e.g. call any one tool>";
   toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 ```

@@ -4,10 +4,10 @@ import 'package:dart_openai/dart_openai.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../model.dart';
 
-class LLMRunner {
+class LLMExecutor {
   late LLMConfig llmConfig;
 
-  LLMRunner(this.llmConfig) {
+  LLMExecutor(this.llmConfig) {
     OpenAI.baseUrl = llmConfig.baseUrl;
     OpenAI.apiKey = llmConfig.apiKey;
   }

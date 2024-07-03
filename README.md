@@ -20,7 +20,7 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt(), 
       openSpecList: await _buildOpenSpecList());
   SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);
-  await agentService.startChat(sessionDto.id, UserMessageDto(type: UserMessageType.text, message: prompt));
+  await agentService.startChat(sessionDto.id, [UserMessageDto(type: UserMessageType.text, message: prompt)]);
 }
 ```
 
@@ -36,6 +36,6 @@ Future<void> main() async {
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
   );
-  toolAgent.userToAgent(AgentMessageType.text, prompt);
+  toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 ```

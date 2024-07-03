@@ -1,17 +1,17 @@
 import 'dart:async';
+import 'package:uuid/uuid.dart';
 import 'package:lite_agent_core_dart/src/runner/jsonrpc_runner.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../agents/tool_agent.dart';
 import '../runner/openapi_runner.dart';
 import '../runner/openmodbus_runner.dart';
 import '../runner/tool_runner.dart';
 import '../session.dart';
-import '../util/llm_util.dart';
-import 'dto.dart';
+import '../util/llm_executor.dart';
 import '../model.dart';
+import 'dto.dart';
 
 class AgentService {
 
@@ -33,9 +33,9 @@ class AgentService {
     String sessionId = Uuid().v4();
 
     ToolAgent toolAgent = ToolAgent(
-        llmRunner: _buildLLMRunner(llmConfig),
+        llmExecutor: _buildLLMRunner(llmConfig),
         session: _buildSession(sessionId, listen),
-        toolRunnerList: await _buildToolRunnerList(openSpecDtoList),
+        toolRunnerList: await buildToolRunnerList(openSpecDtoList),
         systemPrompt: systemPrompt,
         timeoutSeconds: capabilityDto.timeoutSeconds
     );
@@ -84,7 +84,7 @@ class AgentService {
     }
   }
 
-  LLMRunner _buildLLMRunner(LLMConfig llmConfig) => LLMRunner(llmConfig);
+  LLMExecutor _buildLLMRunner(LLMConfig llmConfig) => LLMExecutor(llmConfig);
 
   AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) {
     AgentSession agentSession = AgentSession();
@@ -94,7 +94,7 @@ class AgentService {
     return agentSession;
   }
 
-  Future<List<ToolRunner>> _buildToolRunnerList(List<OpenSpecDto> openSpecDtoList) async {
+  Future<List<ToolRunner>> buildToolRunnerList(List<OpenSpecDto> openSpecDtoList) async {
     List<ToolRunner> toolRunnerList = [];
     for (OpenSpecDto openSpecDto in openSpecDtoList) {
       if(openSpecDto.protocol == Protocol.openapi) {

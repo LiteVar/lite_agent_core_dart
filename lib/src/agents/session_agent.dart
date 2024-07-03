@@ -16,7 +16,7 @@ abstract class SessionAgent extends LLM {
 
   Future<List<FunctionModel>?> buildFunctionModelList();
 
-  SessionAgent({required super.llmRunner, required this.session, required this.timeoutSeconds});
+  SessionAgent({required super.llmExecutor, required this.session, required this.timeoutSeconds});
 
   void userToAgent(List<Content> contentList) {
 
@@ -96,7 +96,7 @@ abstract class SessionAgent extends LLM {
     session.addAgentMessage(agentMessage);
     List<AgentMessage> agentLLMMessageList = session.agentMessageList.where((AgentMessage element) => element.from == AgentRole.SYSTEM || element.from == AgentRole.LLM || element.to == AgentRole.LLM).toList();
     List<FunctionModel>? functionModelList = await buildFunctionModelList();
-    AgentMessage newAgentMessage = await llmRunner.requestLLM(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
+    AgentMessage newAgentMessage = await llmExecutor.requestLLM(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
     toAgent(newAgentMessage);
   }
 

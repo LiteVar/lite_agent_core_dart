@@ -1,16 +1,15 @@
-
 import '../model.dart';
 import 'simple_agent.dart';
 
-// only character prompt, run once.
-abstract class CharacterAgent extends SimpleAgent {
-  String character; // Character description, notes, restriction
+// prompt with system message, run once.
+abstract class SystemPromptAgent extends SimpleAgent {
+  String systemPrompt;
 
-  CharacterAgent({required super.llmRunner, required this.character});
+  SystemPromptAgent({required super.llmExecutor, required this.systemPrompt});
 
   @override
   Future<AgentMessage> userToAgent(String prompt) async {
-    AgentMessage systemMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: character);
+    AgentMessage systemMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemPrompt);
     AgentMessage userMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: prompt);
 
     List<AgentMessage> agentLlmMessageList = [
@@ -18,7 +17,7 @@ abstract class CharacterAgent extends SimpleAgent {
       userMessage
     ];
 
-    AgentMessage newAgentLlmMessage = await llmRunner.requestLLM(agentMessageList: agentLlmMessageList);
+    AgentMessage newAgentLlmMessage = await llmExecutor.requestLLM(agentMessageList: agentLlmMessageList);
     return newAgentLlmMessage;
   }
 

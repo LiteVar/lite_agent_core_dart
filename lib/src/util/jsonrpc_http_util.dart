@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'http_util.dart';
 
 String JSONRPC_VERSION = "2.0.0";
 

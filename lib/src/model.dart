@@ -15,6 +15,11 @@ class LLMConfig {
   LLMConfig({required this.baseUrl, required this.apiKey, required this.model, this.temperature = 0.0, this.maxTokens = 4096, this.topP = 1.0});
 }
 
+enum ApiKeyType {
+  basic,
+  bearer
+}
+
 class AgentRole {
   static String SYSTEM = "system"; // 系统，用于存放预置的说明
   static String USER = "user";   // 用户

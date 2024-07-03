@@ -1,15 +1,15 @@
 import '../model.dart';
-import '../util/llm_util.dart';
+import '../util/llm_executor.dart';
 
 class LLM {
-  LLMRunner llmRunner;
-  LLM({required this.llmRunner});
+  LLMExecutor llmExecutor;
+  LLM({required this.llmExecutor});
 }
 
 class SimpleAgent extends LLM {
-  SimpleAgent({required super.llmRunner});
+  SimpleAgent({required super.llmExecutor});
 
   Future<AgentMessage> userToAgent(String prompt) async {
-    return await llmRunner.requestLLM(agentMessageList: [AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: prompt)]);
+    return await llmExecutor.requestLLM(agentMessageList: [AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: prompt)]);
   }
 }

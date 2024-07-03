@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import '../model.dart';
 
 part 'dto.g.dart';
 
@@ -28,18 +28,25 @@ class CapabilityDto {
   Map<String, dynamic> toJson() => _$CapabilityDtoToJson(this);
 }
 
-enum Protocol {
-  openapi,
-  openmodbus,
-  jsonrpcHttp,
-  opentool
+// enum Protocol {
+//   openapi,
+//   openmodbus,
+//   jsonrpcHttp,
+//   opentool
+// }
+
+class Protocol {
+  static String openapi = "openapi";
+  static String openmodbus = "openmodbus";
+  static String jsonrpcHttp = "jsonrpcHttp";
+  static String opentool = "opentool";
 }
 
 @JsonSerializable()
 class OpenSpecDto {
   late String openSpec;
   late ApiKeyDto? apiKey;
-  late Protocol protocol;
+  late String protocol;
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
 

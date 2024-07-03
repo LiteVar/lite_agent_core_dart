@@ -39,22 +39,15 @@ OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(
       apiKey: json['apiKey'] == null
           ? null
           : ApiKeyDto.fromJson(json['apiKey'] as Map<String, dynamic>),
-      protocol: $enumDecode(_$ProtocolEnumMap, json['protocol']),
+      protocol: json['protocol'] as String,
     );
 
 Map<String, dynamic> _$OpenSpecDtoToJson(OpenSpecDto instance) =>
     <String, dynamic>{
       'openSpec': instance.openSpec,
       'apiKey': instance.apiKey,
-      'protocol': _$ProtocolEnumMap[instance.protocol]!,
+      'protocol': instance.protocol,
     };
-
-const _$ProtocolEnumMap = {
-  Protocol.openapi: 'openapi',
-  Protocol.openmodbus: 'openmodbus',
-  Protocol.jsonrpcHttp: 'jsonrpcHttp',
-  Protocol.opentool: 'opentool',
-};
 
 LLMConfigDto _$LLMConfigDtoFromJson(Map<String, dynamic> json) => LLMConfigDto(
       baseUrl: json['baseUrl'] as String,
@@ -105,6 +98,7 @@ const _$AgentMessageTypeEnumMap = {
   AgentMessageType.imageUrl: 'imageUrl',
   AgentMessageType.functionCallList: 'functionCallList',
   AgentMessageType.toolReturn: 'toolReturn',
+  AgentMessageType.contentList: 'contentList',
 };
 
 CompletionsDto _$CompletionsDtoFromJson(Map<String, dynamic> json) =>

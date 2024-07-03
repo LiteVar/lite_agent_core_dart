@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
-import 'package:lite_agent_core_dart/src/runner/jsonrpc_runner.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 
@@ -10,7 +9,7 @@ String prompt = "查一下book id为1的情况";
 
 Future<void> main() async {
   ToolAgent toolAgent = ToolAgent(
-      llmRunner: _buildLLMRunner(),
+      llmExecutor: _buildLLMRunner(),
       session: _buildSession(),
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt()
@@ -18,7 +17,7 @@ Future<void> main() async {
   toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 
-LLMRunner _buildLLMRunner() {
+LLMExecutor _buildLLMRunner() {
   DotEnv env = DotEnv();
   env.load();
 
@@ -27,7 +26,7 @@ LLMRunner _buildLLMRunner() {
     apiKey: env["apiKey"]!,
     model: "gpt-3.5-turbo",
   );
-  return LLMRunner(llmConfig);
+  return LLMExecutor(llmConfig);
 }
 
 Future<List<ToolRunner>> _buildToolRunnerList() async {

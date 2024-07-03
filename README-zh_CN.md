@@ -6,7 +6,7 @@
 
 ## 功能
 
-- 支持 OpenAPI/OpenRPC/OpenModbus/OpenTool 的JSON文本描述
+- 支持 `OpenAPI`/`OpenRPC`/`OpenModbus`/`OpenTool` 的JSON文本描述
 - 支持 大模型的Function calling 到`HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`以及自定义工具的执行
 
 ## 使用

@@ -6,7 +6,7 @@ LLM `AI Agent` multi sessions service.
 
 ## Features
 
-- Support OpenAPI/OpenRPC/OpenModbus/OpenTool JSON Spec.
+- Support `OpenAPI`/`OpenRPC`/`OpenModbus`/`OpenTool` JSON Spec.
 - Support LLM Function calling to `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus` and more custom tools.
 
 ## Usage

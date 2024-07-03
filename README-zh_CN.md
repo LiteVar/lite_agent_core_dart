@@ -1,5 +1,7 @@
 # lite_agent_core_dart
 
+[English](README.md) · 中文
+
 大模型`AI Agent`的多会话服务
 
 ## 功能

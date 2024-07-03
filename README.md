@@ -1,5 +1,7 @@
 # lite_agent_core_dart
 
+English · [中文](README-zh_CN.md)
+
 LLM `AI Agent` multi sessions service.
 
 ## Features

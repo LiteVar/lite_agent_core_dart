@@ -9,11 +9,13 @@ environment:
 dependencies:
   uuid: ^4.4.0
   http: ^1.2.1
+  json_annotation: ^4.9.0
 
   # OpenAI style api support
   dart_openai: ^5.1.0
 
   # Modbus Protocol support
+  modbus_client: ^1.2.1
   modbus_client_tcp: ^1.2.1
   modbus_client_udp: ^1.2.1
   modbus_client_serial: ^1.2.1+1

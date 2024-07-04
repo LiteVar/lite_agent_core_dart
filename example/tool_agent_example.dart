@@ -44,7 +44,8 @@ Future<List<ToolRunner>> _buildToolRunnerList() async {
 
   List<ToolRunner> toolRunnerList = [];
   for (String fileName in fileNameList) {
-    OpenRPC openRPC = await OpenRPCLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
+    OpenRPC openRPC = await OpenRPCLoader()
+        .loadFromFile("$folder${Platform.pathSeparator}$fileName");
     ToolRunner toolRunner = JsonRPCRunner(openRPC);
 
     /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolRunner of the tools.

@@ -34,13 +34,6 @@ class CapabilityDto {
   Map<String, dynamic> toJson() => _$CapabilityDtoToJson(this);
 }
 
-// enum Protocol {
-//   openapi,
-//   openmodbus,
-//   jsonrpcHttp,
-//   opentool
-// }
-
 class Protocol {
   static String openapi = "openapi";
   static String openmodbus = "openmodbus";

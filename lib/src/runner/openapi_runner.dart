@@ -15,7 +15,7 @@ class OpenAPIRunner extends ToolRunner {
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
     openAPI.paths?.paths?.forEach((String path, PathItem pathItem) {
-      // 使用GET方法时，取queryParams作为functional calling的parameter
+      /// When use `GET` method, use `queryParams` as parameter in functional calling
       if (pathItem.get != null) {
         String method = HttpAPIMethodType.get;
         String functionName = convertToFunctionName("$method$path");
@@ -25,7 +25,7 @@ class OpenAPIRunner extends ToolRunner {
         functionModelList.add(functionModel);
       }
 
-      // 使用POST方法时，取requestBody的application/json作为functional calling的parameter
+      /// When use `POST` method，use `requestBody` `application/json` as parameter in functional calling
       if (pathItem.post != null) {
         String method = HttpAPIMethodType.post;
         String functionName = convertToFunctionName("$method$path");
@@ -36,7 +36,7 @@ class OpenAPIRunner extends ToolRunner {
         functionModelList.add(functionModel);
       }
 
-      // 使用PUT方法时，取requestBody的application/json作为functional calling的parameter
+      /// When use `PUT` method，use `requestBody` `application/json` as parameter in functional calling
       if (pathItem.put != null) {
         String method = HttpAPIMethodType.put;
         String functionName = convertToFunctionName("$method$path");
@@ -45,7 +45,7 @@ class OpenAPIRunner extends ToolRunner {
         functionModelList.add(functionModel);
       }
 
-      // 使用DELETE方法时，取queryParams作为functional calling的parameter
+      /// When use `DELETE` method, use `queryParams` as parameter in functional calling
       if (pathItem.delete != null) {
         String method = HttpAPIMethodType.delete;
         String functionName = convertToFunctionName("$method$path");

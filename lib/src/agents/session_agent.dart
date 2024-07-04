@@ -25,15 +25,15 @@ abstract class SessionAgent extends LLM {
     Command clientCommand = Command(
         _toClient,
         AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.CLIENT,
+            from: AgentRole.agent,
+            to: AgentRole.client,
             type: AgentMessageType.text,
-            message: TaskStatus.START));
+            message: TaskStatus.start));
     _dispatcher.dispatch(clientCommand);
 
     AgentMessage contentMessage = AgentMessage(
-        from: AgentRole.USER,
-        to: AgentRole.AGENT,
+        from: AgentRole.user,
+        to: AgentRole.agent,
         type: AgentMessageType.contentList,
         message: contentList);
 
@@ -58,43 +58,43 @@ abstract class SessionAgent extends LLM {
     session.addAgentMessage(agentMessage);
 
     Command? nextCommand;
-    if (agentMessage.from == AgentRole.USER) {
+    if (agentMessage.from == AgentRole.user) {
       AgentMessage newAgentMessage = AgentMessage(
-          from: AgentRole.AGENT,
-          to: AgentRole.LLM,
+          from: AgentRole.agent,
+          to: AgentRole.llm,
           type: AgentMessageType.contentList,
           message: agentMessage.message as List<Content>);
       nextCommand = Command(_toLLM, newAgentMessage); //转发用户请求给大模型
-    } else if (agentMessage.from == AgentRole.LLM) {
+    } else if (agentMessage.from == AgentRole.llm) {
       if (agentMessage.type == AgentMessageType.text) {
         AgentMessage agentUserMessage = AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.USER,
+            from: AgentRole.agent,
+            to: AgentRole.user,
             type: AgentMessageType.text,
             message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是文字，转发给用户
       } else if (agentMessage.type == AgentMessageType.imageUrl) {
         AgentMessage agentUserMessage = AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.USER,
+            from: AgentRole.agent,
+            to: AgentRole.user,
             type: AgentMessageType.imageUrl,
             message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是图片，转发给用户
       } else if (agentMessage.type == AgentMessageType.functionCallList) {
         AgentMessage agentToolMessage = AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.TOOL,
+            from: AgentRole.agent,
+            to: AgentRole.tool,
             type: AgentMessageType.functionCallList,
             message: agentMessage.message);
         nextCommand =
             Command(_toTool, agentToolMessage); // 如果大模型返回的是调用参数，转发大模型的返回给工具
       }
-    } else if (agentMessage.from == AgentRole.TOOL) {
+    } else if (agentMessage.from == AgentRole.tool) {
       if (agentMessage.type == AgentMessageType.toolReturn) {
         // 如果工具返回的是结果，仅仅保留，先不处理
         AgentMessage agentLLMMessage = AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.LLM,
+            from: AgentRole.agent,
+            to: AgentRole.llm,
             type: AgentMessageType.toolReturn,
             message: agentMessage.message);
         session.addAgentMessage(agentLLMMessage);
@@ -102,10 +102,10 @@ abstract class SessionAgent extends LLM {
         // 如果工具返回执行结束，则通知LLM处理
         // AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn_LIST, message: agentMessage.message);
         String toolAgentMessageText = agentMessage.message as String;
-        if (toolAgentMessageText == ToolsStatus.DONE) {
+        if (toolAgentMessageText == ToolsStatus.done) {
           AgentMessage agentToolMessage = AgentMessage(
-              from: AgentRole.AGENT,
-              to: AgentRole.CLIENT,
+              from: AgentRole.agent,
+              to: AgentRole.client,
               type: AgentMessageType.text,
               message: agentMessage.message);
           nextCommand = Command(_toLLM, agentToolMessage);
@@ -120,8 +120,8 @@ abstract class SessionAgent extends LLM {
     String systemMessage = await buildSystemMessage();
     if (systemMessage.isNotEmpty) {
       AgentMessage systemAgentMessage = AgentMessage(
-          from: AgentRole.SYSTEM,
-          to: AgentRole.AGENT,
+          from: AgentRole.system,
+          to: AgentRole.agent,
           type: AgentMessageType.text,
           message: systemMessage);
       toAgent(systemAgentMessage);
@@ -134,10 +134,10 @@ abstract class SessionAgent extends LLM {
     Command clientCommand = Command(
         _toClient,
         AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.CLIENT,
+            from: AgentRole.agent,
+            to: AgentRole.client,
             type: AgentMessageType.text,
-            message: TaskStatus.DONE));
+            message: TaskStatus.done));
     _dispatcher.dispatch(clientCommand);
     startCountDown();
   }
@@ -146,9 +146,9 @@ abstract class SessionAgent extends LLM {
     session.addAgentMessage(agentMessage);
     List<AgentMessage> agentLLMMessageList = session.agentMessageList
         .where((AgentMessage element) =>
-            element.from == AgentRole.SYSTEM ||
-            element.from == AgentRole.LLM ||
-            element.to == AgentRole.LLM)
+            element.from == AgentRole.system ||
+            element.from == AgentRole.llm ||
+            element.to == AgentRole.llm)
         .toList();
     List<FunctionModel>? functionModelList = await buildFunctionModelList();
     AgentMessage newAgentMessage = await llmExecutor.requestLLM(
@@ -162,10 +162,10 @@ abstract class SessionAgent extends LLM {
     Command clientCommand = Command(
         _toClient,
         AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.CLIENT,
+            from: AgentRole.agent,
+            to: AgentRole.client,
             type: AgentMessageType.text,
-            message: ToolsStatus.START));
+            message: ToolsStatus.start));
     _dispatcher.dispatch(clientCommand);
     requestTools(agentMessage);
   }
@@ -180,10 +180,10 @@ abstract class SessionAgent extends LLM {
     Command clientCommand = Command(
         _toClient,
         AgentMessage(
-            from: AgentRole.AGENT,
-            to: AgentRole.CLIENT,
+            from: AgentRole.agent,
+            to: AgentRole.client,
             type: AgentMessageType.text,
-            message: TaskStatus.STOP));
+            message: TaskStatus.stop));
     _dispatcher.dispatch(clientCommand);
     _dispatcher.stop();
     startCountDown();

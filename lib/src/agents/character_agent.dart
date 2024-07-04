@@ -10,13 +10,13 @@ abstract class SystemPromptAgent extends SimpleAgent {
   @override
   Future<AgentMessage> userToAgent(String prompt) async {
     AgentMessage systemMessage = AgentMessage(
-        from: AgentRole.SYSTEM,
-        to: AgentRole.AGENT,
+        from: AgentRole.system,
+        to: AgentRole.agent,
         type: AgentMessageType.text,
         message: systemPrompt);
     AgentMessage userMessage = AgentMessage(
-        from: AgentRole.AGENT,
-        to: AgentRole.LLM,
+        from: AgentRole.agent,
+        to: AgentRole.llm,
         type: AgentMessageType.text,
         message: prompt);
 

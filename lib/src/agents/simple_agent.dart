@@ -12,8 +12,8 @@ class SimpleAgent extends LLM {
   Future<AgentMessage> userToAgent(String prompt) async {
     return await llmExecutor.requestLLM(agentMessageList: [
       AgentMessage(
-          from: AgentRole.AGENT,
-          to: AgentRole.LLM,
+          from: AgentRole.agent,
+          to: AgentRole.llm,
           type: AgentMessageType.text,
           message: prompt)
     ]);

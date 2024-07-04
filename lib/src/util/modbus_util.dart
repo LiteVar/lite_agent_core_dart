@@ -110,18 +110,17 @@ Future<ModbusResponse> requestModbus(ModbusParams modbusParams,
       .then((ModbusResponseCode modbusResponseCode) {
     statusCode = modbusResponseCode.code;
     if (modbusParams.modbusElementParams.methodType == ModbusMethodType.read) {
-      // 读取，需要message有内容
+      /// Read when message not null
       if (statusCode != null && message != null) {
         completer
             .complete(ModbusResponse(statusCode: statusCode!, body: message!));
       }
       if (statusCode != 0x00) {
-        // 如果读取失败，返回报错
+        /// If read error, return error info.
         completer.complete(ModbusResponse(
             statusCode: statusCode!, body: modbusResponseCode.name));
       }
     } else {
-      // 写入，成功直接返回即可
       completer.complete(ModbusResponse(
           statusCode: statusCode!, body: modbusResponseCode.name));
     }

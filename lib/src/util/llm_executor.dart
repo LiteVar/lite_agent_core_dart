@@ -124,7 +124,7 @@ class LLMExecutor {
   OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(
       AgentMessage agentMessage) {
     //系统预置文字
-    if (agentMessage.from == AgentRole.SYSTEM &&
+    if (agentMessage.from == AgentRole.system &&
         agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.system,
@@ -135,7 +135,7 @@ class LLMExecutor {
     }
 
     //大模型返回的纯文本
-    if (agentMessage.from == AgentRole.LLM &&
+    if (agentMessage.from == AgentRole.llm &&
         agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
@@ -146,7 +146,7 @@ class LLMExecutor {
     }
 
     //大模型返回的图片
-    if (agentMessage.from == AgentRole.LLM &&
+    if (agentMessage.from == AgentRole.llm &&
         agentMessage.type == AgentMessageType.imageUrl) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
@@ -157,7 +157,7 @@ class LLMExecutor {
     }
 
     //大模型返回的函数调用
-    if (agentMessage.from == AgentRole.LLM &&
+    if (agentMessage.from == AgentRole.llm &&
         agentMessage.type == AgentMessageType.functionCallList) {
       List<FunctionCall> functionCallList =
           agentMessage.message as List<FunctionCall>;
@@ -173,7 +173,7 @@ class LLMExecutor {
     }
 
     //Agent转发工具返回的调用结果
-    if (agentMessage.from == AgentRole.AGENT &&
+    if (agentMessage.from == AgentRole.agent &&
         agentMessage.type == AgentMessageType.toolReturn) {
       ToolReturn toolReturn = agentMessage.message as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
@@ -186,7 +186,7 @@ class LLMExecutor {
     }
 
     //Agent转发User的请求
-    if (agentMessage.from == AgentRole.AGENT &&
+    if (agentMessage.from == AgentRole.agent &&
         agentMessage.type == AgentMessageType.contentList) {
       List<Content> contentList = agentMessage.message as List<Content>;
 
@@ -245,8 +245,8 @@ class LLMExecutor {
 
     if (message != null) {
       return AgentMessage(
-          from: AgentRole.LLM,
-          to: AgentRole.AGENT,
+          from: AgentRole.llm,
+          to: AgentRole.agent,
           type: AgentMessageType.functionCallList,
           message: message,
           completions: completions);
@@ -254,8 +254,8 @@ class LLMExecutor {
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
-        from: AgentRole.LLM,
-        to: AgentRole.AGENT,
+        from: AgentRole.llm,
+        to: AgentRole.agent,
         type: AgentMessageType.text,
         message: message,
         completions: completions);

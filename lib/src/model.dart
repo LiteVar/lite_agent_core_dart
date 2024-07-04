@@ -25,18 +25,18 @@ class LLMConfig {
 enum ApiKeyType { basic, bearer }
 
 class AgentRole {
-  static String SYSTEM = "system"; // 系统，用于存放预置的说明
-  static String USER = "user"; // 用户
-  static String AGENT = "agent"; // Agent本身
-  static String LLM = "llm"; // 大模型
-  static String TOOL = "tool"; // 外部工具
-  static String CLIENT = "client"; // 调用的外部程序，承载当前操作状态，例如[START]、[STOP]、[DONE]
+  static const String system = "system"; // system prompt
+  static const String user = "user"; // user
+  static const String agent = "agent"; // agent
+  static const String llm = "llm"; // llm
+  static const String tool = "tool"; // external tools
+  static const String client = "client"; // external caller
 }
 
 class TaskStatus {
-  static String START = "[TASK_START]";
-  static String STOP = "[TASK_STOP]";
-  static String DONE = "[TASK_DONE]";
+  static const String start = "[TASK_START]";
+  static const String stop = "[TASK_STOP]";
+  static const String done = "[TASK_DONE]";
 }
 
 class FunctionCall {
@@ -58,8 +58,8 @@ class FunctionCall {
 }
 
 class ToolsStatus {
-  static String START = "[TOOLS_START]";
-  static String DONE = "[TOOLS_DONE]";
+  static const String start = "[TOOLS_START]";
+  static const String done = "[TOOLS_DONE]";
 }
 
 class ToolReturn {

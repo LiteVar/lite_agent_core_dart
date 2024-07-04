@@ -36,7 +36,7 @@ Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest,
 
   Uri fullUrl;
   http.Response response;
-  // GET和DELETE，parameters使用queryParams承载
+  /// `GET` and `DELETE`， use `queryParams` as parameters
   if (httpAPIRequest.method == HttpAPIMethodType.get ||
       httpAPIRequest.method == HttpAPIMethodType.delete) {
     fullUrl = Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path)
@@ -49,7 +49,7 @@ Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest,
       return HttpAPIResponse(statusCode: 500, body: e.toString());
     }
   } else {
-    // POST和PUT，parameters使用requestBody承载
+    /// `POST` and `PUT`， use `requestBody` as parameters
     fullUrl = Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path);
     http.Request request = http.Request(httpAPIRequest.method, fullUrl);
     request.headers.addAll(headers);

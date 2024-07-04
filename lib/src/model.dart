@@ -25,18 +25,18 @@ class LLMConfig {
 enum ApiKeyType { basic, bearer }
 
 class AgentRole {
-  static const String system = "system"; // system prompt
-  static const String user = "user"; // user
-  static const String agent = "agent"; // agent
-  static const String llm = "llm"; // llm
-  static const String tool = "tool"; // external tools
-  static const String client = "client"; // external caller
+  static const String SYSTEM = "system"; // system prompt
+  static const String USER = "user"; // user
+  static const String AGENT = "agent"; // agent
+  static const String LLM = "llm"; // llm
+  static const String TOOL = "tool"; // external tools
+  static const String CLIENT = "client"; // external caller
 }
 
 class TaskStatus {
-  static const String start = "[TASK_START]";
-  static const String stop = "[TASK_STOP]";
-  static const String done = "[TASK_DONE]";
+  static const String START = "[TASK_START]";
+  static const String STOP = "[TASK_STOP]";
+  static const String DONE = "[TASK_DONE]";
 }
 
 class FunctionCall {
@@ -58,8 +58,8 @@ class FunctionCall {
 }
 
 class ToolsStatus {
-  static const String start = "[TOOLS_START]";
-  static const String done = "[TOOLS_DONE]";
+  static const String START = "[TOOLS_START]";
+  static const String DONE = "[TOOLS_DONE]";
 }
 
 class ToolReturn {
@@ -124,10 +124,12 @@ class AgentMessage {
 }
 
 class Completions {
-  TokenUsage
-      tokenUsage; //When role is llm, this is current llm calling token usage
-  String
-      id; //When role is llm, this is current /chat/completions return message id
+  TokenUsage tokenUsage;
+
+  /// When role is llm, this is current llm calling token usage
+  String id;
+
+  /// When role is llm, this is current /chat/completions return message id
   String model;
 
   Completions(

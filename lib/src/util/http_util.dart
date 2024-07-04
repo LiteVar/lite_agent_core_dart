@@ -36,6 +36,7 @@ Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest,
 
   Uri fullUrl;
   http.Response response;
+
   /// `GET` and `DELETE`， use `queryParams` as parameters
   if (httpAPIRequest.method == HttpAPIMethodType.get ||
       httpAPIRequest.method == HttpAPIMethodType.delete) {

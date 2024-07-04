@@ -83,23 +83,23 @@ AgentSession _buildSession() {
           .toList());
 
     String from = "";
-    if (agentMessage.from == AgentRole.system) {
+    if (agentMessage.from == AgentRole.SYSTEM) {
       from = system;
       message = "\n$message";
     }
-    if (agentMessage.from == AgentRole.user) from = user;
-    if (agentMessage.from == AgentRole.agent) from = agent;
-    if (agentMessage.from == AgentRole.llm) from = llm;
-    if (agentMessage.from == AgentRole.tool) from = tool;
-    if (agentMessage.from == AgentRole.client) from = client;
+    if (agentMessage.from == AgentRole.USER) from = user;
+    if (agentMessage.from == AgentRole.AGENT) from = agent;
+    if (agentMessage.from == AgentRole.LLM) from = llm;
+    if (agentMessage.from == AgentRole.TOOL) from = tool;
+    if (agentMessage.from == AgentRole.CLIENT) from = client;
 
     String to = "";
-    if (agentMessage.to == AgentRole.system) to = system;
-    if (agentMessage.to == AgentRole.user) to = user;
-    if (agentMessage.to == AgentRole.agent) to = agent;
-    if (agentMessage.to == AgentRole.llm) to = llm;
-    if (agentMessage.to == AgentRole.tool) to = tool;
-    if (agentMessage.to == AgentRole.client) to = client;
+    if (agentMessage.to == AgentRole.SYSTEM) to = system;
+    if (agentMessage.to == AgentRole.USER) to = user;
+    if (agentMessage.to == AgentRole.AGENT) to = agent;
+    if (agentMessage.to == AgentRole.LLM) to = llm;
+    if (agentMessage.to == AgentRole.TOOL) to = tool;
+    if (agentMessage.to == AgentRole.CLIENT) to = client;
 
     if (from.isNotEmpty && to.isNotEmpty) {
       print("$from -> $to: [${agentMessage.type.name}] $message");

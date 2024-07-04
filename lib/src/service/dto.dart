@@ -35,10 +35,10 @@ class CapabilityDto {
 }
 
 class Protocol {
-  static String openapi = "openapi";
-  static String openmodbus = "openmodbus";
-  static String jsonrpcHttp = "jsonrpcHttp";
-  static String opentool = "opentool";
+  static const String openapi = "openapi";
+  static const String openmodbus = "openmodbus";
+  static const String jsonrpcHttp = "jsonrpcHttp";
+  static const String opentool = "opentool";
 }
 
 @JsonSerializable()
@@ -105,10 +105,12 @@ class AgentMessageDto {
 
 @JsonSerializable()
 class CompletionsDto {
-  late TokenUsageDto
-      tokenUsage; //When role is llm, this is current llm calling token usage
-  late String
-      id; //When role is llm, this is current /chat/completions return message id
+  late TokenUsageDto tokenUsage;
+
+  /// When role is llm, this is current llm calling token usage
+  late String id;
+
+  /// When role is llm, this is current /chat/completions return message id
   late String model;
 
   CompletionsDto(

@@ -123,8 +123,8 @@ class LLMExecutor {
 
   OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(
       AgentMessage agentMessage) {
-    //系统预置文字
-    if (agentMessage.from == AgentRole.system &&
+    //System Prompt
+    if (agentMessage.from == AgentRole.SYSTEM &&
         agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.system,
@@ -134,8 +134,8 @@ class LLMExecutor {
           ]);
     }
 
-    //大模型返回的纯文本
-    if (agentMessage.from == AgentRole.llm &&
+    //LLM return text
+    if (agentMessage.from == AgentRole.LLM &&
         agentMessage.type == AgentMessageType.text) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
@@ -145,8 +145,8 @@ class LLMExecutor {
           ]);
     }
 
-    //大模型返回的图片
-    if (agentMessage.from == AgentRole.llm &&
+    //LLM return image
+    if (agentMessage.from == AgentRole.LLM &&
         agentMessage.type == AgentMessageType.imageUrl) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
@@ -156,8 +156,8 @@ class LLMExecutor {
           ]);
     }
 
-    //大模型返回的函数调用
-    if (agentMessage.from == AgentRole.llm &&
+    //LLM return function calling
+    if (agentMessage.from == AgentRole.LLM &&
         agentMessage.type == AgentMessageType.functionCallList) {
       List<FunctionCall> functionCallList =
           agentMessage.message as List<FunctionCall>;
@@ -172,8 +172,8 @@ class LLMExecutor {
           toolCalls: openAIResponseToolCallList);
     }
 
-    //Agent转发工具返回的调用结果
-    if (agentMessage.from == AgentRole.agent &&
+    //AGENT return TOOL result
+    if (agentMessage.from == AgentRole.AGENT &&
         agentMessage.type == AgentMessageType.toolReturn) {
       ToolReturn toolReturn = agentMessage.message as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
@@ -185,8 +185,8 @@ class LLMExecutor {
       ).asRequestFunctionMessage(toolCallId: toolReturn.id);
     }
 
-    //Agent转发User的请求
-    if (agentMessage.from == AgentRole.agent &&
+    //AGENT forward USER messages
+    if (agentMessage.from == AgentRole.AGENT &&
         agentMessage.type == AgentMessageType.contentList) {
       List<Content> contentList = agentMessage.message as List<Content>;
 
@@ -208,7 +208,7 @@ class LLMExecutor {
       );
     }
 
-    //Agent文本大模型，fromAgent toLLM
+    //Default, USER text message
     return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.user,
         content: [
@@ -245,8 +245,8 @@ class LLMExecutor {
 
     if (message != null) {
       return AgentMessage(
-          from: AgentRole.llm,
-          to: AgentRole.agent,
+          from: AgentRole.LLM,
+          to: AgentRole.AGENT,
           type: AgentMessageType.functionCallList,
           message: message,
           completions: completions);
@@ -254,8 +254,8 @@ class LLMExecutor {
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
-        from: AgentRole.llm,
-        to: AgentRole.agent,
+        from: AgentRole.LLM,
+        to: AgentRole.AGENT,
         type: AgentMessageType.text,
         message: message,
         completions: completions);

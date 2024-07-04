@@ -6,7 +6,7 @@
 
 ## 功能
 
-- 支持 `OpenAPI`/`OpenRPC`/`OpenModbus`/`OpenTool` 的JSON文本描述
+- 支持 [OpenAPI](https://github.com/djbird2046/openapi_dart)/[OpenRPC](https://github.com/djbird2046/openrpc_dart)/[OpenModbus](https://github.com/djbird2046/openmodbus_dart)/[OpenTool](https://github.com/djbird2046/opentool_dart) 的JSON文本描述
 - 支持 大模型的Function calling 到`HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`以及自定义工具的执行
 
 ## 使用

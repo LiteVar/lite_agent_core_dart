@@ -18,11 +18,11 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt(),
       openSpecList: await _buildOpenSpecList());
 
-  print("[capabilityDto] " + capabilityDto.toJson().toString());
+  print("[CapabilityDto] " + capabilityDto.toJson().toString());
 
   SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);
 
-  print("[sessionDto] " + sessionDto.toJson().toString());
+  print("[SessionDto] " + sessionDto.toJson().toString());
 
   await agentService.startChat(sessionDto.id,
       [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
@@ -32,12 +32,12 @@ Future<void> main() async {
   await sleep(10);
 
   await agentService.stopChat(sessionDto.id);
-  print("[stopSessionDto] ");
+  print("[stopSession] ");
 
   await sleep(5);
 
   await agentService.clearChat(sessionDto.id);
-  print("[clearSessionDto] ");
+  print("[clearSession] ");
 }
 
 Future<void> sleep(int seconds) async {

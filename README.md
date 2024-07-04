@@ -17,8 +17,8 @@ LLM `AI Agent` multi sessions service.
 2. Run your tool server, which is described in json file.
 3. Add `.env` file in the `example` folder, and add below content in the `.env` file：
      ```properties
-     baseUrl = https://xxx.xxx.com         # 大模型接口的BaseURL
-     apiKey = sk-xxxxxxxxxxxxxxxxxxxx      # 大模型接口的ApiKey
+     baseUrl = https://xxx.xxx.com         # LLM API BaseURL
+     apiKey = sk-xxxxxxxxxxxxxxxxxxxx      # LLM API ApiKey
      ```
 4. Use below method to run agent service.
 

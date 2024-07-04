@@ -148,7 +148,7 @@ const _$ApiKeyTypeEnumMap = {
 UserMessageDto _$UserMessageDtoFromJson(Map<String, dynamic> json) =>
     UserMessageDto(
       type: $enumDecode(_$UserMessageDtoTypeEnumMap, json['type']),
-      message: json['message'],
+      message: json['message'] as String,
     );
 
 Map<String, dynamic> _$UserMessageDtoToJson(UserMessageDto instance) =>

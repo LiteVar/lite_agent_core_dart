@@ -79,8 +79,8 @@ class AgentService {
 
   Content _convertToContent(UserMessageDto userMessageDto) {
     switch(userMessageDto.type) {
-      case UserMessageDtoType.text: return Content(type: ContentType.text, message: userMessageDto.message as String);
-      case UserMessageDtoType.imageUrl: return Content(type: ContentType.imageUrl, message: userMessageDto.message as String);
+      case UserMessageDtoType.text: return Content(type: ContentType.text, message: userMessageDto.message);
+      case UserMessageDtoType.imageUrl: return Content(type: ContentType.imageUrl, message: userMessageDto.message);
     }
   }
 

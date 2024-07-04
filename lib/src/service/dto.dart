@@ -147,7 +147,7 @@ enum UserMessageDtoType {
 @JsonSerializable()
 class UserMessageDto {
   UserMessageDtoType type;
-  dynamic message;
+  String message;
 
   UserMessageDto({required this.type, required this.message});
 

@@ -1,4 +1,4 @@
-# lite_agent_core_dart
+# LiteAgent core for dart
 
 [English](README.md) · 中文
 
@@ -10,6 +10,17 @@
 - 支持 大模型的Function calling 到`HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`以及自定义工具的执行
 
 ## 使用
+
+### 准备
+
+1. 准备OpenSpec的JSON文件，可参照 `/example/json/*.json` 作为样例，并且文件描述的接口真实可调用
+2. 启动你的工具服务，对应的服务描述即为步骤1的JSON文件描述
+3. 如果需要运行example，在 `example` 文件夹增加 `.env` 文件，并且`.env`文件需要增加如下内容：
+     ```properties
+     baseUrl = https://xxx.xxx.com         # 大模型接口的BaseURL
+     apiKey = sk-xxxxxxxxxxxxxxxxxxxx      # 大模型接口的ApiKey
+     ```
+4. 使用下方的方法运行Agent服务
 
 ### 方法1（推荐）: 使用AgentService
 - 例子：`/example/agent_service_example.dart`
@@ -38,7 +49,7 @@ Future<void> main() async {
 
 - 例子：`/example/tool_agent_example.dart`
 - 更底层的调用，自由度更大，仅单一会话
-- [方法1的AgentService](#方法1推荐-使用agentservice)是对此本地调用的较为友好的封装
+- [方法1的AgentService](#方法1推荐-使用agentservice)是对ToolAgent的较为友好的封装
 
 ```dart
 Future<void> main() async {

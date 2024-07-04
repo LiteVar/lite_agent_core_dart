@@ -4,7 +4,11 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 
-String prompt = "查一下book id为1的情况";
+/// [IMPORTANT] Prepare:
+/// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
+/// 2. Run your tool server, which is described in json file.
+/// 3. Add LLM baseUrl and apiKey to `.env` file
+String prompt = "Check the status of the book which id is 1.";
 
 AgentService agentService = AgentService();
 
@@ -42,7 +46,7 @@ Future<void> sleep(int seconds) async {
 
 LLMConfigDto _buildLLMConfig() {
   DotEnv env = DotEnv();
-  env.load();
+  env.load(['example/.env']);
 
   return LLMConfigDto(
     baseUrl: env["baseUrl"]!,
@@ -51,40 +55,18 @@ LLMConfigDto _buildLLMConfig() {
   );
 }
 
+/// Use Prompt engineering to design SystemPrompt
+/// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return '# 你可以帮我管理book和food';
-  // return
-  //   '# 角色和职能\n'
-  //   '\n'
-  //   '1. 你的角色是：PRM AI, 职能是：设备测试智能助手，公司介绍专员\n'
-  //   '\n'
-  //   '# 技能\n'
-  //   '\n'
-  //   '1. 可对AFT, ASS, AUT设备进行测试，可对LAS设备进行打印\n'
-  //   '2. 可控制FCT两个抽屉分别关闭或打开，开始测试\n'
-  //   '3. 可从MDC获取设备原始数据或傅里叶数据\n'
-  //   '4. 可从KNLG搜索内容\n'
-  //   '\n'
-  //   '# 约束条件\n'
-  //   '\n'
-  //   '1. AFT仅当状态为"IDLE"时才能开始测试，之后可查询进度,结果或数据\n'
-  //   '2. ASS或AUT仅当状态为"Idle"时才能开始测试，之后可查询进度,结果或数据\n'
-  //   '3. FCT开始测试之后可获取状态和结果\n'
-  //   '4. LAS设备状态为"Idle"可开始打印，之后可获取状态\n'
-  //   '5. 其他信息必须使用KNLG_post工具，从结果提取message字段并显示';
+  return 'You are a tools caller, who can call book system tools to help me manage my books.';
 }
 
 Future<List<OpenSpecDto>> _buildOpenSpecList() async {
   String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
   List<String> fileNameList = [
-    // "AFT-merge.json",
-    // "ASS-merge.json",
-    // "AUT-merge.json",
-    // "FCT-merge.json",
-    // "LAS-merge.json",
-    // "MDC-service.json",
-    "json-rpc-book.json",
-    "json-rpc-food.json"
+    "json-rpc-book.json"
+    /// you can add more tool spec json file.
+    // "json-rpc-food.json"
   ];
 
   List<OpenSpecDto> openSpecList = [];
@@ -93,8 +75,18 @@ Future<List<OpenSpecDto>> _buildOpenSpecList() async {
     String jsonString = await file.readAsString();
 
     OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.jsonrpcHttp);
+
     openSpecList.add(openSpecDto);
   }
+
+  /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolRunner of the tools.
+  // for (String fileName in fileNameList) {
+  //   File file = File("$folder/$fileName");
+  //   String jsonString = await file.readAsString();
+  //   OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.openapi); //<<-- Tool Protocol
+  //   openSpecList.add(openSpecDto);
+  // }
+
   return openSpecList;
 }
 

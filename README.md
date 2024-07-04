@@ -15,7 +15,12 @@ LLM `AI Agent` multi sessions service.
 
 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
 2. Run your tool server, which is described in json file.
-3. Use below method to run agent service.
+3. Add `.env` file in the `example` folder, and add below content in the `.env` file：
+     ```properties
+     baseUrl = https://xxx.xxx.com         # 大模型接口的BaseURL
+     apiKey = sk-xxxxxxxxxxxxxxxxxxxx      # 大模型接口的ApiKey
+     ```
+4. Use below method to run agent service.
 
 ### Method 1(Recommend): AgentService
 - According to `/example/agent_service_example.dart`

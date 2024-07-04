@@ -1,4 +1,4 @@
-# lite_agent_core_dart
+# LiteAgent core for dart
 
 English · [中文](README-zh_CN.md)
 

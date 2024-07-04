@@ -2,7 +2,7 @@ import 'tool_runner.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-abstract class OpenRPCRunner extends ToolRunner{
+abstract class OpenRPCRunner extends ToolRunner {
   OpenRPC openRPC;
 
   OpenRPCRunner(this.openRPC);
@@ -14,10 +14,15 @@ abstract class OpenRPCRunner extends ToolRunner{
       Map<String, Property> properties = {};
       method.params.forEach((ContentDescriptor contentDescriptor) {
         String name = contentDescriptor.name;
-        properties[name] = _convertToProperty(contentDescriptor.name, contentDescriptor.schema, contentDescriptor.required);
+        properties[name] = _convertToProperty(contentDescriptor.name,
+            contentDescriptor.schema, contentDescriptor.required);
       });
-      Parameters opentoolParameters= Parameters(type: "object", properties: properties);
-      FunctionModel functionModel = FunctionModel(name: method.name, description: method.description??"", parameters: opentoolParameters);
+      Parameters opentoolParameters =
+          Parameters(type: "object", properties: properties);
+      FunctionModel functionModel = FunctionModel(
+          name: method.name,
+          description: method.description ?? "",
+          parameters: opentoolParameters);
       functionModelList.add(functionModel);
     });
     return functionModelList;
@@ -26,38 +31,35 @@ abstract class OpenRPCRunner extends ToolRunner{
   Property _convertToProperty(String name, Schema schema, bool required) {
     String type = schema.type.toLowerCase();
     PropertyType propertyType = _PropertyTypeEnumMap[type]!;
-    if(propertyType == PropertyType.array) {
+    if (propertyType == PropertyType.array) {
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
           enum_: schema.enum_,
-          items: _convertToProperty(name, schema.items!, schema.required?.contains(name)??false)
-      );
+          items: _convertToProperty(
+              name, schema.items!, schema.required?.contains(name) ?? false));
     } else if (propertyType == PropertyType.object) {
       Map<String, Property> properties = {};
-      schema.properties?.forEach((String name, Schema schema0){
-        properties[name] = _convertToProperty(name, schema0, schema.required?.contains(name)??false);
+      schema.properties?.forEach((String name, Schema schema0) {
+        properties[name] = _convertToProperty(
+            name, schema0, schema.required?.contains(name) ?? false);
       });
 
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
           enum_: schema.enum_,
-          properties: properties
-      );
+          properties: properties);
     } else {
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
-          enum_: schema.enum_
-      );
+          enum_: schema.enum_);
     }
-
   }
-
 }
 
 const _PropertyTypeEnumMap = {

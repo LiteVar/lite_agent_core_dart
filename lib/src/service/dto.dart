@@ -9,7 +9,8 @@ class SessionDto {
 
   SessionDto({required this.id});
 
-  factory SessionDto.fromJson(Map<String, dynamic> json) => _$SessionDtoFromJson(json);
+  factory SessionDto.fromJson(Map<String, dynamic> json) =>
+      _$SessionDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionDtoToJson(this);
 }
@@ -21,9 +22,14 @@ class CapabilityDto {
   late List<OpenSpecDto> openSpecList;
   int timeoutSeconds;
 
-  CapabilityDto({required this.llmConfig, required this.systemPrompt, required this.openSpecList, this.timeoutSeconds = 3600});
+  CapabilityDto(
+      {required this.llmConfig,
+      required this.systemPrompt,
+      required this.openSpecList,
+      this.timeoutSeconds = 3600});
 
-  factory CapabilityDto.fromJson(Map<String, dynamic> json) => _$CapabilityDtoFromJson(json);
+  factory CapabilityDto.fromJson(Map<String, dynamic> json) =>
+      _$CapabilityDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$CapabilityDtoToJson(this);
 }
@@ -50,7 +56,8 @@ class OpenSpecDto {
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
 
-  factory OpenSpecDto.fromJson(Map<String, dynamic> json) => _$OpenSpecDtoFromJson(json);
+  factory OpenSpecDto.fromJson(Map<String, dynamic> json) =>
+      _$OpenSpecDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$OpenSpecDtoToJson(this);
 }
@@ -64,9 +71,16 @@ class LLMConfigDto {
   int maxTokens;
   double topP;
 
-  LLMConfigDto({required this.baseUrl, required this.apiKey, required this.model, this.temperature = 0.0, this.maxTokens = 4096, this.topP = 1.0});
+  LLMConfigDto(
+      {required this.baseUrl,
+      required this.apiKey,
+      required this.model,
+      this.temperature = 0.0,
+      this.maxTokens = 4096,
+      this.topP = 1.0});
 
-  factory LLMConfigDto.fromJson(Map<String, dynamic> json) => _$LLMConfigDtoFromJson(json);
+  factory LLMConfigDto.fromJson(Map<String, dynamic> json) =>
+      _$LLMConfigDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$LLMConfigDtoToJson(this);
 }
@@ -78,35 +92,45 @@ class AgentMessageDto {
   late String to;
   late AgentMessageType type;
   late dynamic message;
-  CompletionsDto? completions; //When role is llm, this is current llm calling token usage
+  CompletionsDto?
+      completions; //When role is llm, this is current llm calling token usage
   late DateTime createTime;
-  AgentMessageDto({required this.sessionId, required this.from, required this.to, required this.type, required this.message, this.completions, required this.createTime});
+  AgentMessageDto(
+      {required this.sessionId,
+      required this.from,
+      required this.to,
+      required this.type,
+      required this.message,
+      this.completions,
+      required this.createTime});
 
-  factory AgentMessageDto.fromJson(Map<String, dynamic> json) => _$AgentMessageDtoFromJson(json);
+  factory AgentMessageDto.fromJson(Map<String, dynamic> json) =>
+      _$AgentMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$AgentMessageDtoToJson(this);
 }
 
 @JsonSerializable()
 class CompletionsDto {
-  late TokenUsageDto tokenUsage; //When role is llm, this is current llm calling token usage
-  late String id;  //When role is llm, this is current /chat/completions return message id
+  late TokenUsageDto
+      tokenUsage; //When role is llm, this is current llm calling token usage
+  late String
+      id; //When role is llm, this is current /chat/completions return message id
   late String model;
 
-  CompletionsDto({required this.tokenUsage, required this.id, required this.model});
+  CompletionsDto(
+      {required this.tokenUsage, required this.id, required this.model});
 
-  factory CompletionsDto.fromJson(Map<String, dynamic> json) => _$CompletionsDtoFromJson(json);
+  factory CompletionsDto.fromJson(Map<String, dynamic> json) =>
+      _$CompletionsDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompletionsDtoToJson(this);
 
-  factory CompletionsDto.fromModel(Completions completions) =>
-      CompletionsDto(
-          tokenUsage: TokenUsageDto.fromModel(completions.tokenUsage),
-          id: completions.id,
-          model: completions.model
-      );
+  factory CompletionsDto.fromModel(Completions completions) => CompletionsDto(
+      tokenUsage: TokenUsageDto.fromModel(completions.tokenUsage),
+      id: completions.id,
+      model: completions.model);
 }
-
 
 @JsonSerializable()
 class TokenUsageDto {
@@ -114,17 +138,20 @@ class TokenUsageDto {
   final int completionTokens;
   final int totalTokens;
 
-  TokenUsageDto({required this.promptTokens, required this.completionTokens, required this.totalTokens});
+  TokenUsageDto(
+      {required this.promptTokens,
+      required this.completionTokens,
+      required this.totalTokens});
 
-  factory TokenUsageDto.fromJson(Map<String, dynamic> json) => _$TokenUsageDtoFromJson(json);
+  factory TokenUsageDto.fromJson(Map<String, dynamic> json) =>
+      _$TokenUsageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$TokenUsageDtoToJson(this);
 
   factory TokenUsageDto.fromModel(TokenUsage tokenUsage) => TokenUsageDto(
       promptTokens: tokenUsage.promptTokens,
       completionTokens: tokenUsage.completionTokens,
-      totalTokens: tokenUsage.totalTokens
-    );
+      totalTokens: tokenUsage.totalTokens);
 }
 
 @JsonSerializable()
@@ -134,15 +161,13 @@ class ApiKeyDto {
 
   ApiKeyDto({required this.type, required this.apiKey});
 
-  factory ApiKeyDto.fromJson(Map<String, dynamic> json) => _$ApiKeyDtoFromJson(json);
+  factory ApiKeyDto.fromJson(Map<String, dynamic> json) =>
+      _$ApiKeyDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApiKeyDtoToJson(this);
 }
 
-enum UserMessageDtoType {
-  text,
-  imageUrl
-}
+enum UserMessageDtoType { text, imageUrl }
 
 @JsonSerializable()
 class UserMessageDto {
@@ -151,7 +176,8 @@ class UserMessageDto {
 
   UserMessageDto({required this.type, required this.message});
 
-  factory UserMessageDto.fromJson(Map<String, dynamic> json) => _$UserMessageDtoFromJson(json);
+  factory UserMessageDto.fromJson(Map<String, dynamic> json) =>
+      _$UserMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserMessageDtoToJson(this);
 }

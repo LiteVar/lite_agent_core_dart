@@ -16,8 +16,7 @@ Future<void> main() async {
       llmExecutor: _buildLLMRunner(),
       session: _buildSession(),
       toolRunnerList: await _buildToolRunnerList(),
-      systemPrompt: _buildSystemPrompt()
-  );
+      systemPrompt: _buildSystemPrompt());
   toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
 }
 
@@ -36,7 +35,8 @@ LLMExecutor _buildLLMRunner() {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 Future<List<ToolRunner>> _buildToolRunnerList() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
+  String folder =
+      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
   List<String> fileNameList = [
     "json-rpc-book.json"
     // "json-rpc-food.json" // you can add more tool spec json file.
@@ -67,32 +67,43 @@ AgentSession _buildSession() {
     String client = "🔗CLIENT";
 
     String message = "";
-    if(agentMessage.type == AgentMessageType.text) message = agentMessage.message as String;
-    if(agentMessage.type == AgentMessageType.imageUrl) message = agentMessage.message as String;
-    if(agentMessage.type == AgentMessageType.functionCallList) message = jsonEncode((agentMessage.message as List<FunctionCall>).map((functionCall) => functionCall.toJson()).toList());
-    if(agentMessage.type == AgentMessageType.toolReturn) message = jsonEncode(agentMessage.message as ToolReturn);
-    if(agentMessage.type == AgentMessageType.contentList) message = jsonEncode((agentMessage.message as List<Content>).map((content) => content.toJson()).toList());
+    if (agentMessage.type == AgentMessageType.text)
+      message = agentMessage.message as String;
+    if (agentMessage.type == AgentMessageType.imageUrl)
+      message = agentMessage.message as String;
+    if (agentMessage.type == AgentMessageType.functionCallList)
+      message = jsonEncode((agentMessage.message as List<FunctionCall>)
+          .map((functionCall) => functionCall.toJson())
+          .toList());
+    if (agentMessage.type == AgentMessageType.toolReturn)
+      message = jsonEncode(agentMessage.message as ToolReturn);
+    if (agentMessage.type == AgentMessageType.contentList)
+      message = jsonEncode((agentMessage.message as List<Content>)
+          .map((content) => content.toJson())
+          .toList());
 
     String from = "";
-    if(agentMessage.from == AgentRole.SYSTEM) {from = system ; message = "\n$message";}
-    if(agentMessage.from == AgentRole.USER) from = user;
-    if(agentMessage.from == AgentRole.AGENT) from = agent;
-    if(agentMessage.from == AgentRole.LLM) from = llm;
-    if(agentMessage.from == AgentRole.TOOL) from = tool;
-    if(agentMessage.from == AgentRole.CLIENT) from = client;
+    if (agentMessage.from == AgentRole.SYSTEM) {
+      from = system;
+      message = "\n$message";
+    }
+    if (agentMessage.from == AgentRole.USER) from = user;
+    if (agentMessage.from == AgentRole.AGENT) from = agent;
+    if (agentMessage.from == AgentRole.LLM) from = llm;
+    if (agentMessage.from == AgentRole.TOOL) from = tool;
+    if (agentMessage.from == AgentRole.CLIENT) from = client;
 
     String to = "";
-    if(agentMessage.to == AgentRole.SYSTEM) to = system;
-    if(agentMessage.to == AgentRole.USER) to = user;
-    if(agentMessage.to == AgentRole.AGENT) to = agent;
-    if(agentMessage.to == AgentRole.LLM) to = llm;
-    if(agentMessage.to == AgentRole.TOOL) to = tool;
-    if(agentMessage.to == AgentRole.CLIENT) to = client;
+    if (agentMessage.to == AgentRole.SYSTEM) to = system;
+    if (agentMessage.to == AgentRole.USER) to = user;
+    if (agentMessage.to == AgentRole.AGENT) to = agent;
+    if (agentMessage.to == AgentRole.LLM) to = llm;
+    if (agentMessage.to == AgentRole.TOOL) to = tool;
+    if (agentMessage.to == AgentRole.CLIENT) to = client;
 
-    if(from.isNotEmpty && to.isNotEmpty) {
+    if (from.isNotEmpty && to.isNotEmpty) {
       print("$from -> $to: [${agentMessage.type.name}] $message");
     }
-
   });
   return session;
 }

@@ -12,5 +12,8 @@ abstract class OpenToolRunner extends ToolRunner {
   }
 
   @override
-  bool hasFunction(String functionName) => openTool.functions.where((FunctionModel functionModel) => functionModel.name == functionName).isNotEmpty;
+  bool hasFunction(String functionName) => openTool.functions
+      .where(
+          (FunctionModel functionModel) => functionModel.name == functionName)
+      .isNotEmpty;
 }

@@ -9,16 +9,21 @@ abstract class SystemPromptAgent extends SimpleAgent {
 
   @override
   Future<AgentMessage> userToAgent(String prompt) async {
-    AgentMessage systemMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemPrompt);
-    AgentMessage userMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.text, message: prompt);
+    AgentMessage systemMessage = AgentMessage(
+        from: AgentRole.SYSTEM,
+        to: AgentRole.AGENT,
+        type: AgentMessageType.text,
+        message: systemPrompt);
+    AgentMessage userMessage = AgentMessage(
+        from: AgentRole.AGENT,
+        to: AgentRole.LLM,
+        type: AgentMessageType.text,
+        message: prompt);
 
-    List<AgentMessage> agentLlmMessageList = [
-      systemMessage,
-      userMessage
-    ];
+    List<AgentMessage> agentLlmMessageList = [systemMessage, userMessage];
 
-    AgentMessage newAgentLlmMessage = await llmExecutor.requestLLM(agentMessageList: agentLlmMessageList);
+    AgentMessage newAgentLlmMessage =
+        await llmExecutor.requestLLM(agentMessageList: agentLlmMessageList);
     return newAgentLlmMessage;
   }
-
 }

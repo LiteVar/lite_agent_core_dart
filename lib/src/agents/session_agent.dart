@@ -16,20 +16,33 @@ abstract class SessionAgent extends LLM {
 
   Future<List<FunctionModel>?> buildFunctionModelList();
 
-  SessionAgent({required super.llmExecutor, required this.session, required this.timeoutSeconds});
+  SessionAgent(
+      {required super.llmExecutor,
+      required this.session,
+      required this.timeoutSeconds});
 
   void userToAgent(List<Content> contentList) {
-
-    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.START));
+    Command clientCommand = Command(
+        _toClient,
+        AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.CLIENT,
+            type: AgentMessageType.text,
+            message: TaskStatus.START));
     _dispatcher.dispatch(clientCommand);
 
-    AgentMessage contentMessage = AgentMessage(from: AgentRole.USER, to: AgentRole.AGENT, type: AgentMessageType.contentList, message: contentList);
+    AgentMessage contentMessage = AgentMessage(
+        from: AgentRole.USER,
+        to: AgentRole.AGENT,
+        type: AgentMessageType.contentList,
+        message: contentList);
 
-    if(session.agentMessageList.isEmpty) {  // 如果会话为空，初始化会话
+    if (session.agentMessageList.isEmpty) {
+      // 如果会话为空，初始化会话
       Command initCommand = Command(_initSystemMessage, contentMessage);
       _dispatcher.dispatch(initCommand);
-
-    } else {  // 否则直接分发消息
+    } else {
+      // 否则直接分发消息
       toAgent(contentMessage);
     }
   }
@@ -45,41 +58,72 @@ abstract class SessionAgent extends LLM {
     session.addAgentMessage(agentMessage);
 
     Command? nextCommand;
-    if(agentMessage.from == AgentRole.USER) {
-      AgentMessage newAgentMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.contentList, message: agentMessage.message as List<Content>);
+    if (agentMessage.from == AgentRole.USER) {
+      AgentMessage newAgentMessage = AgentMessage(
+          from: AgentRole.AGENT,
+          to: AgentRole.LLM,
+          type: AgentMessageType.contentList,
+          message: agentMessage.message as List<Content>);
       nextCommand = Command(_toLLM, newAgentMessage); //转发用户请求给大模型
-    } else if(agentMessage.from == AgentRole.LLM) {
-      if(agentMessage.type == AgentMessageType.text) {
-        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.text, message: agentMessage.message);
+    } else if (agentMessage.from == AgentRole.LLM) {
+      if (agentMessage.type == AgentMessageType.text) {
+        AgentMessage agentUserMessage = AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.USER,
+            type: AgentMessageType.text,
+            message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是文字，转发给用户
-      } else if(agentMessage.type == AgentMessageType.imageUrl) {
-        AgentMessage agentUserMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.USER, type: AgentMessageType.imageUrl, message: agentMessage.message);
+      } else if (agentMessage.type == AgentMessageType.imageUrl) {
+        AgentMessage agentUserMessage = AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.USER,
+            type: AgentMessageType.imageUrl,
+            message: agentMessage.message);
         nextCommand = Command(_toUser, agentUserMessage); // 如果大模型返回的是图片，转发给用户
-      } else if(agentMessage.type == AgentMessageType.functionCallList) {
-        AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.TOOL, type: AgentMessageType.functionCallList, message: agentMessage.message);
-        nextCommand = Command(_toTool, agentToolMessage); // 如果大模型返回的是调用参数，转发大模型的返回给工具
+      } else if (agentMessage.type == AgentMessageType.functionCallList) {
+        AgentMessage agentToolMessage = AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.TOOL,
+            type: AgentMessageType.functionCallList,
+            message: agentMessage.message);
+        nextCommand =
+            Command(_toTool, agentToolMessage); // 如果大模型返回的是调用参数，转发大模型的返回给工具
       }
-    } else if(agentMessage.from == AgentRole.TOOL) {
-      if(agentMessage.type == AgentMessageType.toolReturn) { // 如果工具返回的是结果，仅仅保留，先不处理
-        AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn, message: agentMessage.message);
+    } else if (agentMessage.from == AgentRole.TOOL) {
+      if (agentMessage.type == AgentMessageType.toolReturn) {
+        // 如果工具返回的是结果，仅仅保留，先不处理
+        AgentMessage agentLLMMessage = AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.LLM,
+            type: AgentMessageType.toolReturn,
+            message: agentMessage.message);
         session.addAgentMessage(agentLLMMessage);
-      } else if(agentMessage.type == AgentMessageType.text) { // 如果工具返回执行结束，则通知LLM处理
+      } else if (agentMessage.type == AgentMessageType.text) {
+        // 如果工具返回执行结束，则通知LLM处理
         // AgentMessage agentLLMMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.LLM, type: AgentMessageType.toolReturn_LIST, message: agentMessage.message);
         String toolAgentMessageText = agentMessage.message as String;
         if (toolAgentMessageText == ToolsStatus.DONE) {
-          AgentMessage agentToolMessage = AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: agentMessage.message);
+          AgentMessage agentToolMessage = AgentMessage(
+              from: AgentRole.AGENT,
+              to: AgentRole.CLIENT,
+              type: AgentMessageType.text,
+              message: agentMessage.message);
           nextCommand = Command(_toLLM, agentToolMessage);
         }
       }
     }
 
-    if(nextCommand != null) _dispatcher.dispatch(nextCommand);
+    if (nextCommand != null) _dispatcher.dispatch(nextCommand);
   }
 
   Future<void> _initSystemMessage(AgentMessage agentMessage) async {
     String systemMessage = await buildSystemMessage();
-    if(systemMessage.isNotEmpty) {
-      AgentMessage systemAgentMessage = AgentMessage(from: AgentRole.SYSTEM, to: AgentRole.AGENT, type: AgentMessageType.text, message: systemMessage);
+    if (systemMessage.isNotEmpty) {
+      AgentMessage systemAgentMessage = AgentMessage(
+          from: AgentRole.SYSTEM,
+          to: AgentRole.AGENT,
+          type: AgentMessageType.text,
+          message: systemMessage);
       toAgent(systemAgentMessage);
     }
     toAgent(agentMessage);
@@ -87,22 +131,41 @@ abstract class SessionAgent extends LLM {
 
   Future<void> _toUser(AgentMessage agentMessage) async {
     session.addAgentMessage(agentMessage);
-    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.DONE));
+    Command clientCommand = Command(
+        _toClient,
+        AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.CLIENT,
+            type: AgentMessageType.text,
+            message: TaskStatus.DONE));
     _dispatcher.dispatch(clientCommand);
     startCountDown();
   }
 
   Future<void> _toLLM(AgentMessage agentMessage) async {
     session.addAgentMessage(agentMessage);
-    List<AgentMessage> agentLLMMessageList = session.agentMessageList.where((AgentMessage element) => element.from == AgentRole.SYSTEM || element.from == AgentRole.LLM || element.to == AgentRole.LLM).toList();
+    List<AgentMessage> agentLLMMessageList = session.agentMessageList
+        .where((AgentMessage element) =>
+            element.from == AgentRole.SYSTEM ||
+            element.from == AgentRole.LLM ||
+            element.to == AgentRole.LLM)
+        .toList();
     List<FunctionModel>? functionModelList = await buildFunctionModelList();
-    AgentMessage newAgentMessage = await llmExecutor.requestLLM(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
+    AgentMessage newAgentMessage = await llmExecutor.requestLLM(
+        agentMessageList: agentLLMMessageList,
+        functionModelList: functionModelList);
     toAgent(newAgentMessage);
   }
 
   Future<void> _toTool(AgentMessage agentMessage) async {
     session.addAgentMessage(agentMessage);
-    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: ToolsStatus.START));
+    Command clientCommand = Command(
+        _toClient,
+        AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.CLIENT,
+            type: AgentMessageType.text,
+            message: ToolsStatus.START));
     _dispatcher.dispatch(clientCommand);
     requestTools(agentMessage);
   }
@@ -114,14 +177,20 @@ abstract class SessionAgent extends LLM {
   Future<void> requestTools(AgentMessage agentMessage);
 
   void stop() {
-    Command clientCommand = Command(_toClient, AgentMessage(from: AgentRole.AGENT, to: AgentRole.CLIENT, type: AgentMessageType.text, message: TaskStatus.STOP));
+    Command clientCommand = Command(
+        _toClient,
+        AgentMessage(
+            from: AgentRole.AGENT,
+            to: AgentRole.CLIENT,
+            type: AgentMessageType.text,
+            message: TaskStatus.STOP));
     _dispatcher.dispatch(clientCommand);
     _dispatcher.stop();
     startCountDown();
   }
 
   void clear() {
-    if(_dispatcher.isListening()) {
+    if (_dispatcher.isListening()) {
       stop();
     }
     session.clearMessage();
@@ -129,7 +198,7 @@ abstract class SessionAgent extends LLM {
   }
 
   void startCountDown() {
-    timer = Timer(Duration(seconds: timeoutSeconds), (){
+    timer = Timer(Duration(seconds: timeoutSeconds), () {
       clear();
     });
   }
@@ -145,14 +214,16 @@ class Command {
 }
 
 class Dispatcher {
-  final StreamController<Command> _streamController = StreamController<Command>();
+  final StreamController<Command> _streamController =
+      StreamController<Command>();
   late StreamSubscription<Command> _subscription;
   bool _isListening = false;
 
   Dispatcher() {
-    if(!_streamController.hasListener) {
+    if (!_streamController.hasListener) {
       _isListening = true;
-      _subscription = _streamController.stream.listen((command) async => await command.execute());
+      _subscription = _streamController.stream
+          .listen((command) async => await command.execute());
     }
   }
 

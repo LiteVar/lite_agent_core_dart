@@ -15,102 +15,124 @@ class OpenAPIRunner extends ToolRunner {
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
     openAPI.paths?.paths?.forEach((String path, PathItem pathItem) {
-
       // 使用GET方法时，取queryParams作为functional calling的parameter
-      if(pathItem.get != null) {
+      if (pathItem.get != null) {
         String method = HttpAPIMethodType.get;
         String functionName = convertToFunctionName("$method$path");
         List<Parameter>? openapiParameters = pathItem.get!.parameters;
-        FunctionModel functionModel = _queryParamsConvertToFunctionModel(functionName, pathItem.get!.description??"", openapiParameters);
+        FunctionModel functionModel = _queryParamsConvertToFunctionModel(
+            functionName, pathItem.get!.description ?? "", openapiParameters);
         functionModelList.add(functionModel);
       }
 
       // 使用POST方法时，取requestBody的application/json作为functional calling的parameter
-      if(pathItem.post != null) {
+      if (pathItem.post != null) {
         String method = HttpAPIMethodType.post;
         String functionName = convertToFunctionName("$method$path");
-        FunctionModel functionModel = _requestBodyConvertToFunctionModel(functionName, pathItem.post!.description, pathItem.post!.requestBody);
+        FunctionModel functionModel = _requestBodyConvertToFunctionModel(
+            functionName,
+            pathItem.post!.description,
+            pathItem.post!.requestBody);
         functionModelList.add(functionModel);
       }
 
       // 使用PUT方法时，取requestBody的application/json作为functional calling的parameter
-      if(pathItem.put != null){
+      if (pathItem.put != null) {
         String method = HttpAPIMethodType.put;
         String functionName = convertToFunctionName("$method$path");
-        FunctionModel functionModel = _requestBodyConvertToFunctionModel(functionName, pathItem.put!.description, pathItem.put!.requestBody);
+        FunctionModel functionModel = _requestBodyConvertToFunctionModel(
+            functionName, pathItem.put!.description, pathItem.put!.requestBody);
         functionModelList.add(functionModel);
       }
 
       // 使用DELETE方法时，取queryParams作为functional calling的parameter
-      if(pathItem.delete != null) {
+      if (pathItem.delete != null) {
         String method = HttpAPIMethodType.delete;
         String functionName = convertToFunctionName("$method$path");
-        List<Parameter>? openapiParameters  = pathItem.delete!.parameters;
-        FunctionModel functionModel = _queryParamsConvertToFunctionModel(functionName, pathItem.delete!.description??"", openapiParameters);
+        List<Parameter>? openapiParameters = pathItem.delete!.parameters;
+        FunctionModel functionModel = _queryParamsConvertToFunctionModel(
+            functionName,
+            pathItem.delete!.description ?? "",
+            openapiParameters);
         functionModelList.add(functionModel);
       }
     });
     return functionModelList;
   }
 
-  FunctionModel _requestBodyConvertToFunctionModel(String functionName, String? description, RequestBody? requestBody) {
+  FunctionModel _requestBodyConvertToFunctionModel(
+      String functionName, String? description, RequestBody? requestBody) {
     Map<String, Property> properties = {};
-    List<String>? requiredList = requestBody?.content["application/json"]?.schema?.required;
-    requestBody?.content["application/json"]?.schema?.properties?.forEach((name, schema) {
-      properties[name] = _convertToProperty(name, schema, requiredList?.contains(name)??false);
+    List<String>? requiredList =
+        requestBody?.content["application/json"]?.schema?.required;
+    requestBody?.content["application/json"]?.schema?.properties
+        ?.forEach((name, schema) {
+      properties[name] = _convertToProperty(
+          name, schema, requiredList?.contains(name) ?? false);
     });
-    Parameters opentoolParameters= Parameters(type: "object", properties: properties);
-    return FunctionModel(name: functionName, description: description??"", parameters: opentoolParameters);
+    Parameters opentoolParameters =
+        Parameters(type: "object", properties: properties);
+    return FunctionModel(
+        name: functionName,
+        description: description ?? "",
+        parameters: opentoolParameters);
   }
 
   Property _convertToProperty(String name, Schema schema, bool required) {
     PropertyType propertyType = _PropertyTypeEnumMap[schema.type]!;
-    if(propertyType == PropertyType.array) {
+    if (propertyType == PropertyType.array) {
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
           enum_: schema.enum_,
-          items: _convertToProperty(name, schema.items!, schema.required?.contains(name)??false)
-      );
+          items: _convertToProperty(
+              name, schema.items!, schema.required?.contains(name) ?? false));
     } else if (propertyType == PropertyType.object) {
       Map<String, Property> properties = {};
-      schema.properties?.forEach((String name, Schema schema0){
-        properties[name] = _convertToProperty(name, schema0, schema.required?.contains(name)??false);
+      schema.properties?.forEach((String name, Schema schema0) {
+        properties[name] = _convertToProperty(
+            name, schema0, schema.required?.contains(name) ?? false);
       });
 
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
           enum_: schema.enum_,
-          properties: properties
-      );
+          properties: properties);
     } else {
       return Property(
           type: propertyType,
-          description: schema.description??"",
+          description: schema.description ?? "",
           required: required,
-          enum_: schema.enum_
-      );
+          enum_: schema.enum_);
     }
-
   }
 
-  FunctionModel _queryParamsConvertToFunctionModel(String functionName, String? description, List<Parameter>? parameters) {
+  FunctionModel _queryParamsConvertToFunctionModel(
+      String functionName, String? description, List<Parameter>? parameters) {
     Map<String, Property> properties = {};
     parameters?.forEach((Parameter parameter) {
       String key = parameter.name;
-      Property property = Property(type: _PropertyTypeEnumMap[parameter.schema?.type??"string"]!, description: parameter.description??"", required: parameter.required??false, enum_: parameter.schema?.enum_);
+      Property property = Property(
+          type: _PropertyTypeEnumMap[parameter.schema?.type ?? "string"]!,
+          description: parameter.description ?? "",
+          required: parameter.required ?? false,
+          enum_: parameter.schema?.enum_);
       properties.addAll({key: property});
     });
-    Parameters opentoolParameters= Parameters(type: "object", properties: properties);
-    return FunctionModel(name: functionName, description: description??"", parameters: opentoolParameters);
+    Parameters opentoolParameters =
+        Parameters(type: "object", properties: properties);
+    return FunctionModel(
+        name: functionName,
+        description: description ?? "",
+        parameters: opentoolParameters);
   }
 
   @override
   String convertToFunctionName(String toolName) {
-    String functionName = toolName.replaceAll("-","--").replaceAll("/", "-");
+    String functionName = toolName.replaceAll("-", "--").replaceAll("/", "-");
     functionToolNameMap.addAll({functionName: toolName});
     return functionName;
   }
@@ -126,9 +148,14 @@ class OpenAPIRunner extends ToolRunner {
     String method = toolName.split("/").first;
     String baseUrl = openAPI.servers!.first.url;
     String path = toolName.replaceFirst(method, "");
-    HttpAPIRequest httpAPIRequest = HttpAPIRequest(method: method, baseUrl: baseUrl, path: path, params: functionCall.parameters);
+    HttpAPIRequest httpAPIRequest = HttpAPIRequest(
+        method: method,
+        baseUrl: baseUrl,
+        path: path,
+        params: functionCall.parameters);
 
-    HttpAPIResponse httpAPIResponse = await requestHttpAPI(httpAPIRequest, authorization: authorization);
+    HttpAPIResponse httpAPIResponse =
+        await requestHttpAPI(httpAPIRequest, authorization: authorization);
     return ToolReturn(id: functionCall.id, result: httpAPIResponse.toJson());
   }
 
@@ -136,7 +163,6 @@ class OpenAPIRunner extends ToolRunner {
   bool hasFunction(String functionName) {
     return functionToolNameMap.containsKey(functionName);
   }
-
 }
 
 const _PropertyTypeEnumMap = {
@@ -148,11 +174,11 @@ const _PropertyTypeEnumMap = {
   'object': PropertyType.object
 };
 
-
-
 String convertToAuthorization(ApiKeyType type, String ApiKey) {
-  switch(type) {
-    case ApiKeyType.basic: return "Basic " + ApiKey;
-    case ApiKeyType.bearer: return "Bearer " + ApiKey;
+  switch (type) {
+    case ApiKeyType.basic:
+      return "Basic " + ApiKey;
+    case ApiKeyType.bearer:
+      return "Bearer " + ApiKey;
   }
 }

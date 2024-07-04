@@ -13,7 +13,10 @@ String prompt = "Check the status of the book which id is 1.";
 AgentService agentService = AgentService();
 
 Future<void> main() async {
-  CapabilityDto capabilityDto = CapabilityDto(llmConfig: _buildLLMConfig(), systemPrompt: _buildSystemPrompt(), openSpecList: await _buildOpenSpecList());
+  CapabilityDto capabilityDto = CapabilityDto(
+      llmConfig: _buildLLMConfig(),
+      systemPrompt: _buildSystemPrompt(),
+      openSpecList: await _buildOpenSpecList());
 
   print("[capabilityDto] " + capabilityDto.toJson().toString());
 
@@ -21,7 +24,8 @@ Future<void> main() async {
 
   print("[sessionDto] " + sessionDto.toJson().toString());
 
-  await agentService.startChat(sessionDto.id, [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  await agentService.startChat(sessionDto.id,
+      [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
 
   print("[prompt] " + prompt);
 
@@ -34,11 +38,10 @@ Future<void> main() async {
 
   await agentService.clearChat(sessionDto.id);
   print("[clearSessionDto] ");
-
 }
 
 Future<void> sleep(int seconds) async {
-  for(int i = seconds; i>0; i--) {
+  for (int i = seconds; i > 0; i--) {
     print(i);
     await Future.delayed(Duration(seconds: 1));
   }
@@ -62,9 +65,11 @@ String _buildSystemPrompt() {
 }
 
 Future<List<OpenSpecDto>> _buildOpenSpecList() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
+  String folder =
+      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
   List<String> fileNameList = [
     "json-rpc-book.json"
+
     /// you can add more tool spec json file.
     // "json-rpc-food.json"
   ];
@@ -74,7 +79,8 @@ Future<List<OpenSpecDto>> _buildOpenSpecList() async {
     File file = File("$folder/$fileName");
     String jsonString = await file.readAsString();
 
-    OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.jsonrpcHttp);
+    OpenSpecDto openSpecDto =
+        OpenSpecDto(openSpec: jsonString, protocol: Protocol.jsonrpcHttp);
 
     openSpecList.add(openSpecDto);
   }
@@ -99,33 +105,40 @@ void listen(String sessionId, AgentMessage agentMessage) {
   String client = "🔗CLIENT";
 
   String message = "";
-  if(agentMessage.type == AgentMessageType.text) message = agentMessage.message as String;
-  if(agentMessage.type == AgentMessageType.imageUrl) message = agentMessage.message as String;
-  if(agentMessage.type == AgentMessageType.functionCallList) {
-    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+  if (agentMessage.type == AgentMessageType.text)
+    message = agentMessage.message as String;
+  if (agentMessage.type == AgentMessageType.imageUrl)
+    message = agentMessage.message as String;
+  if (agentMessage.type == AgentMessageType.functionCallList) {
+    List<FunctionCall> functionCallList =
+        agentMessage.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
-  if(agentMessage.type == AgentMessageType.toolReturn)  {
+  if (agentMessage.type == AgentMessageType.toolReturn) {
     message = jsonEncode(ToolReturn.fromJson(agentMessage.message));
-  };
+  }
+  ;
 
   String from = "";
-  if(agentMessage.from == AgentRole.SYSTEM) {from = system ; message = "\n$message";}
-  if(agentMessage.from == AgentRole.USER) from = user;
-  if(agentMessage.from == AgentRole.AGENT) from = agent;
-  if(agentMessage.from == AgentRole.LLM) from = llm;
-  if(agentMessage.from == AgentRole.TOOL) from = tool;
-  if(agentMessage.from == AgentRole.CLIENT) from = client;
+  if (agentMessage.from == AgentRole.SYSTEM) {
+    from = system;
+    message = "\n$message";
+  }
+  if (agentMessage.from == AgentRole.USER) from = user;
+  if (agentMessage.from == AgentRole.AGENT) from = agent;
+  if (agentMessage.from == AgentRole.LLM) from = llm;
+  if (agentMessage.from == AgentRole.TOOL) from = tool;
+  if (agentMessage.from == AgentRole.CLIENT) from = client;
 
   String to = "";
-  if(agentMessage.to == AgentRole.SYSTEM) to = system;
-  if(agentMessage.to == AgentRole.USER) to = user;
-  if(agentMessage.to == AgentRole.AGENT) to = agent;
-  if(agentMessage.to == AgentRole.LLM) to = llm;
-  if(agentMessage.to == AgentRole.TOOL) to = tool;
-  if(agentMessage.to == AgentRole.CLIENT) to = client;
+  if (agentMessage.to == AgentRole.SYSTEM) to = system;
+  if (agentMessage.to == AgentRole.USER) to = user;
+  if (agentMessage.to == AgentRole.AGENT) to = agent;
+  if (agentMessage.to == AgentRole.LLM) to = llm;
+  if (agentMessage.to == AgentRole.TOOL) to = tool;
+  if (agentMessage.to == AgentRole.CLIENT) to = client;
 
-  if(from.isNotEmpty && to.isNotEmpty) {
+  if (from.isNotEmpty && to.isNotEmpty) {
     print("#${sessionId}# $from -> $to: [${agentMessage.type.name}] $message");
   }
 }

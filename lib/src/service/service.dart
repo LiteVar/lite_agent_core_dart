@@ -14,10 +14,10 @@ import '../model.dart';
 import 'dto.dart';
 
 class AgentService {
-
   Map<String, ToolAgent> agents = {};
 
-  Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessage agentMessage) listen) async {
+  Future<SessionDto> initChat(CapabilityDto capabilityDto,
+      void Function(String sessionId, AgentMessage agentMessage) listen) async {
     String systemPrompt = capabilityDto.systemPrompt;
     List<OpenSpecDto> openSpecDtoList = capabilityDto.openSpecList;
 
@@ -27,8 +27,7 @@ class AgentService {
         model: capabilityDto.llmConfig.model,
         temperature: capabilityDto.llmConfig.temperature,
         maxTokens: capabilityDto.llmConfig.maxTokens,
-        topP: capabilityDto.llmConfig.topP
-    );
+        topP: capabilityDto.llmConfig.topP);
 
     String sessionId = Uuid().v4();
 
@@ -37,8 +36,7 @@ class AgentService {
         session: _buildSession(sessionId, listen),
         toolRunnerList: await buildToolRunnerList(openSpecDtoList),
         systemPrompt: systemPrompt,
-        timeoutSeconds: capabilityDto.timeoutSeconds
-    );
+        timeoutSeconds: capabilityDto.timeoutSeconds);
 
     agents.addAll({sessionId: toolAgent});
 
@@ -47,21 +45,27 @@ class AgentService {
     return sessionDto;
   }
 
-  Future<void> startChat(String sessionId, List<UserMessageDto> userMessageDtoList) async {
+  Future<void> startChat(
+      String sessionId, List<UserMessageDto> userMessageDtoList) async {
     ToolAgent toolAgent = agents[sessionId]!;
-    List<Content> userMessageList = userMessageDtoList.map((userMessageDto) => _convertToContent(userMessageDto)).toList();
+    List<Content> userMessageList = userMessageDtoList
+        .map((userMessageDto) => _convertToContent(userMessageDto))
+        .toList();
     toolAgent.userToAgent(userMessageList);
   }
 
   Future<List<AgentMessageDto>> getHistory(String sessionId) async {
-    return agents[sessionId]!.session.agentMessageList.map((AgentMessage agentMessage) {
+    return agents[sessionId]!
+        .session
+        .agentMessageList
+        .map((AgentMessage agentMessage) {
       AgentMessageDto agentMessageDto = AgentMessageDto(
           sessionId: sessionId,
           from: agentMessage.from,
-          to: agentMessage.to, type: agentMessage.type,
+          to: agentMessage.to,
+          type: agentMessage.type,
           message: agentMessage.message,
-          createTime: agentMessage.createTime
-      );
+          createTime: agentMessage.createTime);
       return agentMessageDto;
     }).toList();
   }
@@ -78,36 +82,46 @@ class AgentService {
   }
 
   Content _convertToContent(UserMessageDto userMessageDto) {
-    switch(userMessageDto.type) {
-      case UserMessageDtoType.text: return Content(type: ContentType.text, message: userMessageDto.message);
-      case UserMessageDtoType.imageUrl: return Content(type: ContentType.imageUrl, message: userMessageDto.message);
+    switch (userMessageDto.type) {
+      case UserMessageDtoType.text:
+        return Content(type: ContentType.text, message: userMessageDto.message);
+      case UserMessageDtoType.imageUrl:
+        return Content(
+            type: ContentType.imageUrl, message: userMessageDto.message);
     }
   }
 
   LLMExecutor _buildLLMRunner(LLMConfig llmConfig) => LLMExecutor(llmConfig);
 
-  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) {
+  AgentSession _buildSession(String sessionId,
+      void Function(String sessionId, AgentMessage agentMessage) listen) {
     AgentSession agentSession = AgentSession();
-    agentSession.addAgentMessageListener((AgentMessage agentMessage){
+    agentSession.addAgentMessageListener((AgentMessage agentMessage) {
       listen(sessionId, agentMessage);
     });
     return agentSession;
   }
 
-  Future<List<ToolRunner>> buildToolRunnerList(List<OpenSpecDto> openSpecDtoList) async {
+  Future<List<ToolRunner>> buildToolRunnerList(
+      List<OpenSpecDto> openSpecDtoList) async {
     List<ToolRunner> toolRunnerList = [];
     for (OpenSpecDto openSpecDto in openSpecDtoList) {
-      if(openSpecDto.protocol == Protocol.openapi) {
+      if (openSpecDto.protocol == Protocol.openapi) {
         OpenAPI openAPI = await OpenAPILoader().load(openSpecDto.openSpec);
         String? authorization;
-        if(openSpecDto.apiKey != null) { convertToAuthorization(openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey); }
-        ToolRunner openAPIRunner = OpenAPIRunner(openAPI,  authorization: authorization);
+        if (openSpecDto.apiKey != null) {
+          convertToAuthorization(
+              openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey);
+        }
+        ToolRunner openAPIRunner =
+            OpenAPIRunner(openAPI, authorization: authorization);
         toolRunnerList.add(openAPIRunner);
-      } else if(openSpecDto.protocol == Protocol.openmodbus) {
-        OpenModbus openModbus = await OpenModbusLoader().load(openSpecDto.openSpec);
+      } else if (openSpecDto.protocol == Protocol.openmodbus) {
+        OpenModbus openModbus =
+            await OpenModbusLoader().load(openSpecDto.openSpec);
         ToolRunner openModbusRunner = OpenModbusRunner(openModbus);
         toolRunnerList.add(openModbusRunner);
-      } else if(openSpecDto.protocol == Protocol.jsonrpcHttp) {
+      } else if (openSpecDto.protocol == Protocol.jsonrpcHttp) {
         OpenRPC openRPC = await OpenRPCLoader().load(openSpecDto.openSpec);
         ToolRunner jsonrpcHttpRunner = JsonRPCRunner(openRPC);
         toolRunnerList.add(jsonrpcHttpRunner);
@@ -115,5 +129,4 @@ class AgentService {
     }
     return toolRunnerList;
   }
-
 }

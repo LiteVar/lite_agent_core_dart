@@ -8,7 +8,12 @@ class ToolAgent extends SessionAgent {
   List<ToolRunner> toolRunnerList;
   String systemPrompt;
 
-  ToolAgent({required super.llmExecutor, required super.session, required this.toolRunnerList, this.systemPrompt = "", super.timeoutSeconds = 3600});
+  ToolAgent(
+      {required super.llmExecutor,
+      required super.session,
+      required this.toolRunnerList,
+      this.systemPrompt = "",
+      super.timeoutSeconds = 3600});
 
   @override
   Future<String> buildSystemMessage() async => systemPrompt;
@@ -19,21 +24,31 @@ class ToolAgent extends SessionAgent {
     toolRunnerList.forEach((ToolRunner toolRunner) {
       functionModelList.addAll(toolRunner.parse());
     });
-    if(functionModelList.isEmpty) return null;
+    if (functionModelList.isEmpty) return null;
     return functionModelList;
   }
 
   @override
   Future<void> requestTools(AgentMessage agentMessage) async {
-    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+    List<FunctionCall> functionCallList =
+        agentMessage.message as List<FunctionCall>;
 
     for (FunctionCall functionCall in functionCallList) {
-      ToolRunner toolRunner = toolRunnerList.firstWhere((ToolRunner toolRunner) => toolRunner.hasFunction(functionCall.name));
+      ToolRunner toolRunner = toolRunnerList.firstWhere(
+          (ToolRunner toolRunner) => toolRunner.hasFunction(functionCall.name));
       ToolReturn toolResult;
       toolResult = await toolRunner.call(functionCall);
-      AgentMessage toolMessage = AgentMessage(from: AgentRole.TOOL, to: AgentRole.AGENT, type: AgentMessageType.toolReturn, message: toolResult);
+      AgentMessage toolMessage = AgentMessage(
+          from: AgentRole.TOOL,
+          to: AgentRole.AGENT,
+          type: AgentMessageType.toolReturn,
+          message: toolResult);
       toAgent(toolMessage);
     }
-    toAgent(AgentMessage(from: AgentRole.TOOL, to: AgentRole.AGENT, type: AgentMessageType.text, message: ToolsStatus.DONE));
+    toAgent(AgentMessage(
+        from: AgentRole.TOOL,
+        to: AgentRole.AGENT,
+        type: AgentMessageType.text,
+        message: ToolsStatus.DONE));
   }
 }

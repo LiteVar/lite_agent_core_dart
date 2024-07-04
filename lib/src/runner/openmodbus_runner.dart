@@ -13,19 +13,25 @@ class OpenModbusRunner extends ToolRunner {
 
   @override
   List<ot.FunctionModel> parse() {
-    List<ot.FunctionModel> functionModelList = openModbus.functions.map((FunctionModel function) {
+    List<ot.FunctionModel> functionModelList =
+        openModbus.functions.map((FunctionModel function) {
       Map<String, ot.Property> properties = {};
 
-      if(function.parameter != null) {
+      if (function.parameter != null) {
         String key = function.parameter!.name;
-        ot.Property property = ot.Property(type: _convertToPropertyType(function.parameter!.type),
-            description: function.parameter!.description??"",
+        ot.Property property = ot.Property(
+            type: _convertToPropertyType(function.parameter!.type),
+            description: function.parameter!.description ?? "",
             required: true);
         properties.addAll({key: property});
       }
 
-      ot.Parameters opentoolParameters = ot.Parameters(type: "object", properties: properties);
-      ot.FunctionModel functionModel = ot.FunctionModel(name: function.name, description: function.description??"", parameters: opentoolParameters);
+      ot.Parameters opentoolParameters =
+          ot.Parameters(type: "object", properties: properties);
+      ot.FunctionModel functionModel = ot.FunctionModel(
+          name: function.name,
+          description: function.description ?? "",
+          parameters: opentoolParameters);
       return functionModel;
     }).toList();
     return functionModelList;
@@ -33,54 +39,66 @@ class OpenModbusRunner extends ToolRunner {
 
   @override
   Future<ToolReturn> call(FunctionCall functionCall) async {
-
-    FunctionModel targetFunction = openModbus.functions.firstWhere((FunctionModel functionModel) => functionModel.name == functionCall.name);
+    FunctionModel targetFunction = openModbus.functions.firstWhere(
+        (FunctionModel functionModel) =>
+            functionModel.name == functionCall.name);
     ModbusParams modbusParams = _convertToModbusParams(targetFunction);
 
     ModbusNet? modbusNet;
     ModbusSerial? modbusSerial;
-    if(openModbus.server.type == ServerType.tcp || openModbus.server.type == ServerType.udp) {
+    if (openModbus.server.type == ServerType.tcp ||
+        openModbus.server.type == ServerType.udp) {
       NetConfig netConfig = openModbus.server.config as NetConfig;
       modbusNet = ModbusNet(url: netConfig.url, port: netConfig.port);
     } else {
       SerialConfig serialConfig = openModbus.server.config as SerialConfig;
-      modbusSerial = ModbusSerial(port: serialConfig.port, baudRate: serialConfig.baudRate);
+      modbusSerial = ModbusSerial(
+          port: serialConfig.port, baudRate: serialConfig.baudRate);
     }
 
-    ModbusResponse modbusResponse = await requestModbus(modbusParams, modbusNet: modbusNet, modbusSerial: modbusSerial);
+    ModbusResponse modbusResponse = await requestModbus(modbusParams,
+        modbusNet: modbusNet, modbusSerial: modbusSerial);
 
     return ToolReturn(id: functionCall.id, result: modbusResponse.toJson());
   }
 
   @override
   bool hasFunction(String functionName) {
-    return openModbus.functions.where((FunctionModel functionModel) => functionModel.name == functionName).isNotEmpty;
+    return openModbus.functions
+        .where(
+            (FunctionModel functionModel) => functionModel.name == functionName)
+        .isNotEmpty;
   }
 
   ModbusParams _convertToModbusParams(FunctionModel function) {
-
     ModbusElementType modbusElementType;
-    switch(function.storage) {
-      case StorageType.coils: modbusElementType = ModbusElementType.coil;
-      case StorageType.discreteInput: modbusElementType = ModbusElementType.discreteInput;
-      case StorageType.inputRegisters: modbusElementType = ModbusElementType.inputRegister;
-      case StorageType.holdingRegisters: modbusElementType = ModbusElementType.holdingRegister;
+    switch (function.storage) {
+      case StorageType.coils:
+        modbusElementType = ModbusElementType.coil;
+      case StorageType.discreteInput:
+        modbusElementType = ModbusElementType.discreteInput;
+      case StorageType.inputRegisters:
+        modbusElementType = ModbusElementType.inputRegister;
+      case StorageType.holdingRegisters:
+        modbusElementType = ModbusElementType.holdingRegister;
     }
 
     ModbusElementParams modbusElementParams = ModbusElementParams(
         name: function.name,
-        description: function.description??"",
+        description: function.description ?? "",
         modbusElementType: modbusElementType,
         address: function.address,
-        methodType: function.method == MethodType.read? ModbusMethodType.read : ModbusMethodType.write,
-        modbusDataType: function.method == MethodType.read? _convertToModbusDataType(function.parameter!.type) : _convertToModbusDataType(function.result!.type)
-    );
+        methodType: function.method == MethodType.read
+            ? ModbusMethodType.read
+            : ModbusMethodType.write,
+        modbusDataType: function.method == MethodType.read
+            ? _convertToModbusDataType(function.parameter!.type)
+            : _convertToModbusDataType(function.result!.type));
 
     ModbusParams modbusParams = ModbusParams(
         serverType: _convertToModbusServerType(openModbus.server.type),
         slaveId: function.slaveId,
-        modbusElementParams: modbusElementParams
-    );
+        modbusElementParams: modbusElementParams);
 
     return modbusParams;
   }
@@ -108,16 +126,21 @@ class OpenModbusRunner extends ToolRunner {
   }
 
   ot.PropertyType _convertToPropertyType(DataType dataType) {
-    switch(dataType) {
-      case DataType.bool: return ot.PropertyType.boolean;
-      case DataType.int16: return ot.PropertyType.integer;
-      case DataType.int32: return ot.PropertyType.integer;
-      case DataType.uint16: return ot.PropertyType.integer;
-      case DataType.uint32: return ot.PropertyType.integer;
-      case DataType.string: return ot.PropertyType.string;
+    switch (dataType) {
+      case DataType.bool:
+        return ot.PropertyType.boolean;
+      case DataType.int16:
+        return ot.PropertyType.integer;
+      case DataType.int32:
+        return ot.PropertyType.integer;
+      case DataType.uint16:
+        return ot.PropertyType.integer;
+      case DataType.uint32:
+        return ot.PropertyType.integer;
+      case DataType.string:
+        return ot.PropertyType.string;
     }
   }
-
 }
 
 class ModbusResponse {
@@ -125,8 +148,5 @@ class ModbusResponse {
   late String body;
   ModbusResponse({required this.statusCode, required this.body});
 
-  Map<String, dynamic> toJson() => {
-    'statusCode': statusCode,
-    'body': body
-  };
+  Map<String, dynamic> toJson() => {'statusCode': statusCode, 'body': body};
 }

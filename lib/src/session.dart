@@ -13,7 +13,8 @@ class AgentSession {
     _agentMessageListenerList = [];
   }
 
-  void addAgentMessageListener(void Function(AgentMessage) agentMessageListener) {
+  void addAgentMessageListener(
+      void Function(AgentMessage) agentMessageListener) {
     _agentMessageListenerList.add(agentMessageListener);
   }
 

@@ -66,7 +66,7 @@ String _buildSystemPrompt() {
 
 Future<List<OpenSpecDto>> _buildOpenSpecList() async {
   String folder =
-      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
+      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
   List<String> fileNameList = [
     "json-rpc-book.json"
 
@@ -76,7 +76,7 @@ Future<List<OpenSpecDto>> _buildOpenSpecList() async {
 
   List<OpenSpecDto> openSpecList = [];
   for (String fileName in fileNameList) {
-    File file = File("$folder/$fileName");
+    File file = File("$folder${Platform.pathSeparator}$fileName");
     String jsonString = await file.readAsString();
 
     OpenSpecDto openSpecDto =

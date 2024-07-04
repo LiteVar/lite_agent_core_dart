@@ -36,7 +36,7 @@ LLMExecutor _buildLLMRunner() {
 /// https://platform.openai.com/docs/guides/prompt-engineering
 Future<List<ToolRunner>> _buildToolRunnerList() async {
   String folder =
-      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json";
+      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
   List<String> fileNameList = [
     "json-rpc-book.json"
     // "json-rpc-food.json" // you can add more tool spec json file.
@@ -44,7 +44,7 @@ Future<List<ToolRunner>> _buildToolRunnerList() async {
 
   List<ToolRunner> toolRunnerList = [];
   for (String fileName in fileNameList) {
-    OpenRPC openRPC = await OpenRPCLoader().loadFromFile("$folder/$fileName");
+    OpenRPC openRPC = await OpenRPCLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
     ToolRunner toolRunner = JsonRPCRunner(openRPC);
 
     /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolRunner of the tools.

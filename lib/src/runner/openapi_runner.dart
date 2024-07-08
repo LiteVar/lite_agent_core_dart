@@ -174,11 +174,11 @@ const _PropertyTypeEnumMap = {
   'object': PropertyType.object
 };
 
-String convertToAuthorization(ApiKeyType type, String ApiKey) {
+String convertToAuthorization(ApiKeyType type, String apiKey) {
   switch (type) {
     case ApiKeyType.basic:
-      return "Basic " + ApiKey;
+      return "Basic " + apiKey;
     case ApiKeyType.bearer:
-      return "Bearer " + ApiKey;
+      return "Bearer " + apiKey;
   }
 }

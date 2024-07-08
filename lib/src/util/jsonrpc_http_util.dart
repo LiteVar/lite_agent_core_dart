@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'http_util.dart';
 
-String JSONRPC_VERSION = "2.0.0";
+const String JSONRPC_VERSION = "2.0.0";
 
 class JsonRPCHttpRequest {
   late String url;

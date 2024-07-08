@@ -13,7 +13,7 @@
 
 ### 准备
 
-1. 准备OpenSpec的JSON文件，可参照 `/example/json/*.json` 作为样例，并且文件描述的接口真实可调用
+1. 准备OpenSpec的JSON文件，可参照 `/example/json/open*/*.json` 作为样例，并且文件描述的接口真实可调用
 2. 启动你的工具服务，对应的服务描述即为步骤1的JSON文件描述
 3. 如果需要运行example，在 `example` 文件夹增加 `.env` 文件，并且`.env`文件需要增加如下内容：
      ```properties

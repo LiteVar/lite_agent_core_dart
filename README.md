@@ -13,7 +13,7 @@ LLM `AI Agent` multi sessions service.
 
 ### Prepare
 
-1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
+1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.
 2. Run your tool server, which is described in json file.
 3. Add `.env` file in the `example` folder, and add below content in the `.env` file：
      ```properties

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:opentool_dart/opentool_dart.dart';
-
 import '../model.dart';
 import '../session.dart';
 import 'simple_agent.dart';
@@ -56,8 +55,7 @@ abstract class SessionAgent extends LLM {
           to: AgentRole.LLM,
           type: AgentMessageType.contentList,
           message: agentMessage.message as List<Content>);
-      nextCommand = Command(
-          _toLLM, newAgentMessage); // Forward USER messages request to LLM.
+      nextCommand = Command(_toLLM, newAgentMessage); // Forward USER messages request to LLM.
     } else if (agentMessage.from == AgentRole.LLM) {
       if (agentMessage.type == AgentMessageType.text) {
         AgentMessage agentUserMessage = AgentMessage(
@@ -65,24 +63,21 @@ abstract class SessionAgent extends LLM {
             to: AgentRole.USER,
             type: AgentMessageType.text,
             message: agentMessage.message);
-        nextCommand = Command(
-            _toUser, agentUserMessage); // If LLM return text, forward to USER.
+        nextCommand = Command(_toUser, agentUserMessage); // If LLM return text, forward to USER.
       } else if (agentMessage.type == AgentMessageType.imageUrl) {
         AgentMessage agentUserMessage = AgentMessage(
             from: AgentRole.AGENT,
             to: AgentRole.USER,
             type: AgentMessageType.imageUrl,
             message: agentMessage.message);
-        nextCommand = Command(
-            _toUser, agentUserMessage); // If LLM return image, forward to USER.
+        nextCommand = Command(_toUser, agentUserMessage); // If LLM return image, forward to USER.
       } else if (agentMessage.type == AgentMessageType.functionCallList) {
         AgentMessage agentToolMessage = AgentMessage(
             from: AgentRole.AGENT,
             to: AgentRole.TOOL,
             type: AgentMessageType.functionCallList,
             message: agentMessage.message);
-        nextCommand = Command(_toTool,
-            agentToolMessage); // If LLM call function, forward to TOOL.
+        nextCommand = Command(_toTool, agentToolMessage); // If LLM call function, forward to TOOL.
       }
     } else if (agentMessage.from == AgentRole.TOOL) {
       if (agentMessage.type == AgentMessageType.toolReturn) {

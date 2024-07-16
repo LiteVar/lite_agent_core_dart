@@ -30,8 +30,7 @@ class ToolAgent extends SessionAgent {
 
   @override
   Future<void> requestTools(AgentMessage agentMessage) async {
-    List<FunctionCall> functionCallList =
-        agentMessage.message as List<FunctionCall>;
+    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
 
     for (FunctionCall functionCall in functionCallList) {
       ToolRunner toolRunner = toolRunnerList.firstWhere(

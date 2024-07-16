@@ -43,27 +43,31 @@ Future<HttpAPIResponse> requestHttpAPI(HttpAPIRequest httpAPIRequest,
     fullUrl = Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path)
         .replace(queryParameters: httpAPIRequest.params);
     try {
-      response = await http.get(fullUrl, headers: headers);
+      if(httpAPIRequest.method == HttpAPIMethodType.get) {
+        response = await http.get(fullUrl, headers: headers);
+      } else {
+        response = await http.delete(fullUrl, headers: headers);
+      }
     } on TimeoutException catch (e) {
       return HttpAPIResponse(statusCode: 504, body: e.toString());
     } catch (e) {
       return HttpAPIResponse(statusCode: 500, body: e.toString());
     }
   } else {
-    /// `POST` and `PUT`， use `requestBody` as parameters
+    /// `POST` and `PUT`， use `body` as parameters
     fullUrl = Uri.parse(httpAPIRequest.baseUrl + httpAPIRequest.path);
-    http.Request request = http.Request(httpAPIRequest.method, fullUrl);
-    request.headers.addAll(headers);
-    request.body = json.encode(httpAPIRequest.params);
     try {
-      http.StreamedResponse streamedResponse = await request.send();
-      response = await http.Response.fromStream(streamedResponse);
+      if(httpAPIRequest.method == HttpAPIMethodType.post) {
+        response = await http.post(fullUrl, headers: headers, body: json.encode(httpAPIRequest.params));
+      } else {
+        response = await http.put(fullUrl, headers: headers, body: json.encode(httpAPIRequest.params));
+      }
     } on TimeoutException catch (e) {
       return HttpAPIResponse(statusCode: 504, body: e.toString());
     } catch (e) {
       return HttpAPIResponse(statusCode: 500, body: e.toString());
     }
   }
-
-  return HttpAPIResponse(statusCode: response.statusCode, body: response.body);
+  String responseBody = utf8.decode(response.bodyBytes);
+  return HttpAPIResponse(statusCode: response.statusCode, body: responseBody);
 }

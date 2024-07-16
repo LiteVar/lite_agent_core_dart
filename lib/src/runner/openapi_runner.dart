@@ -154,8 +154,10 @@ class OpenAPIRunner extends ToolRunner {
         path: path,
         params: functionCall.parameters);
 
-    HttpAPIResponse httpAPIResponse =
-        await requestHttpAPI(httpAPIRequest, authorization: authorization);
+    HttpAPIResponse httpAPIResponse = await requestHttpAPI(
+        httpAPIRequest,
+        authorization: authorization
+    );
     return ToolReturn(id: functionCall.id, result: httpAPIResponse.toJson());
   }
 

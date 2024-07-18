@@ -17,7 +17,7 @@ Future<void> main() async {
       session: _buildSession(),
       toolRunnerList: await _buildToolRunnerList(),
       systemPrompt: _buildSystemPrompt());
-  toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
+  toolAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.text, message: prompt)]);
 }
 
 LLMExecutor _buildLLMRunner() {

@@ -24,14 +24,15 @@ Future<void> main() async {
 
   print("[SessionDto] " + sessionDto.toJson().toString());
 
-  await agentService.startChat(sessionDto.id,
-      [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  UserTaskDto userTaskDto = UserTaskDto(taskId: "0", contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  await agentService.startChat(sessionDto.id, userTaskDto);
 
   print("[prompt] " + prompt);
 
   await sleep(10);
 
-  await agentService.stopChat(sessionDto.id);
+  SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
+  await agentService.stopChat(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);

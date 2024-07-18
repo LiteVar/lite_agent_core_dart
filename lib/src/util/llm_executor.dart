@@ -6,65 +6,58 @@ import '../model.dart';
 
 class LLMExecutor {
   late LLMConfig llmConfig;
+  late String taskId;
 
   LLMExecutor(this.llmConfig) {
     OpenAI.baseUrl = llmConfig.baseUrl;
     OpenAI.apiKey = llmConfig.apiKey;
   }
 
-  Future<AgentMessage> requestLLM(
-      {required List<AgentMessage> agentMessageList,
-      List<FunctionModel>? functionModelList}) async {
-    List<OpenAIChatCompletionChoiceMessageModel> requestMessageList =
-        agentMessageList
-            .map((AgentMessage agentMessage) =>
-                _buildOpenAIMessage(agentMessage))
-            .toList();
-    List<OpenAIToolModel>? tools = functionModelList
-        ?.map((FunctionModel functionModel) =>
-            _buildOpenAIToolModel(functionModel))
-        .toList();
+  Future<AgentMessage> requestLLM({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList}) async {
+    taskId = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRole.AGENT).taskId;
+    List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = agentMessageList.map((AgentMessage agentMessage) => _buildOpenAIMessage(agentMessage)).toList();
+    List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
     OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat
-        .create(
-            model: llmConfig.model,
-            responseFormat: {"type": "text"},
-            seed: 6,
-            messages: requestMessageList,
-            tools: tools,
-            temperature: llmConfig.temperature,
-            maxTokens: llmConfig.maxTokens,
-            topP: llmConfig.topP);
+      .create(
+        model: llmConfig.model,
+        responseFormat: {"type": "text"},
+        seed: 6,
+        messages: requestMessageList,
+        tools: tools,
+        temperature: llmConfig.temperature,
+        maxTokens: llmConfig.maxTokens,
+        topP: llmConfig.topP
+    );
 
     TokenUsage tokenUsage = TokenUsage(
         promptTokens: chatCompletion.usage.promptTokens,
         completionTokens: chatCompletion.usage.completionTokens,
-        totalTokens: chatCompletion.usage.totalTokens);
+        totalTokens: chatCompletion.usage.totalTokens
+    );
 
-    Completions completions = Completions(
-        tokenUsage: tokenUsage, id: chatCompletion.id, model: llmConfig.model);
+    Completions completions = Completions(tokenUsage: tokenUsage, id: chatCompletion.id, model: llmConfig.model);
 
     AgentMessage agentMessage = _toAgentMessage(
-        chatCompletion.choices.first.message,
-        completions: completions);
+      chatCompletion.choices.first.message,
+      completions: completions
+    );
 
     return agentMessage;
   }
 
   OpenAIToolModel _buildOpenAIToolModel(FunctionModel functionModel) {
     List<OpenAIFunctionProperty> openAIFunctionPropertyList = [];
-    functionModel.parameters.properties
-        .forEach((String name, Property property) {
-      openAIFunctionPropertyList
-          .add(_convertToOpenAIFunctionProperty(name, property));
+    functionModel.parameters.properties.forEach((String name, Property property) {
+      openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(name, property));
     });
     OpenAIFunctionModel openAIFunctionModel =
-        OpenAIFunctionModel.withParameters(
-            name: functionModel.name,
-            description: functionModel.description,
-            parameters: openAIFunctionPropertyList);
-    OpenAIToolModel openAIToolModel =
-        OpenAIToolModel(type: "function", function: openAIFunctionModel);
+      OpenAIFunctionModel.withParameters(
+        name: functionModel.name,
+        description: functionModel.description,
+        parameters: openAIFunctionPropertyList
+      );
+    OpenAIToolModel openAIToolModel = OpenAIToolModel(type: "function", function: openAIFunctionModel);
     return openAIToolModel;
   }
 
@@ -228,12 +221,8 @@ class LLMExecutor {
     });
   }
 
-  AgentMessage _toAgentMessage(
-      OpenAIChatCompletionChoiceMessageModel
-          openAIChatCompletionChoiceMessageModel,
-      {Completions? completions}) {
+  AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {Completions? completions}) {
     dynamic message;
-
     message = openAIChatCompletionChoiceMessageModel.toolCalls
         ?.map((OpenAIResponseToolCall openAIResponseToolCall) {
       String id = openAIResponseToolCall.id!;
@@ -245,19 +234,23 @@ class LLMExecutor {
 
     if (message != null) {
       return AgentMessage(
-          from: AgentRole.LLM,
-          to: AgentRole.AGENT,
-          type: AgentMessageType.functionCallList,
-          message: message,
-          completions: completions);
+        taskId: taskId,
+        from: AgentRole.LLM,
+        to: AgentRole.AGENT,
+        type: AgentMessageType.functionCallList,
+        message: message,
+        completions: completions
+      );
     }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
-        from: AgentRole.LLM,
-        to: AgentRole.AGENT,
-        type: AgentMessageType.text,
-        message: message,
-        completions: completions);
+      taskId: taskId,
+      from: AgentRole.LLM,
+      to: AgentRole.AGENT,
+      type: AgentMessageType.text,
+      message: message,
+      completions: completions
+    );
   }
 }

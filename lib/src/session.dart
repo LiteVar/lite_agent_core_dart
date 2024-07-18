@@ -2,11 +2,12 @@ import 'dart:async';
 import 'model.dart';
 
 class AgentSession {
-  List<AgentMessage> agentMessageList = [];
+  List<AgentMessage> listenAgentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
+  List<AgentMessage> taskDoneAgentMessageList = [];
 
   void clearMessage() {
-    agentMessageList = [];
+    listenAgentMessageList = [];
   }
 
   void resetListener() {
@@ -18,10 +19,15 @@ class AgentSession {
     _agentMessageListenerList.add(agentMessageListener);
   }
 
-  Future<void> addAgentMessage(AgentMessage agentMessage) async {
-    agentMessageList.add(agentMessage);
-    _agentMessageListenerList.forEach((agentLlmMessageListener) async {
-      agentLlmMessageListener(agentMessage);
+  Future<void> addListenAgentMessage(AgentMessage agentMessage) async {
+    listenAgentMessageList.add(agentMessage);
+    _agentMessageListenerList.forEach((agentLLMMessageListener) async {
+      agentLLMMessageListener(agentMessage);
     });
   }
+
+  void addTaskDoneAgentMessageList(List<AgentMessage> agentMessageList) {
+    this.taskDoneAgentMessageList.addAll(agentMessageList);
+  }
+
 }

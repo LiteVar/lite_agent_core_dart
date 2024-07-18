@@ -100,27 +100,31 @@ enum AgentMessageType {
 }
 
 class AgentMessage {
+  late String taskId;
   late String from;
   late String to;
   late AgentMessageType type;
   late dynamic message;
   Completions? completions;
   DateTime createTime = DateTime.now();
-  AgentMessage(
-      {required this.from,
-      required this.to,
-      required this.type,
-      required this.message,
-      this.completions});
+  AgentMessage({
+    required this.taskId,
+    required this.from,
+    required this.to,
+    required this.type,
+    required this.message,
+    this.completions
+  });
 
   Map<String, dynamic> toJson() => {
-        'from': from,
-        'to': to,
-        'type': type,
-        'message': message,
-        if (completions != null) 'completions': completions!.toJson(),
-        'createTime': createTime.toIso8601String()
-      };
+    'taskId': taskId,
+    'from': from,
+    'to': to,
+    'type': type,
+    'message': message,
+    if (completions != null) 'completions': completions!.toJson(),
+    'createTime': createTime.toIso8601String()
+  };
 }
 
 class Completions {

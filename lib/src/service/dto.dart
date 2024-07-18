@@ -49,8 +49,7 @@ class OpenSpecDto {
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
 
-  factory OpenSpecDto.fromJson(Map<String, dynamic> json) =>
-      _$OpenSpecDtoFromJson(json);
+  factory OpenSpecDto.fromJson(Map<String, dynamic> json) => _$OpenSpecDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$OpenSpecDtoToJson(this);
 }
@@ -81,26 +80,42 @@ class LLMConfigDto {
 @JsonSerializable()
 class AgentMessageDto {
   late String sessionId;
+  late String taskId;
   late String from;
   late String to;
   late AgentMessageType type;
   late dynamic message;
-  CompletionsDto?
-      completions; //When role is llm, this is current llm calling token usage
+  CompletionsDto? completions; //When role is llm, this is current llm calling token usage
   late DateTime createTime;
-  AgentMessageDto(
-      {required this.sessionId,
-      required this.from,
-      required this.to,
-      required this.type,
-      required this.message,
-      this.completions,
-      required this.createTime});
 
-  factory AgentMessageDto.fromJson(Map<String, dynamic> json) =>
-      _$AgentMessageDtoFromJson(json);
+  AgentMessageDto({
+    required this.sessionId,
+    required this.taskId,
+    required this.from,
+    required this.to,
+    required this.type,
+    required this.message,
+    this.completions,
+    required this.createTime
+  });
+
+  factory AgentMessageDto.fromJson(Map<String, dynamic> json) => _$AgentMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$AgentMessageDtoToJson(this);
+
+  factory AgentMessageDto.fromModel(String sessionId, AgentMessage agentMessage) {
+    return AgentMessageDto(
+        sessionId: sessionId,
+        taskId: agentMessage.taskId,
+        from: agentMessage.from,
+        to: agentMessage.to,
+        type: agentMessage.type,
+        message: agentMessage.message,
+        completions: agentMessage.completions == null
+            ? null
+            : CompletionsDto.fromModel(agentMessage.completions!),
+        createTime: agentMessage.createTime);
+  }
 }
 
 @JsonSerializable()
@@ -138,8 +153,7 @@ class TokenUsageDto {
       required this.completionTokens,
       required this.totalTokens});
 
-  factory TokenUsageDto.fromJson(Map<String, dynamic> json) =>
-      _$TokenUsageDtoFromJson(json);
+  factory TokenUsageDto.fromJson(Map<String, dynamic> json) => _$TokenUsageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$TokenUsageDtoToJson(this);
 
@@ -162,6 +176,23 @@ class ApiKeyDto {
   Map<String, dynamic> toJson() => _$ApiKeyDtoToJson(this);
 }
 
+@JsonSerializable()
+class UserTaskDto {
+  String taskId;
+  List<UserMessageDto> contentList;
+
+  UserTaskDto({required this.taskId, required this.contentList});
+
+  factory UserTaskDto.fromJson(Map<String, dynamic> json) {
+    if((json["taskId"] as String).length > 36) {
+      throw FormatException("taskId length should not more then 36");
+    }
+    return _$UserTaskDtoFromJson(json);
+  }
+
+  Map<String, dynamic> toJson() => _$UserTaskDtoToJson(this);
+}
+
 enum UserMessageDtoType { text, imageUrl }
 
 @JsonSerializable()
@@ -175,4 +206,16 @@ class UserMessageDto {
       _$UserMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserMessageDtoToJson(this);
+}
+
+@JsonSerializable()
+class SessionTaskDto {
+  late String id;
+  late String? taskId;
+
+  SessionTaskDto({required this.id, this.taskId});
+
+  factory SessionTaskDto.fromJson(Map<String, dynamic> json) => _$SessionTaskDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SessionTaskDtoToJson(this);
 }

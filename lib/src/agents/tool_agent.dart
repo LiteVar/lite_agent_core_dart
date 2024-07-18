@@ -38,16 +38,20 @@ class ToolAgent extends SessionAgent {
       ToolReturn toolResult;
       toolResult = await toolRunner.call(functionCall);
       AgentMessage toolMessage = AgentMessage(
-          from: AgentRole.TOOL,
-          to: AgentRole.AGENT,
-          type: AgentMessageType.toolReturn,
-          message: toolResult);
+        taskId: agentMessage.taskId,
+        from: AgentRole.TOOL,
+        to: AgentRole.AGENT,
+        type: AgentMessageType.toolReturn,
+        message: toolResult
+      );
       toAgent(toolMessage);
     }
     toAgent(AgentMessage(
-        from: AgentRole.TOOL,
-        to: AgentRole.AGENT,
-        type: AgentMessageType.text,
-        message: ToolsStatus.DONE));
+      taskId: agentMessage.taskId,
+      from: AgentRole.TOOL,
+      to: AgentRole.AGENT,
+      type: AgentMessageType.text,
+      message: ToolsStatus.DONE
+    ));
   }
 }

@@ -45,34 +45,27 @@ class AgentService {
     return sessionDto;
   }
 
-  Future<void> startChat(
-      String sessionId, List<UserMessageDto> userMessageDtoList) async {
+  Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
     ToolAgent toolAgent = agents[sessionId]!;
-    List<Content> userMessageList = userMessageDtoList
+    List<Content> userMessageList = userTaskDto.contentList
         .map((userMessageDto) => _convertToContent(userMessageDto))
         .toList();
-    toolAgent.userToAgent(userMessageList);
+    toolAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
   }
 
   Future<List<AgentMessageDto>> getHistory(String sessionId) async {
     return agents[sessionId]!
-        .session
-        .agentMessageList
-        .map((AgentMessage agentMessage) {
-      AgentMessageDto agentMessageDto = AgentMessageDto(
-          sessionId: sessionId,
-          from: agentMessage.from,
-          to: agentMessage.to,
-          type: agentMessage.type,
-          message: agentMessage.message,
-          createTime: agentMessage.createTime);
+      .session
+      .listenAgentMessageList
+      .map((AgentMessage agentMessage) {
+        AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(sessionId, agentMessage);
       return agentMessageDto;
     }).toList();
   }
 
-  Future<void> stopChat(String sessionId) async {
-    ToolAgent toolAgent = agents[sessionId]!;
-    toolAgent.stop();
+  Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
+    ToolAgent toolAgent = agents[sessionTaskDto.id]!;
+    toolAgent.stop(sessionTaskDto.taskId);
   }
 
   Future<void> clearChat(String sessionId) async {

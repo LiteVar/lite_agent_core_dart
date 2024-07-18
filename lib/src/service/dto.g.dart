@@ -71,6 +71,7 @@ Map<String, dynamic> _$LLMConfigDtoToJson(LLMConfigDto instance) =>
 AgentMessageDto _$AgentMessageDtoFromJson(Map<String, dynamic> json) =>
     AgentMessageDto(
       sessionId: json['sessionId'] as String,
+      taskId: json['taskId'] as String,
       from: json['from'] as String,
       to: json['to'] as String,
       type: $enumDecode(_$AgentMessageTypeEnumMap, json['type']),
@@ -85,6 +86,7 @@ AgentMessageDto _$AgentMessageDtoFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$AgentMessageDtoToJson(AgentMessageDto instance) =>
     <String, dynamic>{
       'sessionId': instance.sessionId,
+      'taskId': instance.taskId,
       'from': instance.from,
       'to': instance.to,
       'type': _$AgentMessageTypeEnumMap[instance.type]!,
@@ -145,6 +147,19 @@ const _$ApiKeyTypeEnumMap = {
   ApiKeyType.bearer: 'bearer',
 };
 
+UserTaskDto _$UserTaskDtoFromJson(Map<String, dynamic> json) => UserTaskDto(
+      taskId: json['taskId'] as String,
+      contentList: (json['contentList'] as List<dynamic>)
+          .map((e) => UserMessageDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$UserTaskDtoToJson(UserTaskDto instance) =>
+    <String, dynamic>{
+      'taskId': instance.taskId,
+      'contentList': instance.contentList,
+    };
+
 UserMessageDto _$UserMessageDtoFromJson(Map<String, dynamic> json) =>
     UserMessageDto(
       type: $enumDecode(_$UserMessageDtoTypeEnumMap, json['type']),
@@ -161,3 +176,15 @@ const _$UserMessageDtoTypeEnumMap = {
   UserMessageDtoType.text: 'text',
   UserMessageDtoType.imageUrl: 'imageUrl',
 };
+
+SessionTaskDto _$SessionTaskDtoFromJson(Map<String, dynamic> json) =>
+    SessionTaskDto(
+      id: json['id'] as String,
+      taskId: json['taskId'] as String?,
+    );
+
+Map<String, dynamic> _$SessionTaskDtoToJson(SessionTaskDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'taskId': instance.taskId,
+    };

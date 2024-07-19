@@ -178,13 +178,13 @@ class ApiKeyDto {
 
 @JsonSerializable()
 class UserTaskDto {
-  String taskId;
+  String? taskId;
   List<UserMessageDto> contentList;
 
-  UserTaskDto({required this.taskId, required this.contentList});
+  UserTaskDto({this.taskId, required this.contentList});
 
   factory UserTaskDto.fromJson(Map<String, dynamic> json) {
-    if((json["taskId"] as String).length > 36) {
+    if(json["taskId"] != null && (json["taskId"] as String).length > 36) {
       throw FormatException("taskId length should not more then 36");
     }
     return _$UserTaskDtoFromJson(json);

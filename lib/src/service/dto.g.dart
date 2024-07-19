@@ -148,7 +148,7 @@ const _$ApiKeyTypeEnumMap = {
 };
 
 UserTaskDto _$UserTaskDtoFromJson(Map<String, dynamic> json) => UserTaskDto(
-      taskId: json['taskId'] as String,
+      taskId: json['taskId'] as String?,
       contentList: (json['contentList'] as List<dynamic>)
           .map((e) => UserMessageDto.fromJson(e as Map<String, dynamic>))
           .toList(),

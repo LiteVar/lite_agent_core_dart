@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:opentool_dart/opentool_dart.dart';
+import 'package:uuid/uuid.dart';
 import '../model.dart';
 import '../session.dart';
 import 'simple_agent.dart';
@@ -20,8 +21,12 @@ abstract class SessionAgent extends LLM {
     required this.timeoutSeconds
   });
 
-  void userToAgent({required String taskId, required List<Content> contentList}) {
-    _dispatcherMap[taskId] = Dispatcher();
+  void userToAgent({required List<Content> contentList, String? taskId}) {
+    if(taskId == null) {
+      taskId = Uuid().v4();
+    }
+
+    _dispatcherMap[taskId] = Dispatcher();  //Init dispatcher
     Command clientCommand = Command(
         _toClient,
         AgentMessage(
@@ -40,17 +45,18 @@ abstract class SessionAgent extends LLM {
       type: AgentMessageType.contentList,
       message: contentList);
 
-    if (session.listenAgentMessageList.isEmpty) {
-      // If session is empty, initial session.
+    bool hasSystemMessage = session.taskDoneAgentMessageList.any((agentMessage)=> agentMessage.from == AgentRole.SYSTEM);
+    // if (session.listenAgentMessageList.isEmpty) {
+    if (hasSystemMessage) {
+      Command nextCommand = Command(toAgent, contentMessage);
+      _dispatcherMap[taskId]!.dispatch(nextCommand);
+    } else {
       Command initCommand = Command(_initSystemMessage, contentMessage);
       _dispatcherMap[taskId]!.dispatch(initCommand);
-    } else {
-      // If session is not empty, forward to agent directly.
-      toAgent(contentMessage);
     }
   }
 
-  void toAgent(AgentMessage agentMessage) {
+  Future<void> toAgent(AgentMessage agentMessage) async {
     session.addListenAgentMessage(agentMessage);
 
     Command? nextCommand;
@@ -100,6 +106,7 @@ abstract class SessionAgent extends LLM {
           to: AgentRole.LLM,
           type: AgentMessageType.toolReturn,
           message: agentMessage.message);
+        nextCommand = Command(_toLLM, agentLLMMessage);
         session.addListenAgentMessage(agentLLMMessage);
       } else if (agentMessage.type == AgentMessageType.text) {
         // If TOOL return DONE status, forward to LLM
@@ -112,12 +119,12 @@ abstract class SessionAgent extends LLM {
             type: AgentMessageType.text,
             message: agentMessage.message
           );
-          nextCommand = Command(_toLLM, agentToolMessage);
+          nextCommand = Command(_toClient, agentToolMessage);
         }
       }
     }
 
-    if (nextCommand != null) _dispatcherMap[agentMessage.taskId]!.dispatch(nextCommand);
+    if (nextCommand != null) _dispatcherMap[agentMessage.taskId]?.dispatch(nextCommand);
   }
 
   Future<void> _initSystemMessage(AgentMessage agentMessage) async {
@@ -130,9 +137,14 @@ abstract class SessionAgent extends LLM {
         type: AgentMessageType.text,
         message: systemMessage
       );
-      toAgent(systemAgentMessage);
+      session.addTaskDoneAgentMessageList([systemAgentMessage]);
+      // Command systemCommand = Command(toAgent, systemAgentMessage);
+      // _dispatcherMap[agentMessage.taskId]!.dispatch(systemCommand);
+      await toAgent(systemAgentMessage);
     }
-    toAgent(agentMessage);
+    Command command = Command(toAgent, agentMessage);
+    _dispatcherMap[agentMessage.taskId]!.dispatch(command);
+    // toAgent(agentMessage);
   }
 
   Future<void> _toUser(AgentMessage agentMessage) async {
@@ -146,21 +158,20 @@ abstract class SessionAgent extends LLM {
           type: AgentMessageType.text,
           message: TaskStatus.DONE
         ));
+    _dispatcherMap[agentMessage.taskId]!.dispatch(clientCommand);
     List<AgentMessage> taskDoneMessageList = _dispatcherMap[agentMessage.taskId]!.getTaskMessageList();
     session.addTaskDoneAgentMessageList(taskDoneMessageList);
-    _dispatcherMap[agentMessage.taskId]!.dispatch(clientCommand);
     startCountDown();
   }
 
   Future<void> _toLLM(AgentMessage agentMessage) async {
     session.addListenAgentMessage(agentMessage);
 
-    List<AgentMessage> agentLLMMessageList = [];
-
-    List<AgentMessage> agentMessageList = session.taskDoneAgentMessageList;
+    List<AgentMessage> agentMessageList = List<AgentMessage>.from(session.taskDoneAgentMessageList);
     List<AgentMessage> taskMessageList = _dispatcherMap[agentMessage.taskId]!.getTaskMessageList();
     agentMessageList.addAll(taskMessageList);
 
+    List<AgentMessage> agentLLMMessageList = [];
     agentMessageList.forEach((agentMessage){
       if(agentMessage.from == AgentRole.SYSTEM || agentMessage.from == AgentRole.LLM || agentMessage.to == AgentRole.LLM) {
         agentLLMMessageList.add(agentMessage);
@@ -207,10 +218,12 @@ abstract class SessionAgent extends LLM {
 
     List<FunctionModel>? functionModelList = await buildFunctionModelList();
     AgentMessage newAgentMessage = await llmExecutor.requestLLM(
-      agentMessageList: agentMessageList,
+      agentMessageList: agentLLMMessageList,
       functionModelList: functionModelList
     );
-    toAgent(newAgentMessage);
+    Command nextCommand = Command(toAgent, newAgentMessage);
+    _dispatcherMap[newAgentMessage.taskId]!.dispatch(nextCommand);
+    // toAgent(newAgentMessage);
   }
 
   Future<void> _toTool(AgentMessage agentMessage) async {
@@ -254,7 +267,6 @@ abstract class SessionAgent extends LLM {
         ));
     _dispatcherMap[taskId]!.dispatch(clientCommand);
     _dispatcherMap[taskId]!.stop();
-    _dispatcherMap.remove(taskId);
     startCountDown();
   }
 
@@ -264,6 +276,7 @@ abstract class SessionAgent extends LLM {
         _stop(taskId);
       }
     });
+    _dispatcherMap.clear();
     session.clearMessage();
     timer?.cancel();
   }

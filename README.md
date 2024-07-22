@@ -25,6 +25,7 @@ LLM `AI Agent` multi sessions service.
 ### Method 1(Recommend): AgentService
 - According to `/example/agent_service_example.dart`
 - Support multi agent session via session id.
+- Support multi task in the same agent, identify different tasks by `taskId`. After finishing task, task message could be added to session as new task context.
 
 ```dart
 Future<void> main() async {
@@ -39,10 +40,8 @@ Future<void> main() async {
   ); // Get Session Id
   
   String prompt = "<USER PROMPT, e.g. call any one tool>";
-  await agentService.startChat(
-      sessionDto.id, // Start chat with the Session Id
-      [UserMessageDto(type: UserMessageType.text, message: prompt)] // User Content List, support type text/imageUrl
-  );
+  UserTaskDto userTaskDto = UserTaskDto(taskId: "<Identify different tasks, NOT more than 36 chars>", contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);  // User Content List, support type text/imageUrl
+  await agentService.startChat(sessionDto.id, userTaskDto);
 }
 ```
 
@@ -61,6 +60,18 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt()
   );
   String prompt = "<USER PROMPT, e.g. call any one tool>";
-  toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
+  toolAgent.userToAgent(taskId: "<Identify different tasks, NOT more than 36 chars>", [Content(type: ContentType.text, message: prompt)]);
+}
+```
+```dart
+Future<void> main() async {
+  ToolAgent toolAgent = ToolAgent(
+      llmRunner: _buildLLMRunner(),
+      session: _buildSession(),
+      toolRunnerList: await _buildToolRunnerList(),
+      systemPrompt: _buildSystemPrompt()
+  );
+  String prompt = "<USER PROMPT, e.g. call any one tool>";
+  toolAgent.userToAgent(taskId: "<Identify different tasks, NOT more than 36 chars>", contentList: [Content(type: ContentType.text, message: prompt)]);
 }
 ```

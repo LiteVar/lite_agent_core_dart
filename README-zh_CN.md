@@ -25,6 +25,7 @@
 ### 方法1（推荐）: 使用AgentService
 - 例子：`/example/agent_service_example.dart`
 - 支持多Agent会话，通过`session id`区分不同会话
+- 支持同一Agent多任务，通过`taskId`区分不同任务，任务完成后才放到会话上下文供后续任务作为上下文使用
 
 ```dart
 Future<void> main() async {
@@ -38,10 +39,8 @@ Future<void> main() async {
       listen        // 订阅Agent与用户、客户端、大模型、工具等角色的交互消息 AgentMessage
   ); // 获得Session Id
   String prompt = "<用户消息，例如：调用某个工具>";
-  await agentService.startChat(
-      sessionDto.id, // 往此Session Id发起指令
-      [UserMessageDto(type: UserMessageType.text, message: prompt)] // 用户指令，支持text/imageUrl
-  );
+  UserTaskDto userTaskDto = UserTaskDto(taskId: "<用于区分不同任务，不超过36个字符>", contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);  // 用户指令支持text/imageUrl
+  await agentService.startChat(sessionDto.id, userTaskDto);
 }
 ```
 
@@ -60,6 +59,6 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt()
   );
   String prompt = "<用户消息，例如：调用某个工具>";
-  toolAgent.userToAgent([Content(type: ContentType.text, message: prompt)]);
+  toolAgent.userToAgent(taskId: "<用于区分不同任务，不超过36个字符>", contentList: [Content(type: ContentType.text, message: prompt)]);
 }
 ```

@@ -251,7 +251,11 @@ abstract class SessionAgent extends LLM {
     if(taskId != null) {
       _stop(taskId);
     } else {
-      _dispatcherMap.forEach((taskId, dispatcher)=> _stop(taskId));
+      _dispatcherMap.forEach((taskId, dispatcher){
+        if(dispatcher.isListening()) {
+          _stop(taskId);
+        }
+      });
     }
   }
 
@@ -313,7 +317,8 @@ class Dispatcher {
 
   void dispatch(Command command) {
     _addTaskMessage(command.agentMessage);
-    command.execute();
+    _streamController.add(command);
+    // command.execute();
   }
 
   void _addTaskMessage(AgentMessage agentMessage) {
@@ -323,7 +328,7 @@ class Dispatcher {
       agentMessage.type == AgentMessageType.text &&
       (agentMessage.message as String) == TaskStatus.DONE
     ) {
-      _isTaskDone;
+      _isTaskDone = true;
     }
     _taskMessageList.add(agentMessage);
   }

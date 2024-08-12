@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../model.dart';
+import '../agents/model.dart';
+import '../driver/http/openapi_driver.dart';
+import '../llm/model.dart';
 
 part 'dto.g.dart';
 
@@ -71,10 +73,18 @@ class LLMConfigDto {
       this.maxTokens = 4096,
       this.topP = 1.0});
 
-  factory LLMConfigDto.fromJson(Map<String, dynamic> json) =>
-      _$LLMConfigDtoFromJson(json);
+  factory LLMConfigDto.fromJson(Map<String, dynamic> json) => _$LLMConfigDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$LLMConfigDtoToJson(this);
+
+  LLMConfig toModel() => LLMConfig(
+      baseUrl: baseUrl,
+      apiKey: apiKey,
+      model: model,
+      temperature: temperature,
+      maxTokens: maxTokens,
+      topP: topP
+  );
 }
 
 @JsonSerializable()
@@ -83,7 +93,7 @@ class AgentMessageDto {
   late String taskId;
   late String from;
   late String to;
-  late AgentMessageType type;
+  late String type;
   late dynamic message;
   CompletionsDto? completions; //When role is llm, this is current llm calling token usage
   late DateTime createTime;
@@ -170,8 +180,7 @@ class ApiKeyDto {
 
   ApiKeyDto({required this.type, required this.apiKey});
 
-  factory ApiKeyDto.fromJson(Map<String, dynamic> json) =>
-      _$ApiKeyDtoFromJson(json);
+  factory ApiKeyDto.fromJson(Map<String, dynamic> json) => _$ApiKeyDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ApiKeyDtoToJson(this);
 }
@@ -202,8 +211,7 @@ class UserMessageDto {
 
   UserMessageDto({required this.type, required this.message});
 
-  factory UserMessageDto.fromJson(Map<String, dynamic> json) =>
-      _$UserMessageDtoFromJson(json);
+  factory UserMessageDto.fromJson(Map<String, dynamic> json) => _$UserMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserMessageDtoToJson(this);
 }

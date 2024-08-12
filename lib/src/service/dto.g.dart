@@ -74,7 +74,7 @@ AgentMessageDto _$AgentMessageDtoFromJson(Map<String, dynamic> json) =>
       taskId: json['taskId'] as String,
       from: json['from'] as String,
       to: json['to'] as String,
-      type: $enumDecode(_$AgentMessageTypeEnumMap, json['type']),
+      type: json['type'] as String,
       message: json['message'],
       completions: json['completions'] == null
           ? null
@@ -89,19 +89,11 @@ Map<String, dynamic> _$AgentMessageDtoToJson(AgentMessageDto instance) =>
       'taskId': instance.taskId,
       'from': instance.from,
       'to': instance.to,
-      'type': _$AgentMessageTypeEnumMap[instance.type]!,
+      'type': instance.type,
       'message': instance.message,
       'completions': instance.completions,
       'createTime': instance.createTime.toIso8601String(),
     };
-
-const _$AgentMessageTypeEnumMap = {
-  AgentMessageType.text: 'text',
-  AgentMessageType.imageUrl: 'imageUrl',
-  AgentMessageType.functionCallList: 'functionCallList',
-  AgentMessageType.toolReturn: 'toolReturn',
-  AgentMessageType.contentList: 'contentList',
-};
 
 CompletionsDto _$CompletionsDtoFromJson(Map<String, dynamic> json) =>
     CompletionsDto(

@@ -1,11 +1,11 @@
-import 'tool_runner.dart';
+import 'tool_driver.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-abstract class OpenRPCRunner extends ToolRunner {
+abstract class OpenRPCDriver extends ToolDriver {
   OpenRPC openRPC;
 
-  OpenRPCRunner(this.openRPC);
+  OpenRPCDriver(this.openRPC);
 
   @override
   List<FunctionModel> parse() {

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'http_util.dart';
+import '../http/http_util.dart';
 
 const String JSONRPC_VERSION = "2.0.0";
 
@@ -78,8 +78,7 @@ Future<JsonRPCHttpResponse> requestJsonRPCHttpAPI(
     params: jsonRPCHttpRequest.body.toJson(),
   );
 
-  HttpAPIResponse httpAPIResponse =
-      await requestHttpAPI(httpAPIRequest, authorization: authorization);
+  HttpAPIResponse httpAPIResponse = await requestHttpAPI(httpAPIRequest, authorization: authorization);
 
   if (httpAPIResponse.statusCode == 200) {
     Map<String, dynamic> bodyJson = jsonDecode(httpAPIResponse.body);

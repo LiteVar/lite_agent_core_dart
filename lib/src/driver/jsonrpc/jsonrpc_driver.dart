@@ -1,10 +1,10 @@
-import 'package:lite_agent_core_dart/src/util/jsonrpc_http_util.dart';
+import '../../agents/llm/model.dart';
+import 'jsonrpc_http_util.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
-import '../model.dart';
-import 'openrpc_runner.dart';
+import '../openrpc_driver.dart';
 
-class JsonRPCRunner extends OpenRPCRunner {
-  JsonRPCRunner(super.openRPC);
+class JsonRPCDriver extends OpenRPCDriver {
+  JsonRPCDriver(super.openRPC);
 
   @override
   Future<ToolReturn> call(FunctionCall functionCall) async {

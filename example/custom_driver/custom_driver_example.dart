@@ -1,21 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 
-/// [IMPORTANT] Prepare:
-/// 1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.
-/// 2. Run your tool server, which is described in json file.
-/// 3. Add LLM baseUrl and apiKey to `.env` file
-String prompt = "Check the status of the book which id is 1.";
+import 'mock_driver.dart';
 
-AgentService agentService = AgentService();
+String prompt = "add this text: Hello world!.";
 
 Future<void> main() async {
+  List<OpenToolDriver> customOpenToolDriverList = await _buildCustomOpenToolDriverList();
+  AgentService agentService = AgentService(customToolDriverList: customOpenToolDriverList);
+
   CapabilityDto capabilityDto = CapabilityDto(
       llmConfig: _buildLLMConfig(),
       systemPrompt: _buildSystemPrompt(),
-      openSpecList: await _buildOpenSpecList());
+      openSpecList: []);
 
   print("[CapabilityDto] " + capabilityDto.toJson().toString());
 
@@ -61,42 +62,23 @@ LLMConfigDto _buildLLMConfig() {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return 'You are a tools caller, who can call book system tools to help me manage my books.';
+  return 'You are a tools caller, you can manage my storage.';
 }
 
-Future<List<OpenSpecDto>> _buildOpenSpecList() async {
-  // String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
-  // List<String> fileNameList = [
-  //   "json-rpc-book.json"
-  //
-  //   /// you can add more tool spec json file.
-  //   // "json-rpc-food.json"
-  // ];
+Future<List<OpenToolDriver>> _buildCustomOpenToolDriverList() async {
+  List<OpenToolDriver> customOpenToolDriverList = <OpenToolDriver>[];
 
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}mock${Platform.pathSeparator}openrpc";
+  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
   List<String> fileNameList = [
     "mock_tool.json"
   ];
 
-  List<OpenSpecDto> openSpecList = [];
   for (String fileName in fileNameList) {
-    File file = File("$folder${Platform.pathSeparator}$fileName");
-    String jsonString = await file.readAsString();
-
-    OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.opentool);
-
-    openSpecList.add(openSpecDto);
+    OpenTool customOpenTool = await OpenToolLoader().loadFromFile(folder + Platform.pathSeparator + fileName);
+    OpenToolDriver toolDriver = MockDriver(customOpenTool);
+    customOpenToolDriverList.add(toolDriver);
   }
-
-  /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolRunner of the tools.
-  // for (String fileName in fileNameList) {
-  //   File file = File("$folder/$fileName");
-  //   String jsonString = await file.readAsString();
-  //   OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.openapi); //<<-- Tool Protocol
-  //   openSpecList.add(openSpecDto);
-  // }
-
-  return openSpecList;
+  return customOpenToolDriverList;
 }
 
 void listen(String sessionId, AgentMessage agentMessage) {
@@ -114,7 +96,7 @@ void listen(String sessionId, AgentMessage agentMessage) {
     message = agentMessage.message as String;
   if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
     List<FunctionCall> functionCallList =
-        agentMessage.message as List<FunctionCall>;
+    agentMessage.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
   if (agentMessage.type == AgentMessageType.TOOL_RETURN) {

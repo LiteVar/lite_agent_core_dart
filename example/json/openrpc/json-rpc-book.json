@@ -6,7 +6,7 @@
   },
   "servers": [{
     "name": "book server",
-    "url": "http://127.0.0.1:8080/rpc/book",
+    "url": "http://192.168.2.10:8083/rpc/book",
 	"summary": "book management"
   }],
   "methods": [

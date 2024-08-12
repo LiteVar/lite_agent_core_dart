@@ -1,22 +1,19 @@
-import '../model.dart';
-import '../util/llm_executor.dart';
+import 'model.dart';
+import 'llm/llm_executor.dart';
+import 'text_agent/model.dart';
 
-class LLM {
+class SimpleAgent {
   LLMExecutor llmExecutor;
-  LLM({required this.llmExecutor});
-}
-
-class SimpleAgent extends LLM {
-  SimpleAgent({required super.llmExecutor});
+  SimpleAgent({required this.llmExecutor});
 
   Future<AgentMessage> userToAgent(String prompt, String? taskId) async {
-    return await llmExecutor.requestLLM(agentMessageList: [
+    return await llmExecutor.request(agentMessageList: [
       AgentMessage(
-        taskId: taskId??"",
-        from: AgentRole.AGENT,
-        to: AgentRole.LLM,
-        type: AgentMessageType.text,
-        message: prompt
+          taskId: taskId??"",
+          from: TextRoleType.AGENT,
+          to: TextRoleType.LLM,
+          type: TextMessageType.TEXT,
+          message: prompt
       )
     ]);
   }

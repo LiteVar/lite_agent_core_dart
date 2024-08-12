@@ -1,10 +1,10 @@
-import 'tool_runner.dart';
+import 'tool_driver.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-abstract class OpenToolRunner extends ToolRunner {
+abstract class OpenToolDriver extends ToolDriver {
   OpenTool openTool;
 
-  OpenToolRunner(this.openTool);
+  OpenToolDriver(this.openTool);
 
   @override
   List<FunctionModel> parse() {

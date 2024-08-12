@@ -1,49 +1,39 @@
 import 'dart:convert';
-
 import 'package:dart_openai/dart_openai.dart';
+import 'package:http/http.dart';
+import 'package:lite_agent_core_dart/src/agents/llm/exception.dart';
 import 'package:opentool_dart/opentool_dart.dart';
+import '../../llm/openai_util.dart';
+import '../../llm/model.dart';
 import '../model.dart';
+import 'llm_executor.dart';
+import 'model.dart';
 
-class LLMExecutor {
-  late LLMConfig llmConfig;
-  late String taskId;
+class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
+  late String _taskId;
 
-  LLMExecutor(this.llmConfig) {
+  OpenAIExecutor(super.llmConfig) {
     OpenAI.baseUrl = llmConfig.baseUrl;
     OpenAI.apiKey = llmConfig.apiKey;
   }
 
-  Future<AgentMessage> requestLLM({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList}) async {
-    taskId = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRole.AGENT).taskId;
+  Future<AgentMessage> request({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList}) async {
+    _taskId = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRoleType.AGENT).taskId;
     List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = agentMessageList.map((AgentMessage agentMessage) => _buildOpenAIMessage(agentMessage)).toList();
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
-    OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat
-      .create(
-        model: llmConfig.model,
-        responseFormat: {"type": "text"},
-        seed: 6,
-        messages: requestMessageList,
-        tools: tools,
-        temperature: llmConfig.temperature,
-        maxTokens: llmConfig.maxTokens,
-        topP: llmConfig.topP
-    );
+    try {
+      SimpleCompletion chatCompletion = await super.chat(messageList: requestMessageList, toolList: tools);
 
-    TokenUsage tokenUsage = TokenUsage(
-        promptTokens: chatCompletion.usage.promptTokens,
-        completionTokens: chatCompletion.usage.completionTokens,
-        totalTokens: chatCompletion.usage.totalTokens
-    );
+      AgentMessage agentMessage = _toAgentMessage(
+          chatCompletion.message,
+          completions: chatCompletion.completions
+      );
 
-    Completions completions = Completions(tokenUsage: tokenUsage, id: chatCompletion.id, model: llmConfig.model);
-
-    AgentMessage agentMessage = _toAgentMessage(
-      chatCompletion.choices.first.message,
-      completions: completions
-    );
-
-    return agentMessage;
+      return agentMessage;
+    } on ClientException catch(e) {
+      throw LLMException(code: 500, message: e.message);
+    }
   }
 
   OpenAIToolModel _buildOpenAIToolModel(FunctionModel functionModel) {
@@ -52,17 +42,16 @@ class LLMExecutor {
       openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(name, property));
     });
     OpenAIFunctionModel openAIFunctionModel =
-      OpenAIFunctionModel.withParameters(
+    OpenAIFunctionModel.withParameters(
         name: functionModel.name,
         description: functionModel.description,
         parameters: openAIFunctionPropertyList
-      );
+    );
     OpenAIToolModel openAIToolModel = OpenAIToolModel(type: "function", function: openAIFunctionModel);
     return openAIToolModel;
   }
 
-  OpenAIFunctionProperty _convertToOpenAIFunctionProperty(
-      String name, Property property) {
+  OpenAIFunctionProperty _convertToOpenAIFunctionProperty(String name, Property property) {
     switch (property.type) {
       case PropertyType.boolean:
         return OpenAIFunctionProperty.boolean(
@@ -88,7 +77,7 @@ class LLMExecutor {
       case PropertyType.array:
         {
           OpenAIFunctionProperty openAIFunctionProperty =
-              _convertToOpenAIFunctionProperty(name, property.items!);
+          _convertToOpenAIFunctionProperty(name, property.items!);
           return OpenAIFunctionProperty.array(
               name: name,
               description: property.description,
@@ -101,7 +90,7 @@ class LLMExecutor {
           Map<String, OpenAIFunctionProperty> openAIFunctionProperties = {};
           properties.forEach((String name, Property property0) {
             OpenAIFunctionProperty openAIFunctionProperty =
-                _convertToOpenAIFunctionProperty(name, property0);
+            _convertToOpenAIFunctionProperty(name, property0);
             openAIFunctionProperties[name] = openAIFunctionProperty;
           });
 
@@ -114,11 +103,10 @@ class LLMExecutor {
     }
   }
 
-  OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(
-      AgentMessage agentMessage) {
+  OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(AgentMessage agentMessage) {
     //System Prompt
-    if (agentMessage.from == AgentRole.SYSTEM &&
-        agentMessage.type == AgentMessageType.text) {
+    if (agentMessage.from == AgentRoleType.SYSTEM &&
+        agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.system,
           content: [
@@ -128,8 +116,8 @@ class LLMExecutor {
     }
 
     //LLM return text
-    if (agentMessage.from == AgentRole.LLM &&
-        agentMessage.type == AgentMessageType.text) {
+    if (agentMessage.from == AgentRoleType.LLM &&
+        agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [
@@ -139,8 +127,8 @@ class LLMExecutor {
     }
 
     //LLM return image
-    if (agentMessage.from == AgentRole.LLM &&
-        agentMessage.type == AgentMessageType.imageUrl) {
+    if (agentMessage.from == AgentRoleType.LLM &&
+        agentMessage.type == AgentMessageType.IMAGE_URL) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [
@@ -150,12 +138,12 @@ class LLMExecutor {
     }
 
     //LLM return function calling
-    if (agentMessage.from == AgentRole.LLM &&
-        agentMessage.type == AgentMessageType.functionCallList) {
+    if (agentMessage.from == AgentRoleType.LLM &&
+        agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
       List<FunctionCall> functionCallList =
-          agentMessage.message as List<FunctionCall>;
+      agentMessage.message as List<FunctionCall>;
       List<OpenAIResponseToolCall> openAIResponseToolCallList =
-          functionCallList.map((FunctionCall functionCall) {
+      functionCallList.map((FunctionCall functionCall) {
         return _toOpenAIResponseToolCall(functionCall);
       }).toList();
 
@@ -166,8 +154,8 @@ class LLMExecutor {
     }
 
     //AGENT return TOOL result
-    if (agentMessage.from == AgentRole.AGENT &&
-        agentMessage.type == AgentMessageType.toolReturn) {
+    if (agentMessage.from == AgentRoleType.TOOL &&
+        agentMessage.type == AgentMessageType.TOOL_RETURN) {
       ToolReturn toolReturn = agentMessage.message as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.tool,
@@ -179,19 +167,16 @@ class LLMExecutor {
     }
 
     //AGENT forward USER messages
-    if (agentMessage.from == AgentRole.AGENT &&
-        agentMessage.type == AgentMessageType.contentList) {
-      List<Content> contentList = agentMessage.message as List<Content>;
+    if (agentMessage.from == AgentRoleType.AGENT &&
+        agentMessage.type == AgentMessageType.CONTENT_LIST) {
+      List<LLMContent> contentList = agentMessage.message as List<LLMContent>;
 
       List<OpenAIChatCompletionChoiceMessageContentItemModel>
-          openAIContentList = contentList.map((content) {
-        switch (content.type) {
-          case ContentType.text:
-            return OpenAIChatCompletionChoiceMessageContentItemModel.text(
-                content.message);
-          case ContentType.imageUrl:
-            return OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(
-                content.message);
+      openAIContentList = contentList.map((content) {
+        if(content.type == LLMContentType.IMAGE_URL) {
+          return OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(content.message);
+        } else {
+          return OpenAIChatCompletionChoiceMessageContentItemModel.text(content.message);
         }
       }).toList();
 
@@ -228,29 +213,29 @@ class LLMExecutor {
       String id = openAIResponseToolCall.id!;
       String name = openAIResponseToolCall.function.name!;
       Map<String, dynamic> parameters =
-          jsonDecode(openAIResponseToolCall.function.arguments);
+      jsonDecode(openAIResponseToolCall.function.arguments);
       return FunctionCall(id: id, name: name, parameters: parameters);
     }).toList();
 
     if (message != null) {
       return AgentMessage(
-        taskId: taskId,
-        from: AgentRole.LLM,
-        to: AgentRole.AGENT,
-        type: AgentMessageType.functionCallList,
-        message: message,
-        completions: completions
+          taskId: _taskId,
+          from: AgentRoleType.LLM,
+          to: AgentRoleType.AGENT,
+          type: AgentMessageType.FUNCTION_CALL_LIST,
+          message: message,
+          completions: completions
       );
     }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
-      taskId: taskId,
-      from: AgentRole.LLM,
-      to: AgentRole.AGENT,
-      type: AgentMessageType.text,
-      message: message,
-      completions: completions
+        taskId: _taskId,
+        from: AgentRoleType.LLM,
+        to: AgentRoleType.AGENT,
+        type: AgentMessageType.TEXT,
+        message: message,
+        completions: completions
     );
   }
 }

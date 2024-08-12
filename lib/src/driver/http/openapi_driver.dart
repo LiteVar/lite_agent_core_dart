@@ -1,15 +1,15 @@
-import '../model.dart';
-import '../util/http_util.dart';
-import 'tool_runner.dart';
+import '../../agents/llm/model.dart';
+import 'http_util.dart';
+import '../tool_driver.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-class OpenAPIRunner extends ToolRunner {
+class OpenAPIDriver extends ToolDriver {
   OpenAPI openAPI;
   Map<String, String> functionToolNameMap = {};
   String? authorization;
 
-  OpenAPIRunner(this.openAPI, {this.authorization});
+  OpenAPIDriver(this.openAPI, {this.authorization});
 
   @override
   List<FunctionModel> parse() {
@@ -130,14 +130,12 @@ class OpenAPIRunner extends ToolRunner {
         parameters: opentoolParameters);
   }
 
-  @override
   String convertToFunctionName(String toolName) {
     String functionName = toolName.replaceAll("-", "--").replaceAll("/", "-");
     functionToolNameMap.addAll({functionName: toolName});
     return functionName;
   }
 
-  @override
   String convertToToolName(String functionName) {
     return functionToolNameMap[functionName]!;
   }
@@ -175,6 +173,8 @@ const _PropertyTypeEnumMap = {
   'array': PropertyType.array,
   'object': PropertyType.object
 };
+
+enum ApiKeyType { basic, bearer }
 
 String convertToAuthorization(ApiKeyType type, String apiKey) {
   switch (type) {

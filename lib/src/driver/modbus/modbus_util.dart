@@ -4,8 +4,6 @@ import 'package:modbus_client_udp/modbus_client_udp.dart';
 import 'package:modbus_client/modbus_client.dart';
 import 'package:modbus_client_tcp/modbus_client_tcp.dart';
 
-import '../runner/openmodbus_runner.dart';
-
 enum ModbusServerType { tcp, udp, rtu, ascii }
 
 enum ModbusDataType { bool, int16, int32, uint16, uint32, string }
@@ -60,8 +58,15 @@ class ModbusParams {
       required this.modbusElementParams});
 }
 
-Future<ModbusResponse> requestModbus(ModbusParams modbusParams,
-    {ModbusNet? modbusNet, ModbusSerial? modbusSerial}) {
+class ModbusResponse {
+  late int statusCode;
+  late String body;
+  ModbusResponse({required this.statusCode, required this.body});
+
+  Map<String, dynamic> toJson() => {'statusCode': statusCode, 'body': body};
+}
+
+Future<ModbusResponse> requestModbus(ModbusParams modbusParams, {ModbusNet? modbusNet, ModbusSerial? modbusSerial}) {
   ModbusClient modbusClient;
   if (modbusParams.serverType == ModbusServerType.tcp) {
     ;

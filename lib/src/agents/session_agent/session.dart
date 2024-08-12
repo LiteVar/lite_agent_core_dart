@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'model.dart';
+import '../model.dart';
 
 class AgentSession {
+  bool hasSystemMessage = false;
   List<AgentMessage> listenAgentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
   List<AgentMessage> taskDoneAgentMessageList = [];
 
   void clearMessage() {
+    hasSystemMessage = false;
     listenAgentMessageList = [];
+    taskDoneAgentMessageList = [];
   }
 
-  void resetListener() {
-    _agentMessageListenerList = [];
-  }
+  void resetListener() { _agentMessageListenerList = []; }
 
-  void addAgentMessageListener(
-      void Function(AgentMessage) agentMessageListener) {
+  void addAgentMessageListener(void Function(AgentMessage) agentMessageListener) {
     _agentMessageListenerList.add(agentMessageListener);
   }
 

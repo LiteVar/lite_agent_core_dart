@@ -1,15 +1,15 @@
 import 'dart:async';
-import 'package:lite_agent_core_dart/src/util/modbus_util.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart' as ot;
 import 'package:modbus_client/modbus_client.dart';
-import '../model.dart';
-import 'tool_runner.dart';
+import '../../agents/llm/model.dart';
+import 'modbus_util.dart';
+import '../tool_driver.dart';
 
-class OpenModbusRunner extends ToolRunner {
+class OpenModbusDriver extends ToolDriver {
   late OpenModbus openModbus;
 
-  OpenModbusRunner(this.openModbus);
+  OpenModbusDriver(this.openModbus);
 
   @override
   List<ot.FunctionModel> parse() {
@@ -143,10 +143,4 @@ class OpenModbusRunner extends ToolRunner {
   }
 }
 
-class ModbusResponse {
-  late int statusCode;
-  late String body;
-  ModbusResponse({required this.statusCode, required this.body});
 
-  Map<String, dynamic> toJson() => {'statusCode': statusCode, 'body': body};
-}

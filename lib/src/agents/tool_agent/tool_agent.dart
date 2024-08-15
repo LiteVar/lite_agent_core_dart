@@ -121,17 +121,32 @@ class ToolAgent extends TextAgent {
     List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
 
     for (FunctionCall functionCall in functionCallList) {
-      ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
-      ToolReturn toolReturn = await toolDriver.call(functionCall);
-      AgentMessage toolMessage = AgentMessage(
-        taskId: agentMessage.taskId,
-        from: ToolRoleType.TOOL,
-        to: ToolRoleType.AGENT,
-        type: ToolMessageType.TOOL_RETURN,
-        message: toolReturn
-      );
-      Command command = Command(toAgent, toolMessage);
-      dispatcherMap.dispatch(command);
+      try {
+        ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
+        ToolReturn toolReturn = await toolDriver.call(functionCall);
+        AgentMessage toolMessage = AgentMessage(
+          taskId: agentMessage.taskId,
+          from: ToolRoleType.TOOL,
+          to: ToolRoleType.AGENT,
+          type: ToolMessageType.TOOL_RETURN,
+          message: toolReturn
+        );
+        Command command = Command(toAgent, toolMessage);
+        dispatcherMap.dispatch(command);
+      } on StateError {
+        /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
+        Map<String, dynamic> result = {"error": "Function `${functionCall.name}` Not Found."};
+        ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
+        AgentMessage toolMessage = AgentMessage(
+            taskId: agentMessage.taskId,
+            from: ToolRoleType.TOOL,
+            to: ToolRoleType.AGENT,
+            type: ToolMessageType.TOOL_RETURN,
+            message: toolReturn
+        );
+        Command command = Command(toAgent, toolMessage);
+        dispatcherMap.dispatch(command);
+      }
     }
     AgentMessage toolDoneMessage = AgentMessage(
       taskId: agentMessage.taskId,

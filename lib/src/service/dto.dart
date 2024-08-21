@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/model.dart';
-import '../driver/http/openapi_driver.dart';
 import '../llm/model.dart';
 
 part 'dto.g.dart';

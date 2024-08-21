@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:dart_openai/dart_openai.dart';
-import 'package:http/http.dart';
-import 'package:lite_agent_core_dart/src/agents/llm/exception.dart';
 import 'package:opentool_dart/opentool_dart.dart';
+import 'package:http/http.dart';
+import 'exception.dart';
 import '../../llm/openai_util.dart';
 import '../../llm/model.dart';
 import '../model.dart';
@@ -38,8 +38,8 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
   OpenAIToolModel _buildOpenAIToolModel(FunctionModel functionModel) {
     List<OpenAIFunctionProperty> openAIFunctionPropertyList = [];
-    functionModel.parameters.properties.forEach((String name, Property property) {
-      openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(name, property));
+    functionModel.parameters.forEach((Parameter parameter) {
+      openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(parameter));
     });
     OpenAIFunctionModel openAIFunctionModel =
     OpenAIFunctionModel.withParameters(
@@ -51,55 +51,124 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     return openAIToolModel;
   }
 
-  OpenAIFunctionProperty _convertToOpenAIFunctionProperty(String name, Property property) {
-    switch (property.type) {
-      case PropertyType.boolean:
+  OpenAIFunctionProperty _convertToOpenAIFunctionProperty(Parameter parameter) {
+    return _toOpenAIFunctionProperty(
+      parameter.name,
+      parameter.schema,
+      parameter.required
+    );
+    // switch (parameter.schema.type) {
+    //   case DataType.BOOLEAN:
+    //     return OpenAIFunctionProperty.boolean(
+    //         name: name,
+    //         description: parameter.description,
+    //         isRequired: parameter.required);
+    //   case DataType.INTEGER:
+    //     return OpenAIFunctionProperty.integer(
+    //         name: name,
+    //         description: parameter.description,
+    //         isRequired: parameter.required);
+    //   case DataType.NUMBER:
+    //     return OpenAIFunctionProperty.number(
+    //         name: name,
+    //         description: parameter.description,
+    //         isRequired: parameter.required);
+    //   case DataType.STRING:
+    //     return OpenAIFunctionProperty.string(
+    //         name: name,
+    //         description: parameter.description,
+    //         isRequired: parameter.required,
+    //         enumValues: parameter.schema.enum_);
+    //   case DataType.ARRAY:
+    //     {
+    //       Parameter parameter0 = Parameter(name: name, schema: parameter.schema.items!);
+    //       OpenAIFunctionProperty openAIFunctionProperty =
+    //       _convertToOpenAIFunctionProperty(name, parameter0);
+    //       return OpenAIFunctionProperty.array(
+    //           name: name,
+    //           description: parameter.description,
+    //           isRequired: parameter.required,
+    //           items: openAIFunctionProperty
+    //       );
+    //     }
+    //   case DataType.OBJECT:
+    //     {
+    //       Map<String, Schema> properties = parameter.schema.properties!;
+    //       Map<String, OpenAIFunctionProperty> openAIFunctionProperties = {};
+    //       properties.forEach((String name, Schema schema0) {
+    //         OpenAIFunctionProperty openAIFunctionProperty =
+    //         _convertToOpenAIFunctionProperty(name, schema0);
+    //         openAIFunctionProperties[name] = openAIFunctionProperty;
+    //       });
+    //
+    //       return OpenAIFunctionProperty.object(
+    //           name: name,
+    //           description: parameter.description,
+    //           isRequired: parameter.required,
+    //           properties: openAIFunctionProperties.values);
+    //     }
+    //   default: {
+    //     return OpenAIFunctionProperty(name: "", typeMap: {});
+    //   }
+    // }
+  }
+
+  OpenAIFunctionProperty _toOpenAIFunctionProperty(String name, Schema schema, bool required) {
+    switch (schema.type) {
+      case DataType.BOOLEAN:
         return OpenAIFunctionProperty.boolean(
             name: name,
-            description: property.description,
-            isRequired: property.required);
-      case PropertyType.integer:
+            description: schema.description,
+            isRequired: required);
+      case DataType.INTEGER:
         return OpenAIFunctionProperty.integer(
             name: name,
-            description: property.description,
-            isRequired: property.required);
-      case PropertyType.number:
+            description: schema.description,
+            isRequired: required);
+      case DataType.NUMBER:
         return OpenAIFunctionProperty.number(
             name: name,
-            description: property.description,
-            isRequired: property.required);
-      case PropertyType.string:
+            description: schema.description,
+            isRequired: required);
+      case DataType.STRING:
         return OpenAIFunctionProperty.string(
             name: name,
-            description: property.description,
-            isRequired: property.required,
-            enumValues: property.enum_);
-      case PropertyType.array:
+            description: schema.description,
+            isRequired: required,
+            enumValues: schema.enum_);
+      case DataType.ARRAY:
         {
-          OpenAIFunctionProperty openAIFunctionProperty =
-          _convertToOpenAIFunctionProperty(name, property.items!);
+          OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, schema.items!, required);
           return OpenAIFunctionProperty.array(
               name: name,
-              description: property.description,
-              isRequired: property.required,
-              items: openAIFunctionProperty);
+              description: schema.description,
+              isRequired: required,
+              items: openAIFunctionProperty
+          );
         }
-      case PropertyType.object:
+      case DataType.OBJECT:
         {
-          Map<String, Property> properties = property.properties!;
+          Map<String, Schema> properties = schema.properties!;
+          List<String>? requiredList = schema.required;
           Map<String, OpenAIFunctionProperty> openAIFunctionProperties = {};
-          properties.forEach((String name, Property property0) {
-            OpenAIFunctionProperty openAIFunctionProperty =
-            _convertToOpenAIFunctionProperty(name, property0);
+          properties.forEach((String name, Schema schema0) {
+            bool required = false;
+            if(requiredList != null && requiredList.contains(name)) {
+              required = true;
+            }
+            OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, schema0, required);
             openAIFunctionProperties[name] = openAIFunctionProperty;
           });
 
           return OpenAIFunctionProperty.object(
               name: name,
-              description: property.description,
-              isRequired: property.required,
+              description: schema.description,
+              isRequired: required,
               properties: openAIFunctionProperties.values);
         }
+      default: {
+        return OpenAIFunctionProperty(name: "", typeMap: {});
+      }
     }
   }
 

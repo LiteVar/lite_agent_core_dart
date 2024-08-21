@@ -3,11 +3,9 @@ import 'package:opentool_dart/opentool_dart.dart';
 import '../../agents/text_agent/text_agent.dart';
 import '../llm/exception.dart';
 import '../model.dart';
-import '../llm/model.dart';
 import '../session_agent/dispatcher.dart';
 import '../text_agent/model.dart';
 import '../tool_agent/model.dart';
-import '../../driver/tool_driver.dart';
 
 class ToolAgent extends TextAgent {
   List<ToolDriver> toolDriverList;

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.

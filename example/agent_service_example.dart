@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.

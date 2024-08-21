@@ -1,3 +1,7 @@
+## 0.3.0
+
+- adapt OpenTool support
+
 ## 0.2.0
 
 - add multi tasks supported

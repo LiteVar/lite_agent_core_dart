@@ -42,9 +42,9 @@ AgentSession _buildSession() {
     String client = "🔗CLIENT";
 
     String message = "";
-    if (agentMessage.type == ToolMessageType.TEXT)
+    if (agentMessage.type == TextMessageType.TEXT)
       message = agentMessage.message as String;
-    if (agentMessage.type == ToolMessageType.IMAGE_URL)
+    if (agentMessage.type == TextMessageType.IMAGE_URL)
       message = agentMessage.message as String;
     if (agentMessage.type == AgentMessageType.CONTENT_LIST)
       message = jsonEncode((agentMessage.message as List<Content>)
@@ -52,21 +52,21 @@ AgentSession _buildSession() {
           .toList());
 
     String from = "";
-    if (agentMessage.from == ToolRoleType.SYSTEM) {
+    if (agentMessage.from == TextRoleType.SYSTEM) {
       from = system;
       message = "\n$message";
     }
-    if (agentMessage.from == ToolRoleType.USER) from = user;
-    if (agentMessage.from == ToolRoleType.AGENT) from = agent;
-    if (agentMessage.from == ToolRoleType.LLM) from = llm;
-    if (agentMessage.from == ToolRoleType.CLIENT) from = client;
+    if (agentMessage.from == TextRoleType.USER) from = user;
+    if (agentMessage.from == TextRoleType.AGENT) from = agent;
+    if (agentMessage.from == TextRoleType.LLM) from = llm;
+    if (agentMessage.from == TextRoleType.CLIENT) from = client;
 
     String to = "";
-    if (agentMessage.to == ToolRoleType.SYSTEM) to = system;
-    if (agentMessage.to == ToolRoleType.USER) to = user;
-    if (agentMessage.to == ToolRoleType.AGENT) to = agent;
-    if (agentMessage.to == ToolRoleType.LLM) to = llm;
-    if (agentMessage.to == ToolRoleType.CLIENT) to = client;
+    if (agentMessage.to == TextRoleType.SYSTEM) to = system;
+    if (agentMessage.to == TextRoleType.USER) to = user;
+    if (agentMessage.to == TextRoleType.AGENT) to = agent;
+    if (agentMessage.to == TextRoleType.LLM) to = llm;
+    if (agentMessage.to == TextRoleType.CLIENT) to = client;
 
     if (from.isNotEmpty && to.isNotEmpty) {
       print("$from -> $to: [${agentMessage.type}] $message");

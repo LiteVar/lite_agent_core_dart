@@ -17,13 +17,13 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     OpenAI.apiKey = llmConfig.apiKey;
   }
 
-  Future<AgentMessage> request({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList}) async {
+  Future<AgentMessage> request({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList, ResponseFormat? responseFormat}) async {
     _taskId = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRoleType.AGENT).taskId;
     List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = agentMessageList.map((AgentMessage agentMessage) => _buildOpenAIMessage(agentMessage)).toList();
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
     try {
-      SimpleCompletion chatCompletion = await super.chat(messageList: requestMessageList, toolList: tools);
+      SimpleCompletion chatCompletion = await super.chat(messageList: requestMessageList, toolList: tools, responseFormat: responseFormat);
 
       AgentMessage agentMessage = _toAgentMessage(
           chatCompletion.message,

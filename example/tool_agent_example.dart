@@ -39,8 +39,7 @@ LLMExecutor _buildLLMExecutor() {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 Future<List<ToolDriver>> _buildToolDriverList() async {
-  String folder =
-      "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
+  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
   List<String> fileNameList = [
     "json-rpc-book.json"
     // "json-rpc-food.json" // you can add more tool spec json file.

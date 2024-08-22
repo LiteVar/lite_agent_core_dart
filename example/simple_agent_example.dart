@@ -4,12 +4,13 @@ import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 
 String systemPrompt = "";
-ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.json);
+String userPrompt = "Return json format!";
+ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.JSON_OBJECT);
 
 Future<void> main() async {
   LLMExecutor llmExecutor = _buildLLMExecutor();
-  SimpleAgent simpleAgent = SimpleAgent(llmExecutor: llmExecutor, systemPrompt: systemPrompt, responseFormat: ResponseFormat(type: ResponseFormatType.json));
-  AgentMessage agentMessage = await simpleAgent.userToAgent(prompt: "Return json format!", taskId: "task-1");
+  SimpleAgent simpleAgent = SimpleAgent(llmExecutor: llmExecutor, systemPrompt: systemPrompt, responseFormat: responseFormat);
+  AgentMessage agentMessage = await simpleAgent.userToAgent(prompt: userPrompt, taskId: "task-1");
   print(jsonEncode(AgentMessageDto.fromModel("session-1", agentMessage).toJson()));
 }
 

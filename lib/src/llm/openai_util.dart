@@ -13,7 +13,7 @@ class OpenAIUtil {
 
     OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat.create(
       model: llmConfig.model,
-      responseFormat: responseFormat==null?ResponseFormat(type: ResponseFormatType.text).toJson(): responseFormat.toJson(),
+      responseFormat: responseFormat==null?ResponseFormat(type: ResponseFormatType.TEXT).toJson(): responseFormat.toJson(),
       seed: 6,
       messages: messageList,
       tools: toolList,

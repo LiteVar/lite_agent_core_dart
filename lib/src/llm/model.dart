@@ -46,8 +46,8 @@ class SimpleCompletion {
 }
 
 class ResponseFormatType {
-  static String text = "text";
-  static String json = "json_object";
+  static String TEXT = "text";
+  static String JSON_OBJECT = "json_object";
 }
 
 class ResponseFormat {

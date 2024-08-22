@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 
-
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
 /// 2. Run your tool server, which is described in json file.

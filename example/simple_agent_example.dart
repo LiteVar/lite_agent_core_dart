@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 

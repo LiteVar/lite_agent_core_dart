@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
@@ -9,12 +9,13 @@ import '../agents/llm/llm_executor.dart';
 import '../agents/llm/openai_executor.dart';
 import '../agents/session_agent/session.dart';
 import '../agents/session_agent/model.dart';
+import '../agents/text_agent/text_agent.dart';
 import '../agents/tool_agent/tool_agent.dart';
 import '../llm/model.dart';
 import 'dto.dart';
 
 class AgentService {
-  Map<String, ToolAgent> agents = {};
+  Map<String, TextAgent> agents = {};
   List<ToolDriver> toolDriverList = [];
 
   AgentService({List<ToolDriver>? customToolDriverList = null}) {
@@ -22,22 +23,30 @@ class AgentService {
   }
 
   Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessage agentMessage) listen) async {
+    String sessionId = Uuid().v4();
     String systemPrompt = capabilityDto.systemPrompt;
-    List<OpenSpecDto> openSpecDtoList = capabilityDto.openSpecList;
-
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
 
-    String sessionId = Uuid().v4();
+    if(capabilityDto.openSpecList == null || capabilityDto.openSpecList!.isEmpty) {
+      TextAgent toolAgent = TextAgent(
+          llmExecutor: _buildLLMExecutor(llmConfig),
+          agentSession: _buildSession(sessionId, listen),
+          systemPrompt: systemPrompt,
+          timeoutSeconds: capabilityDto.timeoutSeconds
+      );
+      agents.addAll({sessionId: toolAgent});
+    } else {
+      List<OpenSpecDto> openSpecDtoList = capabilityDto.openSpecList!;
 
-    ToolAgent toolAgent = ToolAgent(
-        llmExecutor: _buildLLMExecutor(llmConfig),
-        agentSession: _buildSession(sessionId, listen),
-        toolDriverList: await buildToolDriverList(openSpecDtoList),
-        systemPrompt: systemPrompt,
-        timeoutSeconds: capabilityDto.timeoutSeconds
-    );
-
-    agents.addAll({sessionId: toolAgent});
+      TextAgent toolAgent = ToolAgent(
+          llmExecutor: _buildLLMExecutor(llmConfig),
+          agentSession: _buildSession(sessionId, listen),
+          toolDriverList: await buildToolDriverList(openSpecDtoList),
+          systemPrompt: systemPrompt,
+          timeoutSeconds: capabilityDto.timeoutSeconds
+      );
+      agents.addAll({sessionId: toolAgent});
+    }
 
     SessionDto sessionDto = SessionDto(id: sessionId);
 
@@ -45,7 +54,7 @@ class AgentService {
   }
 
   Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
-    ToolAgent toolAgent = agents[sessionId]!;
+    TextAgent toolAgent = agents[sessionId]!;
     List<Content> userMessageList = userTaskDto.contentList
         .map((userMessageDto) => _convertToContent(userMessageDto))
         .toList();
@@ -53,7 +62,7 @@ class AgentService {
   }
 
   Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
-    ToolAgent? toolAgent = agents[sessionId];
+    TextAgent? toolAgent = agents[sessionId];
     if (toolAgent == null) return null;
     return toolAgent
       .agentSession
@@ -65,12 +74,12 @@ class AgentService {
   }
 
   Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
-    ToolAgent toolAgent = agents[sessionTaskDto.id]!;
+    TextAgent toolAgent = agents[sessionTaskDto.id]!;
     toolAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
   Future<void> clearChat(String sessionId) async {
-    ToolAgent toolAgent = agents[sessionId]!;
+    TextAgent toolAgent = agents[sessionId]!;
     toolAgent.clear();
     agents.remove(sessionId);
   }

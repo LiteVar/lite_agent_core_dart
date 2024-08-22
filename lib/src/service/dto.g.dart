@@ -20,8 +20,8 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
       llmConfig:
           LLMConfigDto.fromJson(json['llmConfig'] as Map<String, dynamic>),
       systemPrompt: json['systemPrompt'] as String,
-      openSpecList: (json['openSpecList'] as List<dynamic>)
-          .map((e) => OpenSpecDto.fromJson(e as Map<String, dynamic>))
+      openSpecList: (json['openSpecList'] as List<dynamic>?)
+          ?.map((e) => OpenSpecDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 3600,
     );

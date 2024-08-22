@@ -21,14 +21,15 @@ class SessionDto {
 class CapabilityDto {
   late LLMConfigDto llmConfig;
   late String systemPrompt;
-  late List<OpenSpecDto> openSpecList;
+  late List<OpenSpecDto>? openSpecList;
   int timeoutSeconds;
 
-  CapabilityDto(
-      {required this.llmConfig,
-      required this.systemPrompt,
-      required this.openSpecList,
-      this.timeoutSeconds = 3600});
+  CapabilityDto({
+    required this.llmConfig,
+    required this.systemPrompt,
+    this.openSpecList,
+    this.timeoutSeconds = 3600
+  });
 
   factory CapabilityDto.fromJson(Map<String, dynamic> json) =>
       _$CapabilityDtoFromJson(json);

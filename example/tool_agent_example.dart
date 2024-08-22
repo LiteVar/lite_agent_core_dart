@@ -14,10 +14,11 @@ String prompt = "Check the status of the book which id is 1.";
 
 Future<void> main() async {
   ToolAgent toolAgent = ToolAgent(
-      llmExecutor: _buildLLMExecutor(),
-      agentSession: _buildSession(),
-      toolDriverList: await _buildToolDriverList(),
-      systemPrompt: _buildSystemPrompt());
+    llmExecutor: _buildLLMExecutor(),
+    agentSession: _buildSession(),
+    toolDriverList: await _buildToolDriverList(),
+    systemPrompt: _buildSystemPrompt()
+  );
   toolAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 

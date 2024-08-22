@@ -52,8 +52,10 @@ class AgentService {
     toolAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
   }
 
-  Future<List<AgentMessageDto>> getHistory(String sessionId) async {
-    return agents[sessionId]!
+  Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
+    ToolAgent? toolAgent = agents[sessionId];
+    if (toolAgent == null) return null;
+    return toolAgent
       .agentSession
       .listenAgentMessageList
       .map((AgentMessage agentMessage) {

@@ -27,7 +27,9 @@ class AgentService {
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
 
-    if(capabilityDto.openSpecList == null || capabilityDto.openSpecList!.isEmpty) {
+    List<ToolDriver> allToolDriverList = await buildToolDriverList(capabilityDto.openSpecList);
+
+    if(allToolDriverList.isEmpty) {
       TextAgent toolAgent = TextAgent(
           llmExecutor: _buildLLMExecutor(llmConfig),
           agentSession: _buildSession(sessionId, listen),
@@ -105,7 +107,8 @@ class AgentService {
     return agentSession;
   }
 
-  Future<List<ToolDriver>> buildToolDriverList(List<OpenSpecDto> openSpecDtoList) async {
+  Future<List<ToolDriver>> buildToolDriverList(List<OpenSpecDto>? openSpecDtoList) async {
+    if(openSpecDtoList == null) return toolDriverList;
     for (OpenSpecDto openSpecDto in openSpecDtoList) {
       if (openSpecDto.protocol == Protocol.openapi) {
         OpenAPI openAPI = await OpenAPILoader().load(openSpecDto.openSpec);

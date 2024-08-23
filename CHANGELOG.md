@@ -1,6 +1,7 @@
 ## 0.3.0
 
 - adapt OpenTool support
+- add pure text agent support
 
 ## 0.2.0
 

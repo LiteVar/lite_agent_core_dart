@@ -16,12 +16,14 @@
     {
       "name": "read_current_temperature",
       "description": "Read current temperature of the building",
-      "slaveId": 0,
       "method": "read",
-      "storage": "inputRegisters",
-      "address": 0,
-      "count": 1,
-      "result": {
+      "path": {
+        "slaveId": 0,
+        "storage": "inputRegisters",
+        "address": 0,
+        "count": 1
+      },
+      "return": {
         "name": "temperature_value",
         "description": "Current temperature value",
         "type": "int16",
@@ -32,11 +34,13 @@
     {
       "name": "set_target_temperature",
       "description": "Set target temperature of the building",
-      "slaveId": 0,
       "method": "write",
-      "storage": "holdingRegisters",
-      "address": 1,
-      "count": 1,
+      "path": {
+        "slaveId": 0,
+        "storage": "holdingRegisters",
+        "address": 1,
+        "count": 1
+      },
       "parameter": {
         "name": "temperature_value",
         "description": "",
@@ -48,12 +52,14 @@
     {
       "name": "get_target_temperature",
       "description": "Get target temperature of the building",
-      "slaveId": 0,
-      "address": 1,
-      "count": 1,
       "method": "read",
-      "storage": "holdingRegisters",
-      "result": {
+      "path": {
+        "slaveId": 0,
+        "address": 1,
+        "count": 1,
+        "storage": "holdingRegisters"
+      },
+      "return": {
         "name": "temperature_value",
         "description": "Target temperature value",
         "type": "int16",

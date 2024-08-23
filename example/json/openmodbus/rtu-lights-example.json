@@ -16,12 +16,14 @@
     {
       "name": "light_1_status",
       "description": "read 1# light status",
-      "slaveId": 0,
       "method": "read",
-      "storage": "coils",
-      "address": 0,
-      "count": 1,
-      "result": {
+      "path": {
+        "slaveId": 0,
+        "storage": "coils",
+        "address": 0,
+        "count": 1
+      },
+      "return": {
         "name": "light_1_status",
         "description": "light 1 is turn on or turn off",
         "type": "bool"
@@ -30,11 +32,13 @@
     {
       "name": "turn_light_1",
       "description": "Turn on/off light 1",
-      "slaveId": 0,
       "method": "write",
-      "storage": "coils",
-      "address": 0,
-      "count": 1,
+      "path": {
+        "slaveId": 0,
+        "storage": "coils",
+        "address": 0,
+        "count": 1
+      },
       "parameter": {
         "name": "light_1",
         "description": "true: turn on, false: turn off",

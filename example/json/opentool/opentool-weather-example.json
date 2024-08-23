@@ -9,21 +9,37 @@
       "name": "get_current_weather",
       "description": "Get the current weather",
       "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "The city and state, e.g. San Francisco, CA",
-            "required": true
+        "currentWeatherInfo": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "The city and state, e.g. San Francisco, CA",
+                "required": true
+              },
+              "format": {
+                "schema": {
+                  "type": "string"
+                },
+                "enum": [
+                  "celsius",
+                  "fahrenheit"
+                ],
+                "description": "The temperature unit to use. Infer this from the users location.",
+                "required": true
+              }
+            }
           },
-          "format": {
-            "type": "string",
-            "enum": [
-              "celsius",
-              "fahrenheit"
-            ],
-            "description": "The temperature unit to use. Infer this from the users location.",
-            "required": true
+          "required": true
+        }
+      },
+      "returns": {
+        "currentWeather": {
+          "schema": {
+            "type": "string"
           }
         }
       }
@@ -32,26 +48,43 @@
       "name": "get_n_day_weather_forecast",
       "description": "Get an N-day weather forecast",
       "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "The city and state, e.g. San Francisco, CA",
-            "required": true
-          },
-          "format": {
-            "type": "string",
-            "enum": [
-              "celsius",
-              "fahrenheit"
-            ],
-            "description": "The temperature unit to use. Infer this from the users location.",
-            "required": true
-          },
-          "num_days": {
-            "type": "integer",
-            "description": "The number of days to forecast",
-            "required": true
+        "forecastWeatherInfo": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "The city and state, e.g. San Francisco, CA",
+                "required": true
+              },
+              "format": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "celsius",
+                    "fahrenheit"
+                  ]
+                },
+                "description": "The temperature unit to use. Infer this from the users location.",
+                "required": true
+              },
+              "num_days": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "The number of days to forecast",
+                "required": true
+              }
+            }
+          }
+        }
+      },
+      "returns": {
+        "forecastWeather": {
+          "schema": {
+            "type": "string"
           }
         }
       }

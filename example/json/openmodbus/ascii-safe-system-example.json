@@ -16,12 +16,14 @@
     {
       "name": "door_1_status",
       "description": "read 1# door status",
-      "slaveId": 0,
       "method": "read",
-      "storage": "coils",
-      "address": 1,
-      "count": 1,
-      "result": {
+      "path": {
+        "slaveId": 0,
+        "storage": "coils",
+        "address": 1,
+        "count": 1
+      },
+      "return": {
         "name": "door_1_status",
         "description": "door 1 is open or close",
         "type": "bool"
@@ -30,11 +32,13 @@
     {
       "name": "control_door_1",
       "description": "Open/close light 1",
-      "slaveId": 0,
       "method": "write",
-      "storage": "coils",
-      "address": 1,
-      "count": 1,
+      "path": {
+        "slaveId": 0,
+        "storage": "coils",
+        "address": 1,
+        "count": 1
+      },
       "parameter": {
         "name": "light_1",
         "description": "true: open, false: close",

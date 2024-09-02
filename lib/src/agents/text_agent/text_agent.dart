@@ -11,6 +11,7 @@ class TextAgent extends SessionAgent {
   LLMExecutor llmExecutor;
 
   TextAgent({
+    required super.sessionId,
     required this.llmExecutor,
     required super.agentSession,
     String? super.systemPrompt,
@@ -28,30 +29,33 @@ class TextAgent extends SessionAgent {
     Command? nextCommand;
     if (agentMessage.from == TextRoleType.USER) {
       AgentMessage newAgentMessage = AgentMessage(
-          taskId: agentMessage.taskId,
-          from: TextRoleType.AGENT,
-          to: TextRoleType.LLM,
-          type: TextMessageType.CONTENT_LIST,
-          message: agentMessage.message as List<Content>
+        sessionId: agentMessage.sessionId,
+        taskId: agentMessage.taskId,
+        from: TextRoleType.AGENT,
+        to: TextRoleType.LLM,
+        type: TextMessageType.CONTENT_LIST,
+        message: agentMessage.message as List<Content>
       );
       nextCommand = Command(toLLM, newAgentMessage); // Forward USER messages request to LLM.
     } else if (agentMessage.from == TextRoleType.LLM) {
       if (agentMessage.type == TextMessageType.TEXT) {
         AgentMessage agentUserMessage = AgentMessage(
-            taskId: agentMessage.taskId,
-            from: TextRoleType.AGENT,
-            to: TextRoleType.USER,
-            type: TextMessageType.TEXT,
-            message: agentMessage.message
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          from: TextRoleType.AGENT,
+          to: TextRoleType.USER,
+          type: TextMessageType.TEXT,
+          message: agentMessage.message
         );
         nextCommand = Command(toUser, agentUserMessage); // If LLM return text, forward to USER.
       } else if (agentMessage.type == TextMessageType.IMAGE_URL) {
         AgentMessage agentUserMessage = AgentMessage(
-            taskId: agentMessage.taskId,
-            from: TextRoleType.AGENT,
-            to: TextRoleType.USER,
-            type: TextMessageType.IMAGE_URL,
-            message: agentMessage.message);
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          from: TextRoleType.AGENT,
+          to: TextRoleType.USER,
+          type: TextMessageType.IMAGE_URL,
+          message: agentMessage.message);
         nextCommand = Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
       }
     }
@@ -63,11 +67,12 @@ class TextAgent extends SessionAgent {
     Command clientCommand = Command(
         toClient,
         AgentMessage(
-            taskId: sessionMessage.taskId,
-            from: TextRoleType.AGENT,
-            to: TextRoleType.CLIENT,
-            type: TextMessageType.TEXT,
-            message: TaskStatusType.DONE
+          sessionId: sessionMessage.sessionId,
+          taskId: sessionMessage.taskId,
+          from: TextRoleType.AGENT,
+          to: TextRoleType.CLIENT,
+          type: TextMessageType.TEXT,
+          message: TaskStatusType.DONE
         ));
     dispatcherMap.dispatch(clientCommand);
     List<AgentMessage> taskDoneMessageList = dispatcherMap.getTaskMessageList(sessionMessage.taskId);
@@ -98,12 +103,17 @@ class TextAgent extends SessionAgent {
       dispatcherMap.dispatch(nextCommand);
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-      pushException(agentMessage.taskId, exceptionMessage);
+      pushException(
+          // agentMessage.sessionId,
+          agentMessage.taskId,
+          exceptionMessage
+      );
     }
   }
 
   void pushException(String taskId, ExceptionMessage exceptionMessage) {
     AgentMessage agentMessage = AgentMessage(
+        sessionId: sessionId,
         taskId: taskId,
         from: TextRoleType.AGENT,
         to: TextRoleType.CLIENT,

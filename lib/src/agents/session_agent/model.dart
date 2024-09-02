@@ -19,7 +19,6 @@ class ContentType {
 }
 
 class Content extends LLMContent {
-
   Content({required super.type, required super.message});
 
   Map<String, dynamic> toJson() {

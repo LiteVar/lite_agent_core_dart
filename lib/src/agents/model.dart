@@ -1,12 +1,14 @@
 import '../llm/model.dart';
 
 class Message {
+  String sessionId;
   String from;
   String to;
   String type;
   dynamic message;
   DateTime createTime = DateTime.now();
   Message({
+    required this.sessionId,
     required this.from,
     required this.to,
     required this.type,
@@ -14,10 +16,11 @@ class Message {
   });
 }
 
-class AgentMessage extends Message{
+class AgentMessage extends Message {
   String taskId;
   Completions? completions;
   AgentMessage({
+    required super.sessionId,
     required this.taskId,
     required super.from,
     required super.to,

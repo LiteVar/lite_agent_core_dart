@@ -7,7 +7,7 @@ part 'dto.g.dart';
 
 @JsonSerializable()
 class SessionDto {
-  late String id;
+  String id;
 
   SessionDto({required this.id});
 
@@ -19,36 +19,37 @@ class SessionDto {
 
 @JsonSerializable()
 class CapabilityDto {
-  late LLMConfigDto llmConfig;
-  late String systemPrompt;
-  late List<OpenSpecDto>? openSpecList;
+  LLMConfigDto llmConfig;
+  String systemPrompt;
+  List<OpenSpecDto>? openSpecList;
+  List<SessionDto>? sessionList;
   int timeoutSeconds;
 
   CapabilityDto({
     required this.llmConfig,
     required this.systemPrompt,
     this.openSpecList,
+    this.sessionList,
     this.timeoutSeconds = 3600
   });
 
-  factory CapabilityDto.fromJson(Map<String, dynamic> json) =>
-      _$CapabilityDtoFromJson(json);
+  factory CapabilityDto.fromJson(Map<String, dynamic> json) => _$CapabilityDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$CapabilityDtoToJson(this);
 }
 
 class Protocol {
-  static const String openapi = "openapi";
-  static const String openmodbus = "openmodbus";
-  static const String jsonrpcHttp = "jsonrpcHttp";
-  static const String opentool = "opentool";
+  static const String OPENAPI = "openapi";
+  static const String OPENMODBUS = "openmodbus";
+  static const String JSONRPCHTTP = "jsonrpcHttp";
+  static const String OPENTOOL = "opentool";
 }
 
 @JsonSerializable()
 class OpenSpecDto {
-  late String openSpec;
-  late ApiKeyDto? apiKey;
-  late String protocol;
+  String openSpec;
+  ApiKeyDto? apiKey;
+  String protocol;
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
 
@@ -59,9 +60,9 @@ class OpenSpecDto {
 
 @JsonSerializable()
 class LLMConfigDto {
-  late String baseUrl;
-  late String apiKey;
-  late String model;
+  String baseUrl;
+  String apiKey;
+  String model;
   double temperature;
   int maxTokens;
   double topP;
@@ -90,14 +91,14 @@ class LLMConfigDto {
 
 @JsonSerializable()
 class AgentMessageDto {
-  late String sessionId;
-  late String taskId;
-  late String from;
-  late String to;
-  late String type;
-  late dynamic message;
+  String sessionId;
+  String taskId;
+  String from;
+  String to;
+  String type;
+  dynamic message;
   CompletionsDto? completions; //When role is llm, this is current llm calling token usage
-  late DateTime createTime;
+  DateTime createTime;
 
   AgentMessageDto({
     required this.sessionId,
@@ -114,9 +115,9 @@ class AgentMessageDto {
 
   Map<String, dynamic> toJson() => _$AgentMessageDtoToJson(this);
 
-  factory AgentMessageDto.fromModel(String sessionId, AgentMessage agentMessage) {
+  factory AgentMessageDto.fromModel(AgentMessage agentMessage) {
     return AgentMessageDto(
-        sessionId: sessionId,
+        sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
         from: agentMessage.from,
         to: agentMessage.to,
@@ -131,13 +132,13 @@ class AgentMessageDto {
 
 @JsonSerializable()
 class CompletionsDto {
-  late TokenUsageDto tokenUsage;
+  TokenUsageDto tokenUsage;
 
   /// When role is llm, this is current llm calling token usage
-  late String id;
+  String id;
 
   /// When role is llm, this is current /chat/completions return message id
-  late String model;
+  String model;
 
   CompletionsDto(
       {required this.tokenUsage, required this.id, required this.model});
@@ -219,8 +220,8 @@ class UserMessageDto {
 
 @JsonSerializable()
 class SessionTaskDto {
-  late String id;
-  late String? taskId;
+  String id;
+  String? taskId;
 
   SessionTaskDto({required this.id, this.taskId});
 

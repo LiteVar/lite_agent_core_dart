@@ -7,12 +7,14 @@ import 'session.dart';
 import 'timeout.dart';
 
 abstract class SessionAgent {
+  String sessionId;
   String? systemPrompt;
   AgentSession agentSession;
   DispatcherMap dispatcherMap = DispatcherMap();
   late Timeout timeout;
 
   SessionAgent({
+    required this.sessionId,
     required AgentSession agentSession,
     String? systemPrompt,
     timeoutSeconds = 600
@@ -27,15 +29,17 @@ abstract class SessionAgent {
     Command clientCommand = Command(
         toClient,
         AgentMessage(
-            taskId: taskId,
-            from: SessionRoleType.AGENT,
-            to: SessionRoleType.CLIENT,
-            type: SessionMessageType.TEXT,
-            message: TaskStatusType.START
+          sessionId: sessionId,
+          taskId: taskId,
+          from: SessionRoleType.AGENT,
+          to: SessionRoleType.CLIENT,
+          type: SessionMessageType.TEXT,
+          message: TaskStatusType.START
         ));
     dispatcherMap.dispatch(clientCommand);
 
     AgentMessage contentMessage = AgentMessage(
+        sessionId: sessionId,
         taskId: taskId,
         from: SessionRoleType.USER,
         to: SessionRoleType.AGENT,
@@ -55,6 +59,7 @@ abstract class SessionAgent {
   Future<void> _initSystemMessage(AgentMessage sessionMessage) async {
     if (systemPrompt != null && systemPrompt!.isNotEmpty) {
       AgentMessage systemMessage = AgentMessage(
+          sessionId: sessionMessage.sessionId,
           taskId: sessionMessage.taskId,
           from: SessionRoleType.SYSTEM,
           to: SessionRoleType.AGENT,
@@ -75,10 +80,11 @@ abstract class SessionAgent {
   void stop({String? taskId = null}) {
     if(taskId == null) {
       Message stopMessage = Message(
-          from: SessionRoleType.AGENT,
-          to: SessionRoleType.CLIENT,
-          type: SessionMessageType.TEXT,
-          message: TaskStatusType.STOP
+        sessionId: sessionId,
+        from: SessionRoleType.AGENT,
+        to: SessionRoleType.CLIENT,
+        type: SessionMessageType.TEXT,
+        message: TaskStatusType.STOP
       );
       dispatcherMap.stopAll(toClient, stopMessage);
     } else {
@@ -90,11 +96,12 @@ abstract class SessionAgent {
     Command clientCommand = Command(
         toClient,
         AgentMessage(
-            taskId: taskId,
-            from: SessionRoleType.AGENT,
-            to: SessionRoleType.CLIENT,
-            type: SessionMessageType.TEXT,
-            message: TaskStatusType.STOP
+          sessionId: sessionId,
+          taskId: taskId,
+          from: SessionRoleType.AGENT,
+          to: SessionRoleType.CLIENT,
+          type: SessionMessageType.TEXT,
+          message: TaskStatusType.STOP
         ));
     dispatcherMap.stop(taskId, clientCommand);
     timeout.start(clear);

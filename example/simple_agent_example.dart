@@ -10,7 +10,7 @@ Future<void> main() async {
   LLMExecutor llmExecutor = _buildLLMExecutor();
   SimpleAgent simpleAgent = SimpleAgent(llmExecutor: llmExecutor, systemPrompt: systemPrompt, responseFormat: responseFormat);
   AgentMessage agentMessage = await simpleAgent.userToAgent(prompt: userPrompt, taskId: "task-1");
-  print(jsonEncode(AgentMessageDto.fromModel("session-1", agentMessage).toJson()));
+  print(jsonEncode(AgentMessageDto.fromModel(agentMessage).toJson()));
 }
 
 LLMExecutor _buildLLMExecutor() {

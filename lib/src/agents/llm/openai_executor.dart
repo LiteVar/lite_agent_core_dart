@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:http/http.dart';
@@ -10,6 +12,7 @@ import 'llm_executor.dart';
 import 'model.dart';
 
 class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
+  late String _sessionId;
   late String _taskId;
 
   OpenAIExecutor(super.llmConfig) {
@@ -18,7 +21,9 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
   }
 
   Future<AgentMessage> request({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList, ResponseFormat? responseFormat}) async {
-    _taskId = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRoleType.AGENT).taskId;
+    AgentMessage agentMessage = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRoleType.AGENT);
+    _sessionId = agentMessage.sessionId;
+    _taskId = agentMessage.taskId;
     List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = agentMessageList.map((AgentMessage agentMessage) => _buildOpenAIMessage(agentMessage)).toList();
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
@@ -31,8 +36,12 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       );
 
       return agentMessage;
-    } on ClientException catch(e) {
-      throw LLMException(code: 500, message: e.message);
+    } on ClientException  catch(e) {
+      throw LLMException(message: e.toString());
+    } on TimeoutException catch(e) {
+      throw LLMException(message: e.toString());
+    } on HandshakeException catch(e) {
+      throw LLMException(message: e.toString());
     }
   }
 
@@ -54,6 +63,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
   OpenAIFunctionProperty _convertToOpenAIFunctionProperty(Parameter parameter) {
     return _toOpenAIFunctionProperty(
       parameter.name,
+      parameter.description??(parameter.schema.description??""),
       parameter.schema,
       parameter.required
     );
@@ -113,32 +123,32 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     // }
   }
 
-  OpenAIFunctionProperty _toOpenAIFunctionProperty(String name, Schema schema, bool required) {
+  OpenAIFunctionProperty _toOpenAIFunctionProperty(String name, String? description, Schema schema, bool required) {
     switch (schema.type) {
       case DataType.BOOLEAN:
         return OpenAIFunctionProperty.boolean(
             name: name,
-            description: schema.description,
+            description: description??(schema.description),
             isRequired: required);
       case DataType.INTEGER:
         return OpenAIFunctionProperty.integer(
             name: name,
-            description: schema.description,
+            description: description??(schema.description),
             isRequired: required);
       case DataType.NUMBER:
         return OpenAIFunctionProperty.number(
             name: name,
-            description: schema.description,
+            description: description??(schema.description),
             isRequired: required);
       case DataType.STRING:
         return OpenAIFunctionProperty.string(
             name: name,
-            description: schema.description,
+            description: description??(schema.description),
             isRequired: required,
             enumValues: schema.enum_);
       case DataType.ARRAY:
         {
-          OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, schema.items!, required);
+          OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, description??(schema.description), schema.items!, required);
           return OpenAIFunctionProperty.array(
               name: name,
               description: schema.description,
@@ -156,7 +166,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
             if(requiredList != null && requiredList.contains(name)) {
               required = true;
             }
-            OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, schema0, required);
+            OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, schema0.description??"", schema0, required);
             openAIFunctionProperties[name] = openAIFunctionProperty;
           });
 
@@ -288,23 +298,25 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
     if (message != null) {
       return AgentMessage(
-          taskId: _taskId,
-          from: AgentRoleType.LLM,
-          to: AgentRoleType.AGENT,
-          type: AgentMessageType.FUNCTION_CALL_LIST,
-          message: message,
-          completions: completions
+        sessionId: _sessionId,
+        taskId: _taskId,
+        from: AgentRoleType.LLM,
+        to: AgentRoleType.AGENT,
+        type: AgentMessageType.FUNCTION_CALL_LIST,
+        message: message,
+        completions: completions
       );
     }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
-        taskId: _taskId,
-        from: AgentRoleType.LLM,
-        to: AgentRoleType.AGENT,
-        type: AgentMessageType.TEXT,
-        message: message,
-        completions: completions
+      sessionId: _sessionId,
+      taskId: _taskId,
+      from: AgentRoleType.LLM,
+      to: AgentRoleType.AGENT,
+      type: AgentMessageType.TEXT,
+      message: message,
+      completions: completions
     );
   }
 }

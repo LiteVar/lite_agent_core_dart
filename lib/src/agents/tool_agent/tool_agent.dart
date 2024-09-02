@@ -11,6 +11,7 @@ class ToolAgent extends TextAgent {
   List<ToolDriver> toolDriverList;
 
   ToolAgent({
+    required super.sessionId,
     required this.toolDriverList,
     required super.llmExecutor,
     required super.agentSession,
@@ -31,6 +32,7 @@ class ToolAgent extends TextAgent {
     Command? nextCommand;
     if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
       AgentMessage agentToolMessage = AgentMessage(
+        sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
         from: ToolRoleType.AGENT,
         to: ToolRoleType.TOOL,
@@ -42,6 +44,7 @@ class ToolAgent extends TextAgent {
       if (agentMessage.type == ToolMessageType.TOOL_RETURN) {
         // If TOOL return result, add the result message
         AgentMessage agentLLMMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
           from: ToolRoleType.AGENT,
           to: TextRoleType.LLM,
@@ -56,6 +59,7 @@ class ToolAgent extends TextAgent {
         String toolAgentMessageText = agentMessage.message as String;
         if (toolAgentMessageText == ToolsStatus.DONE) {
           AgentMessage agentToolMessage = AgentMessage(
+            sessionId: agentMessage.sessionId,
             taskId: agentMessage.taskId,
             from: ToolRoleType.AGENT,
             to: ToolRoleType.CLIENT,
@@ -102,7 +106,11 @@ class ToolAgent extends TextAgent {
       dispatcherMap.dispatch(nextCommand);
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-      pushException(agentMessage.taskId, exceptionMessage);
+      pushException(
+          // agentMessage.sessionId,
+          agentMessage.taskId,
+          exceptionMessage
+      );
     }
   }
 
@@ -123,6 +131,7 @@ class ToolAgent extends TextAgent {
         ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
         ToolReturn toolReturn = await toolDriver.call(functionCall);
         AgentMessage toolMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
           from: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
@@ -136,17 +145,19 @@ class ToolAgent extends TextAgent {
         Map<String, dynamic> result = {"error": "Function `${functionCall.name}` Not Found."};
         ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
         AgentMessage toolMessage = AgentMessage(
-            taskId: agentMessage.taskId,
-            from: ToolRoleType.TOOL,
-            to: ToolRoleType.AGENT,
-            type: ToolMessageType.TOOL_RETURN,
-            message: toolReturn
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          from: ToolRoleType.TOOL,
+          to: ToolRoleType.AGENT,
+          type: ToolMessageType.TOOL_RETURN,
+          message: toolReturn
         );
         Command command = Command(toAgent, toolMessage);
         dispatcherMap.dispatch(command);
       }
     }
     AgentMessage toolDoneMessage = AgentMessage(
+      sessionId: agentMessage.sessionId,
       taskId: agentMessage.taskId,
       from: ToolRoleType.TOOL,
       to: ToolRoleType.AGENT,
@@ -162,6 +173,7 @@ class ToolAgent extends TextAgent {
     Command clientCommand = Command(
         toClient,
         AgentMessage(
+          sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
           from: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,

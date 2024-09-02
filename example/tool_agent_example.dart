@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
+import 'package:uuid/uuid.dart';
+import 'listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
@@ -13,9 +14,11 @@ import 'package:opentool_dart/opentool_dart.dart';
 String prompt = "Check the status of the book which id is 1.";
 
 Future<void> main() async {
+  String sessionId = Uuid().v4();
   ToolAgent toolAgent = ToolAgent(
+    sessionId: sessionId,
     llmExecutor: _buildLLMExecutor(),
-    agentSession: _buildSession(),
+    agentSession: _buildSession(sessionId),
     toolDriverList: await _buildToolDriverList(),
     systemPrompt: _buildSystemPrompt()
   );
@@ -61,54 +64,10 @@ Future<List<ToolDriver>> _buildToolDriverList() async {
   return toolRunnerList;
 }
 
-AgentSession _buildSession() {
+AgentSession _buildSession(String sessionId) {
   AgentSession session = AgentSession();
   session.addAgentMessageListener((AgentMessage agentMessage) {
-    String system = "🖥SYSTEM";
-    String user = "👤USER";
-    String agent = "🤖AGENT";
-    String llm = "💡LLM";
-    String tool = "🔧TOOL";
-    String client = "🔗CLIENT";
-
-    String message = "";
-    if (agentMessage.type == ToolMessageType.TEXT)
-      message = agentMessage.message as String;
-    if (agentMessage.type == ToolMessageType.IMAGE_URL)
-      message = agentMessage.message as String;
-    if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST)
-      message = jsonEncode((agentMessage.message as List<FunctionCall>)
-          .map((functionCall) => functionCall.toJson())
-          .toList());
-    if (agentMessage.type == AgentMessageType.TOOL_RETURN)
-      message = jsonEncode(agentMessage.message as ToolReturn);
-    if (agentMessage.type == AgentMessageType.CONTENT_LIST)
-      message = jsonEncode((agentMessage.message as List<Content>)
-          .map((content) => content.toJson())
-          .toList());
-
-    String from = "";
-    if (agentMessage.from == ToolRoleType.SYSTEM) {
-      from = system;
-      message = "\n$message";
-    }
-    if (agentMessage.from == ToolRoleType.USER) from = user;
-    if (agentMessage.from == ToolRoleType.AGENT) from = agent;
-    if (agentMessage.from == ToolRoleType.LLM) from = llm;
-    if (agentMessage.from == ToolRoleType.TOOL) from = tool;
-    if (agentMessage.from == ToolRoleType.CLIENT) from = client;
-
-    String to = "";
-    if (agentMessage.to == ToolRoleType.SYSTEM) to = system;
-    if (agentMessage.to == ToolRoleType.USER) to = user;
-    if (agentMessage.to == ToolRoleType.AGENT) to = agent;
-    if (agentMessage.to == ToolRoleType.LLM) to = llm;
-    if (agentMessage.to == ToolRoleType.TOOL) to = tool;
-    if (agentMessage.to == ToolRoleType.CLIENT) to = client;
-
-    if (from.isNotEmpty && to.isNotEmpty) {
-      print("$from -> $to: [${agentMessage.type}] $message");
-    }
+    listen(sessionId, agentMessage);
   });
   return session;
 }

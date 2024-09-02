@@ -29,11 +29,12 @@ class DispatcherMap {
     _dispatcherMap.forEach((taskId, dispatcher){
       if(dispatcher.isListening()) {
         AgentMessage currAgentMessage = AgentMessage(
-            taskId: taskId,
-            from: message.from,
-            to: message.to,
-            type: message.type,
-            message: message.message
+          sessionId: message.sessionId,
+          taskId: taskId,
+          from: message.from,
+          to: message.to,
+          type: message.type,
+          message: message.message
         );
         Command currStopCommand = Command(stopFunc, currAgentMessage);
         stop(taskId, currStopCommand);

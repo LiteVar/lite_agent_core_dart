@@ -3,14 +3,13 @@ import 'package:json_annotation/json_annotation.dart';
 part 'exception.g.dart';
 
 @JsonSerializable(createFactory: false)
-class LLMException implements Exception {
-  final int code = 500;
+class AgentNotFoundException implements Exception {
+  final int code = 404;
   final String message;
 
-  LLMException({
-    // required this.code,
+  AgentNotFoundException({
     required this.message,
   });
 
-  Map<String, dynamic> toJson() => _$LLMExceptionToJson(this);
+  Map<String, dynamic> toJson() => _$AgentNotFoundExceptionToJson(this);
 }

@@ -7,17 +7,16 @@ import 'custom_driver/mock_driver.dart';
 import 'listener.dart';
 
 /// [IMPORTANT] Prepare:
-/// 1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.
-/// 2. Run your tool server, which is described in json file.
-/// 3. Add LLM baseUrl and apiKey to `.env` file
+/// 1. Some OpenTool Driver, according to `/example/custom_driver`, which is callable.
+/// 2. Add LLM baseUrl and apiKey to `.env` file
 AgentService agentService = AgentService();
 
 Future<void> main() async {
 
   DotEnv env = DotEnv();env.load(['example/.env']);LLMConfigDto llmConfig = LLMConfigDto(baseUrl: env["baseUrl"]!, apiKey: env["apiKey"]!, model: "gpt-4o");
 
-  String systemPrompt = "你扮演一位工具调用者，可以根据我的要求，帮我决定调用什么工具来完成，每次只调用1个工具。\n\n你支持如下工具：\n\n  1. 翻译\n  2. 增删改查工具";
-  String prompt = "把ID为0的文本查找出来，然后把文本翻译成中文";//"第一步把ID为0的文本查找出来；第二步把步骤一的文本翻译成中文";//"帮我把文本`Helloworld`放到储存中，告诉我储存后的ID";
+  String systemPrompt = "You play the role of a tool caller. You can help me decide which tool to call to complete the task according to my requirements. You can only call one tool at a time. \n\nYou support the following tools:\n\n 1. Translation\n 2. Add, delete, modify and query tools";
+  String prompt = "Find the text with ID 0 and translate it into Chinese.";
 
   SessionDto sessionDto1 = await _buildTextAgent();
   SessionDto sessionDto2 = await _buildToolAgent();

@@ -46,6 +46,24 @@ Future<void> main() async {
 }
 ```
 
+- MultiAgent support
+
+```dart
+Future<void> main() async {
+  SessionDto sessionDto1 = await _buildTextAgent();
+  SessionDto sessionDto2 = await _buildToolAgent();
+
+  CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt,
+      sessionList: [sessionDto1, sessionDto2]
+  );
+
+  SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);
+
+  UserTaskDto userTaskDto = UserTaskDto(contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  await agentService.startChat(sessionDto.id, userTaskDto);
+}
+```
+
 ### Method 2: ToolAgent
 
 - According to `/example/tool_agent_example.dart`

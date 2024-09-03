@@ -42,6 +42,8 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       throw LLMException(message: e.toString());
     } on HandshakeException catch(e) {
       throw LLMException(message: e.toString());
+    } on RequestFailedException catch(e) {
+      throw LLMException(message: e.toString());
     }
   }
 

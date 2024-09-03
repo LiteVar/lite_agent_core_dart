@@ -107,7 +107,7 @@ class ToolAgent extends TextAgent {
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
       pushException(
-          // agentMessage.sessionId,
+          agentMessage.sessionId,
           agentMessage.taskId,
           exceptionMessage
       );

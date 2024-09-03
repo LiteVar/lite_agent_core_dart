@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:http/http.dart';
 import 'exception.dart';
 import '../../llm/openai_util.dart';
 import '../../llm/model.dart';
@@ -36,13 +34,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       );
 
       return agentMessage;
-    } on ClientException  catch(e) {
-      throw LLMException(message: e.toString());
-    } on TimeoutException catch(e) {
-      throw LLMException(message: e.toString());
-    } on HandshakeException catch(e) {
-      throw LLMException(message: e.toString());
-    } on RequestFailedException catch(e) {
+    } catch(e) {
       throw LLMException(message: e.toString());
     }
   }

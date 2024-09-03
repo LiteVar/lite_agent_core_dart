@@ -104,14 +104,14 @@ class TextAgent extends SessionAgent {
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
       pushException(
-          // agentMessage.sessionId,
+          agentMessage.sessionId,
           agentMessage.taskId,
           exceptionMessage
       );
     }
   }
 
-  void pushException(String taskId, ExceptionMessage exceptionMessage) {
+  void pushException(String sessionId, String taskId, ExceptionMessage exceptionMessage) {
     AgentMessage agentMessage = AgentMessage(
         sessionId: sessionId,
         taskId: taskId,

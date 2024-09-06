@@ -9,6 +9,7 @@ class AgentDriver extends ToolDriver {
   final String promptKey = "prompt";
   final String promptDescription = "A sentence described in natural language like a human. e.g. `Help me to do something.`";
   final String resultKey = "result";
+  final int llmFunctionDescriptionMaxLength = 1024;
 
   List<AgentModel> agents;
 
@@ -18,10 +19,10 @@ class AgentDriver extends ToolDriver {
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
     agents.forEach((agentModel) {
-      Parameter parameter = Parameter(name: promptKey, description: promptDescription, schema: Schema(type: DataType.STRING), required: true);
+      Parameter parameter = Parameter(name: promptKey, description: _truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
           name: agentModel.name,
-          description: agentModel.agent.systemPrompt??"",
+          description: agentModel.agent.systemPrompt == null?"": _truncateWithEllipsis(agentModel.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
           parameters: [parameter]
       );
       functionModelList.add(functionModel);
@@ -63,6 +64,21 @@ class AgentDriver extends ToolDriver {
       return ToolReturn(id: functionCall.id, result: { "error": "Not Support agent `${functionCall.name}`" });
     }
 
+  }
+
+  String _truncateWithEllipsis(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+
+    String ellipsis = "...";
+
+    String truncated = text.substring(0, maxLength-ellipsis.length);
+    int lastSpace = truncated.lastIndexOf(' ');
+
+    if (lastSpace != -1) {
+      truncated = truncated.substring(0, lastSpace);
+    }
+
+    return '$truncated$ellipsis';
   }
 
 }

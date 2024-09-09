@@ -9,7 +9,7 @@ ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.JSON_OBJ
 Future<void> main() async {
   LLMExecutor llmExecutor = _buildLLMExecutor();
   SimpleAgent simpleAgent = SimpleAgent(llmExecutor: llmExecutor, systemPrompt: systemPrompt, responseFormat: responseFormat);
-  AgentMessage agentMessage = await simpleAgent.userToAgent(prompt: userPrompt, taskId: "task-1");
+  AgentMessage agentMessage = await simpleAgent.userToAgent(contentList: [Content(message: userPrompt, type: ContentType.TEXT)], taskId: "task-1");
   print(jsonEncode(AgentMessageDto.fromModel(agentMessage).toJson()));
 }
 

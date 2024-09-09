@@ -1,0 +1,56 @@
+import 'dart:async';
+import 'package:opentool_dart/opentool_dart.dart';
+import '../agents/model.dart';
+import '../agents/session_agent/model.dart';
+import '../service/model.dart';
+import 'agent_driver.dart';
+
+class SimpleAgentDriver extends AgentDriver {
+
+  List<NamedSimpleAgent> agents;
+
+  SimpleAgentDriver({required this.agents});
+
+  @override
+  List<FunctionModel> parse() {
+    List<FunctionModel> functionModelList = [];
+    agents.forEach((agentModel) {
+      Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
+      FunctionModel functionModel = FunctionModel(
+          name: agentModel.name,
+          description: agentModel.agent.systemPrompt == null?"": truncateWithEllipsis(agentModel.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
+          parameters: [parameter]
+      );
+      functionModelList.add(functionModel);
+    });
+    return functionModelList;
+  }
+
+  @override
+  bool hasFunction(String functionName) {
+    try {
+      return agents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<ToolReturn> call(FunctionCall functionCall) async {
+    try {
+      String prompt = functionCall.parameters[promptKey];
+      NamedSimpleAgent agentModel = agents.where((agentModel) => agentModel.name == functionCall.name).first;
+      Content content = Content(type: ContentType.TEXT, message: prompt);
+
+      AgentMessage agentMessage = await agentModel.agent.userToAgent(contentList: [content]);
+
+      String result = agentMessage.message as String;
+
+      return ToolReturn(id: functionCall.id, result: { resultKey: result });
+    } catch(e) {
+      return ToolReturn(id: functionCall.id, result: { "error": "Not Support agent `${functionCall.name}`" });
+    }
+
+  }
+
+}

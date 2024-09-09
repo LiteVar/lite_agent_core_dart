@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:lite_agent_core_dart/src/driver/simple_agent_driver.dart';
 import 'package:uuid/uuid.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:openapi_dart/openapi_dart.dart';
@@ -12,14 +13,15 @@ import '../agents/session_agent/model.dart';
 import '../agents/simple_agent.dart';
 import '../agents/text_agent/text_agent.dart';
 import '../agents/tool_agent/tool_agent.dart';
-import '../driver/agent_driver.dart';
+import '../driver/text_agent_driver.dart';
 import '../llm/model.dart';
 import 'dto.dart';
 import 'exception.dart';
 import 'model.dart';
 
 class AgentService {
-  Map<String, TextAgent> agents = {};
+  Map<String, TextAgent> textAgents = {};
+  Map<String, SimpleAgent> simpleAgents = {};
   List<ToolDriver> globalDriverList = [];
 
   AgentService({List<ToolDriver>? globalToolDriverList = null}) {
@@ -36,10 +38,20 @@ class AgentService {
       systemPrompt: systemPrompt,
       responseFormat: ResponseFormat(type: ResponseFormatType.TEXT)
     );
+    
+    simpleAgents[sessionId] = simpleAgent;
 
     SessionDto sessionDto = SessionDto(id: sessionId);
     return sessionDto;
-
+  }
+  
+  Future<AgentMessageDto> startSimple(String sessionId, UserTaskDto userTaskDto) async {
+    SimpleAgent simpleAgent = simpleAgents[sessionId]!;
+    List<Content> userMessageList = userTaskDto.contentList
+        .map((userMessageDto) => _convertToContent(userMessageDto))
+        .toList();
+    AgentMessage agentMessage = await simpleAgent.userToAgent(contentList: userMessageList, taskId: userTaskDto.taskId);
+    return AgentMessageDto.fromModel(agentMessage);
   }
 
   Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessage agentMessage) listen, {List<ToolDriver>? customToolDriverList}) async {
@@ -61,7 +73,7 @@ class AgentService {
         systemPrompt: systemPrompt,
         timeoutSeconds: capabilityDto.timeoutSeconds
       );
-      agents[sessionId] = textAgent;
+      textAgents[sessionId] = textAgent;
     } else {
       TextAgent toolAgent = ToolAgent(
         sessionId: sessionId,
@@ -71,7 +83,7 @@ class AgentService {
         systemPrompt: systemPrompt,
         timeoutSeconds: capabilityDto.timeoutSeconds
       );
-      agents[sessionId] = toolAgent;
+      textAgents[sessionId] = toolAgent;
     }
 
     SessionDto sessionDto = SessionDto(id: sessionId);
@@ -80,7 +92,7 @@ class AgentService {
   }
 
   Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
-    TextAgent toolAgent = agents[sessionId]!;
+    TextAgent toolAgent = textAgents[sessionId]!;
     List<Content> userMessageList = userTaskDto.contentList
       .map((userMessageDto) => _convertToContent(userMessageDto))
       .toList();
@@ -88,7 +100,7 @@ class AgentService {
   }
 
   Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
-    TextAgent? toolAgent = agents[sessionId];
+    TextAgent? toolAgent = textAgents[sessionId];
     if (toolAgent == null) return null;
     return toolAgent
       .agentSession
@@ -100,14 +112,14 @@ class AgentService {
   }
 
   Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
-    TextAgent textAgent = agents[sessionTaskDto.id]!;
+    TextAgent textAgent = textAgents[sessionTaskDto.id]!;
     textAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
   Future<void> clearChat(String sessionId) async {
-    TextAgent textAgent = agents[sessionId]!;
+    TextAgent textAgent = textAgents[sessionId]!;
     textAgent.clear();
-    agents.remove(sessionId);
+    textAgents.remove(sessionId);
   }
 
   Content _convertToContent(UserMessageDto userMessageDto) {
@@ -157,19 +169,30 @@ class AgentService {
 
   Future<List<ToolDriver>> buildAgentDriverList(List<SessionDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) async {
     if(sessionList == null) return [];
-
-    List<AgentModel> agentModelList = [];
+    List<NamedSimpleAgent> namedSimpleAgentList = [];
+    List<NamedTextAgent> namedTextAgentList = [];
     sessionList.forEach((session) {
-      TextAgent? agent = agents[session.id];
-      if(agent == null) throw AgentNotFoundException(message: "SessionId `${session.id}` Agent Not Found");
-      void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
-        listen(session.id, agentMessage);
-      };
-      agent.agentSession.addAgentMessageListener(AgentListen);
-      agentModelList.add(AgentModel(name: session.id, agent: agent));
-    });
+      SimpleAgent? simpleAgent = simpleAgents[session.id];
+      TextAgent? textAgent = textAgents[session.id];
+      if(simpleAgent == null && textAgent == null) throw AgentNotFoundException(message: "SessionId `${session.id}` Agent Not Found");
 
-    AgentDriver agentDriver = AgentDriver(agents: agentModelList);
-    return [agentDriver];
+      if(simpleAgent != null) {
+        namedSimpleAgentList.add(NamedSimpleAgent(name: session.id, agent: simpleAgent));
+      } else {
+        void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
+          listen(session.id, agentMessage);
+        };
+        textAgent!.agentSession.addAgentMessageListener(AgentListen);
+        namedTextAgentList.add(NamedTextAgent(name: session.id, agent: textAgent));
+      }
+
+    });
+    SimpleAgentDriver simpleAgentDriver = SimpleAgentDriver(agents: namedSimpleAgentList);
+    TextAgentDriver textAgentDriver = TextAgentDriver(agents: namedTextAgentList);
+
+    List<ToolDriver> toolDriverList = [];
+    toolDriverList.add(simpleAgentDriver);
+    toolDriverList.add(textAgentDriver);
+    return toolDriverList;
   }
 }

@@ -15,6 +15,20 @@ Map<String, dynamic> _$SessionDtoToJson(SessionDto instance) =>
       'id': instance.id,
     };
 
+SimpleCapabilityDto _$SimpleCapabilityDtoFromJson(Map<String, dynamic> json) =>
+    SimpleCapabilityDto(
+      llmConfig:
+          LLMConfigDto.fromJson(json['llmConfig'] as Map<String, dynamic>),
+      systemPrompt: json['systemPrompt'] as String,
+    );
+
+Map<String, dynamic> _$SimpleCapabilityDtoToJson(
+        SimpleCapabilityDto instance) =>
+    <String, dynamic>{
+      'llmConfig': instance.llmConfig,
+      'systemPrompt': instance.systemPrompt,
+    };
+
 CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
     CapabilityDto(
       llmConfig:

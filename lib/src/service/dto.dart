@@ -18,16 +18,30 @@ class SessionDto {
 }
 
 @JsonSerializable()
-class CapabilityDto {
+class SimpleCapabilityDto {
   LLMConfigDto llmConfig;
   String systemPrompt;
+
+
+  SimpleCapabilityDto({
+    required this.llmConfig,
+    required this.systemPrompt
+  });
+
+  factory SimpleCapabilityDto.fromJson(Map<String, dynamic> json) => _$SimpleCapabilityDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SimpleCapabilityDtoToJson(this);
+}
+
+@JsonSerializable()
+class CapabilityDto extends SimpleCapabilityDto {
   List<OpenSpecDto>? openSpecList;
   List<SessionDto>? sessionList;
   int timeoutSeconds;
 
   CapabilityDto({
-    required this.llmConfig,
-    required this.systemPrompt,
+    required super.llmConfig,
+    required super.systemPrompt,
     this.openSpecList,
     this.sessionList,
     this.timeoutSeconds = 3600

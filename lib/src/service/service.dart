@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:lite_agent_core_dart/src/service/model.dart';
-import 'package:lite_agent_core_dart/src/service/exception.dart';
 import 'package:uuid/uuid.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:openapi_dart/openapi_dart.dart';
@@ -11,11 +9,14 @@ import '../agents/llm/llm_executor.dart';
 import '../agents/llm/openai_executor.dart';
 import '../agents/session_agent/session.dart';
 import '../agents/session_agent/model.dart';
+import '../agents/simple_agent.dart';
 import '../agents/text_agent/text_agent.dart';
 import '../agents/tool_agent/tool_agent.dart';
 import '../driver/agent_driver.dart';
 import '../llm/model.dart';
 import 'dto.dart';
+import 'exception.dart';
+import 'model.dart';
 
 class AgentService {
   Map<String, TextAgent> agents = {};
@@ -23,6 +24,22 @@ class AgentService {
 
   AgentService({List<ToolDriver>? globalToolDriverList = null}) {
     if(globalToolDriverList != null) globalDriverList.addAll(globalToolDriverList);
+  }
+
+  Future<SessionDto> initSimple(SimpleCapabilityDto capabilityDto) async {
+    String sessionId = Uuid().v4();
+    String systemPrompt = capabilityDto.systemPrompt;
+    LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
+
+    SimpleAgent simpleAgent = SimpleAgent(
+      llmExecutor: _buildLLMExecutor(llmConfig),
+      systemPrompt: systemPrompt,
+      responseFormat: ResponseFormat(type: ResponseFormatType.TEXT)
+    );
+
+    SessionDto sessionDto = SessionDto(id: sessionId);
+    return sessionDto;
+
   }
 
   Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessage agentMessage) listen, {List<ToolDriver>? customToolDriverList}) async {

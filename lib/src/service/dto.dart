@@ -22,7 +22,6 @@ class SimpleCapabilityDto {
   LLMConfigDto llmConfig;
   String systemPrompt;
 
-
   SimpleCapabilityDto({
     required this.llmConfig,
     required this.systemPrompt
@@ -154,18 +153,17 @@ class CompletionsDto {
   /// When role is llm, this is current /chat/completions return message id
   String model;
 
-  CompletionsDto(
-      {required this.tokenUsage, required this.id, required this.model});
+  CompletionsDto({required this.tokenUsage, required this.id, required this.model});
 
-  factory CompletionsDto.fromJson(Map<String, dynamic> json) =>
-      _$CompletionsDtoFromJson(json);
+  factory CompletionsDto.fromJson(Map<String, dynamic> json) => _$CompletionsDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompletionsDtoToJson(this);
 
   factory CompletionsDto.fromModel(Completions completions) => CompletionsDto(
       tokenUsage: TokenUsageDto.fromModel(completions.tokenUsage),
       id: completions.id,
-      model: completions.model);
+      model: completions.model
+  );
 }
 
 @JsonSerializable()
@@ -174,19 +172,21 @@ class TokenUsageDto {
   final int completionTokens;
   final int totalTokens;
 
-  TokenUsageDto(
-      {required this.promptTokens,
-      required this.completionTokens,
-      required this.totalTokens});
+  TokenUsageDto({
+    required this.promptTokens,
+    required this.completionTokens,
+    required this.totalTokens
+  });
 
   factory TokenUsageDto.fromJson(Map<String, dynamic> json) => _$TokenUsageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$TokenUsageDtoToJson(this);
 
   factory TokenUsageDto.fromModel(TokenUsage tokenUsage) => TokenUsageDto(
-      promptTokens: tokenUsage.promptTokens,
-      completionTokens: tokenUsage.completionTokens,
-      totalTokens: tokenUsage.totalTokens);
+    promptTokens: tokenUsage.promptTokens,
+    completionTokens: tokenUsage.completionTokens,
+    totalTokens: tokenUsage.totalTokens
+  );
 }
 
 @JsonSerializable()

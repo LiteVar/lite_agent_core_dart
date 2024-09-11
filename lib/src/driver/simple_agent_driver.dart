@@ -2,19 +2,19 @@ import 'dart:async';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/model.dart';
 import '../agents/session_agent/model.dart';
-import '../service/model.dart';
+import 'model.dart';
 import 'agent_driver.dart';
 
 class SimpleAgentDriver extends AgentDriver {
 
-  List<NamedSimpleAgent> agents;
+  List<NamedSimpleAgent> namedSimpleAgents;
 
-  SimpleAgentDriver({required this.agents});
+  SimpleAgentDriver({required this.namedSimpleAgents});
 
   @override
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
-    agents.forEach((agentModel) {
+    namedSimpleAgents.forEach((agentModel) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
           name: agentModel.name,
@@ -29,7 +29,7 @@ class SimpleAgentDriver extends AgentDriver {
   @override
   bool hasFunction(String functionName) {
     try {
-      return agents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
+      return namedSimpleAgents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
     } catch (e) {
       return false;
     }
@@ -39,7 +39,7 @@ class SimpleAgentDriver extends AgentDriver {
   Future<ToolReturn> call(FunctionCall functionCall) async {
     try {
       String prompt = functionCall.parameters[promptKey];
-      NamedSimpleAgent agentModel = agents.where((agentModel) => agentModel.name == functionCall.name).first;
+      NamedSimpleAgent agentModel = namedSimpleAgents.where((agentModel) => agentModel.name == functionCall.name).first;
       Content content = Content(type: ContentType.TEXT, message: prompt);
 
       AgentMessage agentMessage = await agentModel.agent.userToAgent(contentList: [content]);

@@ -3,8 +3,8 @@ import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 
 String systemPrompt = "";
-String userPrompt = "Return json format!";
-ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.JSON_OBJECT);
+String userPrompt = "Hello!";
+ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.TEXT);
 
 Future<void> main() async {
   LLMExecutor llmExecutor = _buildLLMExecutor();

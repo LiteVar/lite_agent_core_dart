@@ -3,19 +3,19 @@ import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/llm/model.dart';
 import '../agents/model.dart';
 import '../agents/session_agent/model.dart';
-import '../service/model.dart';
+import 'model.dart';
 import 'agent_driver.dart';
 
-class TextAgentDriver extends AgentDriver {
+class SessionAgentDriver extends AgentDriver {
 
-  List<NamedTextAgent> agents;
+  List<NamedSessionAgent> namedTextAgents;
 
-  TextAgentDriver({required this.agents});
+  SessionAgentDriver({required this.namedTextAgents});
 
   @override
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
-    agents.forEach((agentModel) {
+    namedTextAgents.forEach((agentModel) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
           name: agentModel.name,
@@ -30,7 +30,7 @@ class TextAgentDriver extends AgentDriver {
   @override
   bool hasFunction(String functionName) {
     try {
-      return agents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
+      return namedTextAgents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
     } catch (e) {
       return false;
     }
@@ -40,7 +40,7 @@ class TextAgentDriver extends AgentDriver {
   Future<ToolReturn> call(FunctionCall functionCall) async {
     try {
       String prompt = functionCall.parameters[promptKey];
-      NamedTextAgent agentModel = agents.where((agentModel) => agentModel.name == functionCall.name).first;
+      NamedSessionAgent agentModel = namedTextAgents.where((agentModel) => agentModel.name == functionCall.name).first;
       Content content = Content(type: ContentType.TEXT, message: prompt);
 
       Completer<AgentMessage> completer = Completer();

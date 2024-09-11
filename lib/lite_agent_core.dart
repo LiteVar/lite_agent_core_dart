@@ -13,7 +13,7 @@ export 'src/agents/llm/llm_executor.dart';
 export 'src/agents/llm/exception.dart';
 export 'src/agents/llm/openai_executor.dart';
 export 'src/agents/llm/model.dart';
-export 'src/driver/text_agent_driver.dart';
+export 'src/driver/session_agent_driver.dart';
 export 'src/service/dto.dart';
 export 'src/service/service.dart';
 export 'src/llm/model.dart';

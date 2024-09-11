@@ -1,5 +1,5 @@
+import '../agents/session_agent/session_agent.dart';
 import '../agents/simple_agent.dart';
-import '../agents/text_agent/text_agent.dart';
 
 class NamedSimpleAgent {
   String name;
@@ -8,10 +8,9 @@ class NamedSimpleAgent {
   NamedSimpleAgent({required this.name, required this.agent});//, required this.type, required this.capability});
 }
 
-class NamedTextAgent {
+class NamedSessionAgent {
   String name;
-  TextAgent agent;
+  SessionAgent agent;
 
-  NamedTextAgent({required this.name, required this.agent});//, required this.type, required this.capability});
+  NamedSessionAgent({required this.name, required this.agent});//, required this.type, required this.capability});
 }
-

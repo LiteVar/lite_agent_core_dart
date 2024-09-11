@@ -115,7 +115,8 @@ class AgentService {
   }
 
   Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
-    SessionAgent sessionAgent = sessionAgents[sessionTaskDto.id]!;
+    SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.id];
+    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionTaskDto.id}` Agent Not Found");
     sessionAgent.stop(taskId: sessionTaskDto.taskId);
   }
 

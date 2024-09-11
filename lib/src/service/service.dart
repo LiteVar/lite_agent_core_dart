@@ -47,7 +47,8 @@ class AgentService {
   }
   
   Future<AgentMessageDto> startSimple(String sessionId, UserTaskDto userTaskDto) async {
-    SimpleAgent simpleAgent = simpleAgents[sessionId]!;
+    SimpleAgent? simpleAgent = simpleAgents[sessionId];
+    if(simpleAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
     List<Content> userMessageList = userTaskDto.contentList
         .map((userMessageDto) => _convertToContent(userMessageDto))
         .toList();
@@ -93,11 +94,12 @@ class AgentService {
   }
 
   Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
-    SessionAgent toolAgent = sessionAgents[sessionId]!;
+    SessionAgent? sessionAgent = sessionAgents[sessionId];
+    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
     List<Content> userMessageList = userTaskDto.contentList
       .map((userMessageDto) => _convertToContent(userMessageDto))
       .toList();
-    toolAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
+    sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
   }
 
   Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
@@ -118,7 +120,8 @@ class AgentService {
   }
 
   Future<void> clearChat(String sessionId) async {
-    SessionAgent sessionAgent = sessionAgents[sessionId]!;
+    SessionAgent? sessionAgent = sessionAgents[sessionId];
+    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
     sessionAgent.clear();
     sessionAgents.remove(sessionId);
   }

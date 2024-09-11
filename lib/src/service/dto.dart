@@ -11,8 +11,7 @@ class SessionDto {
 
   SessionDto({required this.id});
 
-  factory SessionDto.fromJson(Map<String, dynamic> json) =>
-      _$SessionDtoFromJson(json);
+  factory SessionDto.fromJson(Map<String, dynamic> json) => _$SessionDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionDtoToJson(this);
 }
@@ -80,25 +79,26 @@ class LLMConfigDto {
   int maxTokens;
   double topP;
 
-  LLMConfigDto(
-      {required this.baseUrl,
-      required this.apiKey,
-      required this.model,
-      this.temperature = 0.0,
-      this.maxTokens = 4096,
-      this.topP = 1.0});
+  LLMConfigDto({
+    required this.baseUrl,
+    required this.apiKey,
+    required this.model,
+    this.temperature = 0.0,
+    this.maxTokens = 4096,
+    this.topP = 1.0
+  });
 
   factory LLMConfigDto.fromJson(Map<String, dynamic> json) => _$LLMConfigDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$LLMConfigDtoToJson(this);
 
   LLMConfig toModel() => LLMConfig(
-      baseUrl: baseUrl,
-      apiKey: apiKey,
-      model: model,
-      temperature: temperature,
-      maxTokens: maxTokens,
-      topP: topP
+    baseUrl: baseUrl,
+    apiKey: apiKey,
+    model: model,
+    temperature: temperature,
+    maxTokens: maxTokens,
+    topP: topP
   );
 }
 

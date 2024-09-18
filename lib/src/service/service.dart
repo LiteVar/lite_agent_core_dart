@@ -193,7 +193,7 @@ class AgentService {
     });
 
     SimpleAgentDriver simpleAgentDriver = SimpleAgentDriver(namedSimpleAgents: namedSimpleAgentList);
-    SessionAgentDriver sessionAgentDriver = SessionAgentDriver(namedTextAgents: namedSessionAgentList);
+    SessionAgentDriver sessionAgentDriver = SessionAgentDriver(namedSessionAgents: namedSessionAgentList);
 
     List<ToolDriver> toolDriverList = [];
     toolDriverList.add(simpleAgentDriver);

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:opentool_dart/opentool_dart.dart';
+import 'package:uuid/uuid.dart';
 import '../agents/llm/model.dart';
 import '../agents/model.dart';
 import '../agents/session_agent/model.dart';
@@ -8,14 +9,14 @@ import 'agent_driver.dart';
 
 class SessionAgentDriver extends AgentDriver {
 
-  List<NamedSessionAgent> namedTextAgents;
+  List<NamedSessionAgent> namedSessionAgents;
 
-  SessionAgentDriver({required this.namedTextAgents});
+  SessionAgentDriver({required this.namedSessionAgents});
 
   @override
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
-    namedTextAgents.forEach((agentModel) {
+    namedSessionAgents.forEach((agentModel) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
           name: agentModel.name,
@@ -30,7 +31,7 @@ class SessionAgentDriver extends AgentDriver {
   @override
   bool hasFunction(String functionName) {
     try {
-      return namedTextAgents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
+      return namedSessionAgents.where((agentModel)=>agentModel.name == functionName).isNotEmpty;
     } catch (e) {
       return false;
     }
@@ -40,18 +41,20 @@ class SessionAgentDriver extends AgentDriver {
   Future<ToolReturn> call(FunctionCall functionCall) async {
     try {
       String prompt = functionCall.parameters[promptKey];
-      NamedSessionAgent agentModel = namedTextAgents.where((agentModel) => agentModel.name == functionCall.name).first;
+      NamedSessionAgent namedSessionAgent = namedSessionAgents.where((agentModel) => agentModel.name == functionCall.name).first;
       Content content = Content(type: ContentType.TEXT, message: prompt);
+
+      String taskId = Uuid().v4();
 
       Completer<AgentMessage> completer = Completer();
       void Function(AgentMessage) listen = (agentMessage) {
-        if(agentMessage.from == AgentRoleType.AGENT && agentMessage.to == AgentRoleType.USER && agentMessage.type == AgentMessageType.TEXT) {
+        if(agentMessage.taskId == taskId && agentMessage.from == AgentRoleType.AGENT && agentMessage.to == AgentRoleType.USER && agentMessage.type == AgentMessageType.TEXT) {
           completer.complete(agentMessage);
         }
       };
-      agentModel.agent.agentSession.addAgentMessageListener(listen);
+      namedSessionAgent.agent.agentSession.addAgentMessageListener(listen);
 
-      agentModel.agent.userToAgent(contentList: [content]);
+      namedSessionAgent.agent.userToAgent(contentList: [content], taskId: taskId);
 
       AgentMessage agentMessage = await completer.future;
       String result = agentMessage.message as String;

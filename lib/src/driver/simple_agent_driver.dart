@@ -14,11 +14,11 @@ class SimpleAgentDriver extends AgentDriver {
   @override
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
-    namedSimpleAgents.forEach((agentModel) {
+    namedSimpleAgents.forEach((nameSimpleAgent) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
-          name: agentModel.name,
-          description: agentModel.agent.systemPrompt == null?"": truncateWithEllipsis(agentModel.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
+          name: nameSimpleAgent.name,
+          description: nameSimpleAgent.agent.systemPrompt == null?"": truncateWithEllipsis(nameSimpleAgent.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
           parameters: [parameter]
       );
       functionModelList.add(functionModel);

@@ -48,7 +48,7 @@ class AgentService {
   
   Future<AgentMessageDto> startSimple(String sessionId, UserTaskDto userTaskDto) async {
     SimpleAgent? simpleAgent = simpleAgents[sessionId];
-    if(simpleAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
+    if(simpleAgent == null) throw AgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
         .map((userMessageDto) => _convertToContent(userMessageDto))
         .toList();
@@ -95,7 +95,7 @@ class AgentService {
 
   Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
-    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
+    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
       .map((userMessageDto) => _convertToContent(userMessageDto))
       .toList();
@@ -116,13 +116,13 @@ class AgentService {
 
   Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.id];
-    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionTaskDto.id}` Agent Not Found");
+    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionTaskDto.id);
     sessionAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
   Future<void> clearChat(String sessionId) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
-    if(sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${sessionId}` Agent Not Found");
+    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
     sessionAgent.clear();
     sessionAgents.remove(sessionId);
   }
@@ -179,7 +179,7 @@ class AgentService {
     sessionList.forEach((session) {
       SimpleAgent? simpleAgent = simpleAgents[session.id];
       SessionAgent? sessionAgent = sessionAgents[session.id];
-      if(simpleAgent == null && sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${session.id}` Agent Not Found");
+      if(simpleAgent == null && sessionAgent == null) throw AgentNotFoundException(sessionId: session.id);
 
       if(simpleAgent != null) {
         namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.id, agent: simpleAgent));

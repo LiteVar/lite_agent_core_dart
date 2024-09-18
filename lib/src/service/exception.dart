@@ -13,3 +13,17 @@ class AgentNotFoundException implements Exception {
 
   Map<String, dynamic> toJson() => _$AgentNotFoundExceptionToJson(this);
 }
+
+@JsonSerializable(createFactory: false)
+class AgentNameException implements Exception {
+  final int code = 500;
+  late String message;
+
+  AgentNameException({
+    required String agentName,
+  }){
+    this.message = "Name exception: `$agentName`. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.";
+  }
+
+  Map<String, dynamic> toJson() => _$AgentNameExceptionToJson(this);
+}

@@ -15,6 +15,18 @@ Map<String, dynamic> _$SessionDtoToJson(SessionDto instance) =>
       'id': instance.id,
     };
 
+SessionNameDto _$SessionNameDtoFromJson(Map<String, dynamic> json) =>
+    SessionNameDto(
+      id: json['id'] as String,
+      name: json['name'] as String?,
+    );
+
+Map<String, dynamic> _$SessionNameDtoToJson(SessionNameDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };
+
 SimpleCapabilityDto _$SimpleCapabilityDtoFromJson(Map<String, dynamic> json) =>
     SimpleCapabilityDto(
       llmConfig:
@@ -38,7 +50,7 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
           ?.map((e) => OpenSpecDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       sessionList: (json['sessionList'] as List<dynamic>?)
-          ?.map((e) => SessionDto.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => SessionNameDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 3600,
     );

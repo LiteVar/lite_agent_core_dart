@@ -12,3 +12,9 @@ Map<String, dynamic> _$AgentNotFoundExceptionToJson(
       'code': instance.code,
       'message': instance.message,
     };
+
+Map<String, dynamic> _$AgentNameExceptionToJson(AgentNameException instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+    };

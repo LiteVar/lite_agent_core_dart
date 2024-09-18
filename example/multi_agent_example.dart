@@ -22,7 +22,7 @@ Future<void> main() async {
   SessionDto sessionDto2 = await _buildToolAgent();
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt,
-    sessionList: [sessionDto1, sessionDto2]
+    sessionList: [SessionNameDto(id: sessionDto1.id, name: ""), SessionNameDto(id: sessionDto2.id)]
   );
 
   SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);

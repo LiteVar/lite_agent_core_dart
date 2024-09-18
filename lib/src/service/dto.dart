@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/model.dart';
 import '../llm/model.dart';
+import 'exception.dart';
 
 part 'dto.g.dart';
 
@@ -14,6 +15,22 @@ class SessionDto {
   factory SessionDto.fromJson(Map<String, dynamic> json) => _$SessionDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionDtoToJson(this);
+}
+
+@JsonSerializable()
+class SessionNameDto extends SessionDto {
+  String? name; // OpenAI: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
+
+  SessionNameDto({required super.id, String? name}) {
+    final regex = RegExp(r'^[a-zA-Z0-9_-]{1,64}$');
+    if(name != null && !regex.hasMatch(name)) {
+      throw AgentNameException(agentName: name);
+    }
+  }
+
+  factory SessionNameDto.fromJson(Map<String, dynamic> json) => _$SessionNameDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SessionNameDtoToJson(this);
 }
 
 @JsonSerializable()
@@ -34,7 +51,7 @@ class SimpleCapabilityDto {
 @JsonSerializable()
 class CapabilityDto extends SimpleCapabilityDto {
   List<OpenSpecDto>? openSpecList;
-  List<SessionDto>? sessionList;
+  List<SessionNameDto>? sessionList;
   int timeoutSeconds;
 
   CapabilityDto({

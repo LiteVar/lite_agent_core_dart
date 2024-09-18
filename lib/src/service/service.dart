@@ -103,9 +103,9 @@ class AgentService {
   }
 
   Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
-    SessionAgent? toolAgent = sessionAgents[sessionId];
-    if (toolAgent == null) return null;
-    return toolAgent
+    SessionAgent? sessionAgent = sessionAgents[sessionId];
+    if (sessionAgent == null) return null;
+    return sessionAgent
       .agentSession
       .listenAgentMessageList
       .map((AgentMessage agentMessage) {
@@ -172,28 +172,28 @@ class AgentService {
     return toolDriverList;
   }
 
-  Future<List<ToolDriver>> buildAgentDriverList(List<SessionDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) async {
-    if(sessionList == null) return [];
+  Future<List<ToolDriver>> buildAgentDriverList(List<SessionNameDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) async {
+    if( sessionList == null || sessionList.isEmpty ) return [];
     List<NamedSimpleAgent> namedSimpleAgentList = [];
-    List<NamedSessionAgent> namedTextAgentList = [];
+    List<NamedSessionAgent> namedSessionAgentList = [];
     sessionList.forEach((session) {
       SimpleAgent? simpleAgent = simpleAgents[session.id];
       SessionAgent? sessionAgent = sessionAgents[session.id];
       if(simpleAgent == null && sessionAgent == null) throw AgentNotFoundException(message: "SessionId `${session.id}` Agent Not Found");
 
       if(simpleAgent != null) {
-        namedSimpleAgentList.add(NamedSimpleAgent(name: session.id, agent: simpleAgent));
+        namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.id, agent: simpleAgent));
       } else {
         void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
           listen(session.id, agentMessage);
         };
         sessionAgent!.agentSession.addAgentMessageListener(AgentListen);
-        namedTextAgentList.add(NamedSessionAgent(name: session.id, agent: sessionAgent));
+        namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.id, agent: sessionAgent));
       }
-
     });
+
     SimpleAgentDriver simpleAgentDriver = SimpleAgentDriver(namedSimpleAgents: namedSimpleAgentList);
-    SessionAgentDriver sessionAgentDriver = SessionAgentDriver(namedTextAgents: namedTextAgentList);
+    SessionAgentDriver sessionAgentDriver = SessionAgentDriver(namedTextAgents: namedSessionAgentList);
 
     List<ToolDriver> toolDriverList = [];
     toolDriverList.add(simpleAgentDriver);

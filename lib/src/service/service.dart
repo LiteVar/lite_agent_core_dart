@@ -155,7 +155,7 @@ class AgentService {
         OpenAPI openAPI = await OpenAPILoader().load(openSpecDto.openSpec);
         String? authorization;
         if (openSpecDto.apiKey != null) {
-          convertToAuthorization(openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey);
+          authorization = convertToAuthorization(openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey);
         }
         ToolDriver openAPIRunner = OpenAPIDriver(openAPI, authorization: authorization);
         toolDriverList.add(openAPIRunner);

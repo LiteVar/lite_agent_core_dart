@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-void listen(String sessionId, AgentMessage agentMessage) {
+void listen(String sessionId, AgentMessageDto agentMessageDto) {
   String system = "🖥SYSTEM";
   String user = "👤USER";
   String agent = "🤖AGENT";
@@ -11,42 +11,42 @@ void listen(String sessionId, AgentMessage agentMessage) {
   String client = "🔗CLIENT";
 
   String message = "";
-  if (agentMessage.type == ToolMessageType.TEXT)
-    message = agentMessage.message as String;
-  if (agentMessage.type == ToolMessageType.IMAGE_URL)
-    message = agentMessage.message as String;
-  if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
-    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+  if (agentMessageDto.type == ToolMessageType.TEXT)
+    message = agentMessageDto.message as String;
+  if (agentMessageDto.type == ToolMessageType.IMAGE_URL)
+    message = agentMessageDto.message as String;
+  if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL_LIST) {
+    List<FunctionCall> functionCallList = agentMessageDto.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
-  if (agentMessage.type == AgentMessageType.TOOL_RETURN) {
-    message = jsonEncode(agentMessage.message as ToolReturn);
+  if (agentMessageDto.type == AgentMessageType.TOOL_RETURN) {
+    message = jsonEncode(agentMessageDto.message as ToolReturn);
   };
-  if (agentMessage.type == AgentMessageType.CONTENT_LIST) {
-    List<Content> contentList = agentMessage.message as List<Content>;
+  if (agentMessageDto.type == AgentMessageType.CONTENT_LIST) {
+    List<Content> contentList = agentMessageDto.message as List<Content>;
     message = jsonEncode(contentList);
   }
 
   String from = "";
-  if (agentMessage.from == ToolRoleType.SYSTEM) {
+  if (agentMessageDto.from == ToolRoleType.SYSTEM) {
     from = system;
     message = "\n$message";
   }
-  if (agentMessage.from == ToolRoleType.USER) from = user;
-  if (agentMessage.from == ToolRoleType.AGENT) from = agent;
-  if (agentMessage.from == ToolRoleType.LLM) from = llm;
-  if (agentMessage.from == ToolRoleType.TOOL) from = tool;
-  if (agentMessage.from == ToolRoleType.CLIENT) from = client;
+  if (agentMessageDto.from == ToolRoleType.USER) from = user;
+  if (agentMessageDto.from == ToolRoleType.AGENT) from = agent;
+  if (agentMessageDto.from == ToolRoleType.LLM) from = llm;
+  if (agentMessageDto.from == ToolRoleType.TOOL) from = tool;
+  if (agentMessageDto.from == ToolRoleType.CLIENT) from = client;
 
   String to = "";
-  if (agentMessage.to == ToolRoleType.SYSTEM) to = system;
-  if (agentMessage.to == ToolRoleType.USER) to = user;
-  if (agentMessage.to == ToolRoleType.AGENT) to = agent;
-  if (agentMessage.to == ToolRoleType.LLM) to = llm;
-  if (agentMessage.to == ToolRoleType.TOOL) to = tool;
-  if (agentMessage.to == ToolRoleType.CLIENT) to = client;
+  if (agentMessageDto.to == ToolRoleType.SYSTEM) to = system;
+  if (agentMessageDto.to == ToolRoleType.USER) to = user;
+  if (agentMessageDto.to == ToolRoleType.AGENT) to = agent;
+  if (agentMessageDto.to == ToolRoleType.LLM) to = llm;
+  if (agentMessageDto.to == ToolRoleType.TOOL) to = tool;
+  if (agentMessageDto.to == ToolRoleType.CLIENT) to = client;
 
   if (from.isNotEmpty && to.isNotEmpty) {
-    print("#${sessionId}::${agentMessage.taskId}# $from -> $to: [${agentMessage.type}] $message");
+    print("#${sessionId}::${agentMessageDto.taskId}# $from -> $to: [${agentMessageDto.type}] $message");
   }
 }

@@ -56,7 +56,7 @@ class AgentService {
     return AgentMessageDto.fromModel(agentMessage);
   }
 
-  Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessage agentMessage) listen, {List<ToolDriver>? customToolDriverList}) async {
+  Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {List<ToolDriver>? customToolDriverList}) async {
     String sessionId = Uuid().v4();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
@@ -139,10 +139,10 @@ class AgentService {
 
   LLMExecutor _buildLLMExecutor(LLMConfig llmConfig) => OpenAIExecutor(llmConfig);
 
-  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) {
+  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) {
     AgentSession agentSession = AgentSession();
     agentSession.addAgentMessageListener((AgentMessage agentMessage) {
-      listen(sessionId, agentMessage);
+      listen(sessionId, AgentMessageDto.fromModel(agentMessage));
     });
     return agentSession;
   }
@@ -172,7 +172,7 @@ class AgentService {
     return toolDriverList;
   }
 
-  Future<List<ToolDriver>> buildAgentDriverList(List<SessionNameDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessage agentMessage) listen) async {
+  Future<List<ToolDriver>> buildAgentDriverList(List<SessionNameDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) async {
     if( sessionList == null || sessionList.isEmpty ) return [];
     List<NamedSimpleAgent> namedSimpleAgentList = [];
     List<NamedSessionAgent> namedSessionAgentList = [];
@@ -185,7 +185,7 @@ class AgentService {
         namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.id, agent: simpleAgent));
       } else {
         void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
-          listen(session.id, agentMessage);
+          listen(session.id, AgentMessageDto.fromModel(agentMessage));
         };
         sessionAgent!.agentSession.addAgentMessageListener(AgentListen);
         namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.id, agent: sessionAgent));

@@ -48,7 +48,7 @@ Future<SessionDto> _buildTextAgent() async {
   String systemPrompt = "Playing as a translator, knowing how to translate between languages.";
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt);
-  void Function(String sessionId, AgentMessage agentMessage) listen1 = (String sessionId, AgentMessage agentMessage){};
+  void Function(String sessionId, AgentMessageDto agentMessageDto) listen1 = (String sessionId, AgentMessageDto agentMessageDto){};
   return await agentService.initChat(capabilityDto, listen1);
 }
 
@@ -58,7 +58,7 @@ Future<SessionDto> _buildToolAgent() async {
   String systemPrompt = "A storage management tool that knows how to add, delete, modify, and query my texts.";
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt);
-  void Function(String sessionId, AgentMessage agentMessage) listen2 = (String sessionId, AgentMessage agentMessage){};
+  void Function(String sessionId, AgentMessageDto agentMessageDto) listen2 = (String sessionId, AgentMessageDto agentMessageDto){};
   return await agentService.initChat(capabilityDto, listen2, customToolDriverList: await _buildCustomDriverList());
 }
 

@@ -67,7 +67,7 @@ Future<List<ToolDriver>> _buildToolDriverList() async {
 AgentSession _buildSession(String sessionId) {
   AgentSession session = AgentSession();
   session.addAgentMessageListener((AgentMessage agentMessage) {
-    listen(sessionId, agentMessage);
+    listen(sessionId, AgentMessageDto.fromModel(agentMessage));
   });
   return session;
 }

@@ -1,3 +1,7 @@
+## 0.5.1
+
+- change listen AgentMessage to AgentMessageDto
+
 ## 0.5.0 
 
 - add simple agent supported

@@ -67,6 +67,7 @@ abstract class SessionAgent {
           message: systemPrompt
       );
       agentSession.addTaskDoneAgentMessageList([systemMessage]);
+      agentSession.hasSystemMessage = true;
       await toAgent(systemMessage);
     }
     Command command = Command(toAgent, sessionMessage);

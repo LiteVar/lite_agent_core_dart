@@ -18,4 +18,5 @@ export 'src/service/dto.dart';
 export 'src/service/service.dart';
 export 'src/service/exception.dart';
 export 'src/llm/model.dart';
+export 'src/llm/openai_util.dart';
 

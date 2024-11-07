@@ -17,6 +17,7 @@ import '../driver/model.dart';
 import '../driver/simple_agent_driver.dart';
 import '../driver/session_agent_driver.dart';
 import '../llm/model.dart';
+import '../llm/openai_util.dart';
 import 'dto.dart';
 import 'exception.dart';
 
@@ -27,6 +28,10 @@ class AgentService {
 
   AgentService({List<ToolDriver>? globalToolDriverList = null}) {
     if(globalToolDriverList != null) globalDriverList.addAll(globalToolDriverList);
+  }
+
+  Future<bool> testLLMConfig(String baseUrl, String apiKey) async {
+    return OpenAIUtil.checkLLMConfig(baseUrl, apiKey);
   }
 
   Future<SessionDto> initSimple(SimpleCapabilityDto simpleCapabilityDto) async {

@@ -21,10 +21,13 @@ class ContentType {
 class Content extends LLMContent {
   Content({required super.type, required super.message});
 
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'message': message
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    'message': message
+  };
+
+  factory Content.fromJson(Map<String, dynamic> json) => Content(
+      type: json["type"],
+      message: json["message"]
+  );
 }

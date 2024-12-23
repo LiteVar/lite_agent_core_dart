@@ -1,6 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/model.dart';
+import '../agents/reflection/model.dart';
+import '../agents/session_agent/model.dart';
+import '../agents/text_agent/model.dart';
 import '../llm/model.dart';
 import 'exception.dart';
 
@@ -108,6 +111,15 @@ class LLMConfigDto {
   factory LLMConfigDto.fromJson(Map<String, dynamic> json) => _$LLMConfigDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$LLMConfigDtoToJson(this);
+
+  factory LLMConfigDto.fromModel(LLMConfig llmConfig) => LLMConfigDto(
+      baseUrl: llmConfig.baseUrl,
+      apiKey: llmConfig.apiKey,
+      model: llmConfig.model,
+      temperature: llmConfig.temperature,
+      maxTokens: llmConfig.maxTokens,
+      topP: llmConfig.topP
+  );
 
   LLMConfig toModel() => LLMConfig(
     baseUrl: baseUrl,
@@ -259,4 +271,68 @@ class SessionTaskDto {
   factory SessionTaskDto.fromJson(Map<String, dynamic> json) => _$SessionTaskDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionTaskDtoToJson(this);
+}
+
+@JsonSerializable()
+class MessageScoreDto {
+  List<Content> contentList;
+  String message;
+  List<int> scoreList;
+  MessageScoreDto({required this.contentList, required this.message, required this.scoreList});
+
+  factory MessageScoreDto.fromModel(MessageScore messageScore) => MessageScoreDto(
+    contentList: messageScore.contentList,
+    message: messageScore.message,
+    scoreList: messageScore.scoreList
+  );
+
+  factory MessageScoreDto.fromJson(Map<String, dynamic> json) => _$MessageScoreDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MessageScoreDtoToJson(this);
+}
+
+@JsonSerializable()
+class ReflectResultDto {
+  final bool isPass;
+  final MessageScoreDto messageScore;
+  final int passScore;
+  final int count;
+  final int maxCount;
+
+  ReflectResultDto({
+    required this.isPass,
+    required this.messageScore,
+    required this.passScore,
+    required this.count,
+    required this.maxCount,
+  });
+
+  factory ReflectResultDto.fromModel(ReflectResult result) => ReflectResultDto(
+    isPass: result.isPass,
+    messageScore: MessageScoreDto.fromModel(result.messageScore),
+    passScore: result.passScore,
+    count: result.count,
+    maxCount: result.maxCount
+  );
+
+  factory ReflectResultDto.fromJson(Map<String, dynamic> json) => _$ReflectResultDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReflectResultDtoToJson(this);
+}
+
+@JsonSerializable()
+class ReflectionDto {
+  final ReflectResultDto result;
+  CompletionsDto? completions;
+
+  ReflectionDto({required this.result, this.completions});
+
+  factory ReflectionDto.fromModel(Reflection reflection) => ReflectionDto(
+    result: ReflectResultDto.fromModel(reflection.result),
+    completions: reflection.completions==null? null : CompletionsDto.fromModel(reflection.completions!)
+  );
+
+  factory ReflectionDto.fromJson(Map<String, dynamic> json) => _$ReflectionDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReflectionDtoToJson(this);
 }

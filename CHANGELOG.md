@@ -1,3 +1,8 @@
+## 0.5.2
+
+- add text and tool reflection
+- fixed api check issue
+
 ## 0.5.1
 
 - change listen AgentMessage to AgentMessageDto

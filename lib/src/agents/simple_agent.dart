@@ -1,17 +1,17 @@
 import 'package:uuid/uuid.dart';
 import '../llm/model.dart';
-import 'llm/llm_executor.dart';
+import 'llm/openai_executor.dart';
 import 'session_agent/model.dart';
 import 'text_agent/model.dart';
 import 'model.dart';
 
 class SimpleAgent {
   late String sessionId;
-  LLMExecutor llmExecutor;
+  LLMConfig llmConfig;
   String? systemPrompt;
   ResponseFormat? responseFormat;
 
-  SimpleAgent({required this.llmExecutor, this.systemPrompt, this.responseFormat, sessionId}){
+  SimpleAgent({required this.llmConfig, this.systemPrompt, this.responseFormat, sessionId}){
     this.sessionId = sessionId??Uuid().v4();
   }
 
@@ -22,12 +22,12 @@ class SimpleAgent {
 
     if(systemPrompt != null && systemPrompt!.isNotEmpty) {
       AgentMessage systemMessage = AgentMessage(
-          sessionId: sessionId,
-          taskId: taskId,
-          from: TextRoleType.SYSTEM,
-          to: TextRoleType.AGENT,
-          type: TextMessageType.TEXT,
-          message: systemPrompt
+        sessionId: sessionId,
+        taskId: taskId,
+        from: TextRoleType.SYSTEM,
+        to: TextRoleType.AGENT,
+        type: TextMessageType.TEXT,
+        message: systemPrompt
       );
       agentLlmMessageList.add(systemMessage);
     }
@@ -42,9 +42,6 @@ class SimpleAgent {
     );
     agentLlmMessageList.add(userMessage);
 
-    return await llmExecutor.request(
-      agentMessageList: agentLlmMessageList,
-      responseFormat: responseFormat
-    );
+    return await OpenAIExecutor(llmConfig).request(agentMessageList: agentLlmMessageList, responseFormat: responseFormat);
   }
 }

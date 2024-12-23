@@ -59,7 +59,7 @@ LLMConfigDto _buildLLMConfig() {
   return LLMConfigDto(
     baseUrl: env["baseUrl"]!,
     apiKey: env["apiKey"]!,
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini",
   );
 }
 
@@ -102,7 +102,7 @@ Future<List<OpenSpecDto>> _buildOpenSpecList() async {
 Future<List<ToolDriver>> _buildCustomToolDriverList() async {
   String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
   List<String> fileNameList = [
-    "mock_tool.json"
+    "mock-tool.json"
   ];
 
   List<ToolDriver> toolDriverList = [];

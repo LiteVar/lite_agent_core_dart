@@ -210,3 +210,55 @@ Map<String, dynamic> _$SessionTaskDtoToJson(SessionTaskDto instance) =>
       'id': instance.id,
       'taskId': instance.taskId,
     };
+
+MessageScoreDto _$MessageScoreDtoFromJson(Map<String, dynamic> json) =>
+    MessageScoreDto(
+      contentList: (json['contentList'] as List<dynamic>)
+          .map((e) => Content.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      message: json['message'] as String,
+      scoreList: (json['scoreList'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
+    );
+
+Map<String, dynamic> _$MessageScoreDtoToJson(MessageScoreDto instance) =>
+    <String, dynamic>{
+      'contentList': instance.contentList,
+      'message': instance.message,
+      'scoreList': instance.scoreList,
+    };
+
+ReflectResultDto _$ReflectResultDtoFromJson(Map<String, dynamic> json) =>
+    ReflectResultDto(
+      isPass: json['isPass'] as bool,
+      messageScore: MessageScoreDto.fromJson(
+          json['messageScore'] as Map<String, dynamic>),
+      passScore: (json['passScore'] as num).toInt(),
+      count: (json['count'] as num).toInt(),
+      maxCount: (json['maxCount'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$ReflectResultDtoToJson(ReflectResultDto instance) =>
+    <String, dynamic>{
+      'isPass': instance.isPass,
+      'messageScore': instance.messageScore,
+      'passScore': instance.passScore,
+      'count': instance.count,
+      'maxCount': instance.maxCount,
+    };
+
+ReflectionDto _$ReflectionDtoFromJson(Map<String, dynamic> json) =>
+    ReflectionDto(
+      result: ReflectResultDto.fromJson(json['result'] as Map<String, dynamic>),
+      completions: json['completions'] == null
+          ? null
+          : CompletionsDto.fromJson(
+              json['completions'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ReflectionDtoToJson(ReflectionDto instance) =>
+    <String, dynamic>{
+      'result': instance.result,
+      'completions': instance.completions,
+    };

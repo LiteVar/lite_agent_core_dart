@@ -59,12 +59,12 @@ abstract class SessionAgent {
   Future<void> _initSystemMessage(AgentMessage sessionMessage) async {
     if (systemPrompt != null && systemPrompt!.isNotEmpty) {
       AgentMessage systemMessage = AgentMessage(
-          sessionId: sessionMessage.sessionId,
-          taskId: sessionMessage.taskId,
-          from: SessionRoleType.SYSTEM,
-          to: SessionRoleType.AGENT,
-          type: SessionMessageType.TEXT,
-          message: systemPrompt
+        sessionId: sessionMessage.sessionId,
+        taskId: sessionMessage.taskId,
+        from: SessionRoleType.SYSTEM,
+        to: SessionRoleType.AGENT,
+        type: SessionMessageType.TEXT,
+        message: systemPrompt
       );
       agentSession.addTaskDoneAgentMessageList([systemMessage]);
       agentSession.hasSystemMessage = true;

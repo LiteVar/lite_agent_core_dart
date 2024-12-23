@@ -7,7 +7,7 @@ import 'listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Add LLM baseUrl and apiKey to `.env` file
-String prompt = "Who are you?";
+String prompt = "你好！";
 
 Future<void> main() async {
   String sessionId = Uuid().v4();
@@ -15,7 +15,8 @@ Future<void> main() async {
     sessionId: sessionId,
     llmConfig: _buildLLMConfig(),
     agentSession: _buildSession(sessionId),
-    systemPrompt: _buildSystemPrompt()
+    systemPrompt: _buildSystemPrompt(),
+    textReflectPromptList: _buildTextReflectPromptList(),
   );
   textAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
@@ -42,5 +43,12 @@ AgentSession _buildSession(String sessionId) {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return 'You are a Q&A robot.';
+  return 'You are a translate robot. Translate any user content language to English. Reply sentence after translating, not chatting.';
+}
+
+List<ReflectPrompt> _buildTextReflectPromptList() {
+  LLMConfig llmConfig = _buildLLMConfig();
+  return [
+    ReflectPrompt(llmConfig: llmConfig, prompt: "You are a language reflector, you can reflect `LLM Response` language is English or not. If English, score is 10, else score is 0."),
+  ];
 }

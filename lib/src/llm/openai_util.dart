@@ -15,8 +15,8 @@ class OpenAIUtil {
     try {
       OpenAI.baseUrl = baseUrl;
       OpenAI.apiKey = apiKey;
+      List<OpenAIModelModel> modelList = await OpenAI.instance.model.list();
       /// Remove model list check
-      // List<OpenAIModelModel> modelList = await OpenAI.instance.model.list();
       // OpenAIModelModel openAIModelModel = modelList.firstWhere((openAIModelModel) => openAIModelModel.id == llmConfig.model);
       return true;
     } catch(e) {

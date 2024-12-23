@@ -8,6 +8,7 @@ class ToolRoleType {
   static const String LLM = TextRoleType.LLM; // llm
   static const String TOOL = AgentRoleType.TOOL; // external tools
   static const String CLIENT = TextRoleType.CLIENT; // external caller
+  static const String REFLECTION = TextRoleType.REFLECTION; // reflection
 }
 
 class ToolMessageType {

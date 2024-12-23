@@ -25,6 +25,18 @@ class DispatcherMap {
     return _dispatcherMap[taskId]!._taskMessageList;
   }
 
+  void breakTask(String taskId) {
+    Dispatcher? dispatcher = _dispatcherMap[taskId];
+    if(dispatcher != null) {
+      dispatcher.stop();
+      _dispatcherMap.remove(taskId);
+    }
+  }
+
+  void clearTaskMessageList(String taskId) {
+    _dispatcherMap[taskId]?.clearTaskMessageList();
+  }
+
   void stopAll(Future<void> Function(AgentMessage) stopFunc, Message message) {
     _dispatcherMap.forEach((taskId, dispatcher){
       if(dispatcher.isListening()) {
@@ -87,6 +99,10 @@ class Dispatcher {
 
   List<AgentMessage> getTaskMessageList() {
     return _taskMessageList;
+  }
+
+  void clearTaskMessageList() {
+    _taskMessageList = [];
   }
 
   void stop() {

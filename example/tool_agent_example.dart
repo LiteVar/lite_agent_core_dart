@@ -17,7 +17,7 @@ Future<void> main() async {
   String sessionId = Uuid().v4();
   ToolAgent toolAgent = ToolAgent(
     sessionId: sessionId,
-    llmExecutor: _buildLLMExecutor(),
+    llmConfig: _buildLLMConfig(),
     agentSession: _buildSession(sessionId),
     toolDriverList: await _buildToolDriverList(),
     systemPrompt: _buildSystemPrompt()
@@ -25,19 +25,15 @@ Future<void> main() async {
   toolAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 
-LLMExecutor _buildLLMExecutor() {
+LLMConfig _buildLLMConfig() {
   DotEnv env = DotEnv();
   env.load(['example/.env']);
 
-  LLMConfig llmConfig = LLMConfig(
+  return LLMConfig(
     baseUrl: env["baseUrl"]!,
     apiKey: env["apiKey"]!,
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini",
   );
-
-  OpenAIExecutor openAIExecutor = OpenAIExecutor(llmConfig);
-
-  return openAIExecutor;
 }
 
 /// Use Prompt engineering to design SystemPrompt

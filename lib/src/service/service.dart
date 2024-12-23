@@ -5,8 +5,6 @@ import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import '../agents/model.dart';
-import '../agents/llm/llm_executor.dart';
-import '../agents/llm/openai_executor.dart';
 import '../agents/session_agent/session.dart';
 import '../agents/session_agent/model.dart';
 import '../agents/session_agent/session_agent.dart';
@@ -40,7 +38,7 @@ class AgentService {
     LLMConfig llmConfig = simpleCapabilityDto.llmConfig.toModel();
 
     SimpleAgent simpleAgent = SimpleAgent(
-      llmExecutor: _buildLLMExecutor(llmConfig),
+      llmConfig: llmConfig,
       systemPrompt: systemPrompt,
       responseFormat: ResponseFormat(type: ResponseFormatType.TEXT)
     );
@@ -75,7 +73,7 @@ class AgentService {
     if(agentToolDriverList.isEmpty) {
       TextAgent textAgent = TextAgent(
         sessionId: sessionId,
-        llmExecutor: _buildLLMExecutor(llmConfig),
+        llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
         systemPrompt: systemPrompt,
         timeoutSeconds: capabilityDto.timeoutSeconds
@@ -84,7 +82,7 @@ class AgentService {
     } else {
       TextAgent toolAgent = ToolAgent(
         sessionId: sessionId,
-        llmExecutor: _buildLLMExecutor(llmConfig),
+          llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
         toolDriverList: agentToolDriverList,
         systemPrompt: systemPrompt,
@@ -141,8 +139,6 @@ class AgentService {
             type: ContentType.IMAGE_URL, message: userMessageDto.message);
     }
   }
-
-  LLMExecutor _buildLLMExecutor(LLMConfig llmConfig) => OpenAIExecutor(llmConfig);
 
   AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) {
     AgentSession agentSession = AgentSession();

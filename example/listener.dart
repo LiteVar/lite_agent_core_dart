@@ -9,6 +9,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   String llm = "💡LLM";
   String tool = "🔧TOOL";
   String client = "🔗CLIENT";
+  String reflection = "🎯REFLECTION";
 
   String message = "";
   if (agentMessageDto.type == ToolMessageType.TEXT)
@@ -19,12 +20,16 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
     List<FunctionCall> functionCallList = agentMessageDto.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
-  if (agentMessageDto.type == AgentMessageType.TOOL_RETURN) {
+  if (agentMessageDto.type == ToolMessageType.TOOL_RETURN) {
     message = jsonEncode(agentMessageDto.message as ToolReturn);
   };
   if (agentMessageDto.type == AgentMessageType.CONTENT_LIST) {
     List<Content> contentList = agentMessageDto.message as List<Content>;
     message = jsonEncode(contentList);
+  }
+  if (agentMessageDto.type == TextMessageType.REFLECTION) {
+    ReflectionDto reflectionDto = ReflectionDto.fromModel(agentMessageDto.message as Reflection);
+    message = jsonEncode(reflectionDto);
   }
 
   String from = "";
@@ -37,6 +42,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   if (agentMessageDto.from == ToolRoleType.LLM) from = llm;
   if (agentMessageDto.from == ToolRoleType.TOOL) from = tool;
   if (agentMessageDto.from == ToolRoleType.CLIENT) from = client;
+  if (agentMessageDto.from == ToolRoleType.REFLECTION) from = reflection;
 
   String to = "";
   if (agentMessageDto.to == ToolRoleType.SYSTEM) to = system;
@@ -45,6 +51,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   if (agentMessageDto.to == ToolRoleType.LLM) to = llm;
   if (agentMessageDto.to == ToolRoleType.TOOL) to = tool;
   if (agentMessageDto.to == ToolRoleType.CLIENT) to = client;
+  if (agentMessageDto.to == ToolRoleType.REFLECTION) to = reflection;
 
   if (from.isNotEmpty && to.isNotEmpty) {
     print("#${sessionId}::${agentMessageDto.taskId}# $from -> $to: [${agentMessageDto.type}] $message");

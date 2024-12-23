@@ -1,4 +1,6 @@
+import '../../llm/model.dart';
 import '../llm/model.dart';
+import '../reflection/model.dart';
 import '../session_agent/model.dart';
 
 class TextRoleType {
@@ -7,6 +9,7 @@ class TextRoleType {
   static const String AGENT = SessionRoleType.AGENT; // agent
   static const String LLM = AgentRoleType.LLM; // llm
   static const String CLIENT = SessionRoleType.CLIENT; // external caller
+  static const String REFLECTION = "reflection";
 }
 
 class TextMessageType {
@@ -14,6 +17,7 @@ class TextMessageType {
   static String IMAGE_URL = SessionMessageType.IMAGE_URL; //String
   static String CONTENT_LIST = SessionMessageType.CONTENT_LIST; //List<Content>
   static String EXCEPTION = "exception"; //Exception
+  static String REFLECTION = "reflection";
 }
 
 class ExceptionMessage implements Exception {
@@ -31,4 +35,30 @@ class ExceptionMessage implements Exception {
       'message': message
     };
   }
+}
+
+class ReflectResult {
+  final bool isPass;
+  final MessageScore messageScore;
+  final int passScore;
+  final int count;
+  final int maxCount;
+
+  ReflectResult({
+    required this.isPass,
+    required this.messageScore,
+    required this.passScore,
+    required this.count,
+    required this.maxCount,
+  });
+}
+
+class Reflection {
+  final ReflectResult result;
+  Completions? completions;
+
+  Reflection({
+    required this.result,
+    this.completions
+  });
 }

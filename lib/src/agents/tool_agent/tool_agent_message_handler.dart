@@ -82,7 +82,7 @@ class ToolMessageHandler extends AgentMessageHandler {
     } else if (agentMessage.type == ToolMessageType.TASK_STATUS) {
       // If TOOL return DONE status, forward to LLM
       TaskStatus taskStatus = agentMessage.message as TaskStatus;
-      if (taskStatus.status == ToolsStatus.DONE) {
+      if (taskStatus.status == TaskStatusType.DONE) {
         AgentMessage agentToolMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,

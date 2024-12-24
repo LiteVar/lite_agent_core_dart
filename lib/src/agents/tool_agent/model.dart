@@ -19,8 +19,3 @@ class ToolMessageType {
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn
   static String TASK_STATUS = TextMessageType.TASK_STATUS; //TaskStatus
 }
-
-class ToolsStatus {
-  static const String START = "[TOOLS_START]";
-  static const String DONE = "[TOOLS_DONE]";
-}

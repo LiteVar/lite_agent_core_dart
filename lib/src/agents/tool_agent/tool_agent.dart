@@ -48,56 +48,9 @@ class ToolAgent extends TextAgent {
   @override
   Future<void> toAgent(AgentMessage agentMessage) async {
     agentSession.addListenAgentMessage(agentMessage);
-    // Command? nextCommand = handleTextMessage(agentMessage);
-    // if(nextCommand == null) nextCommand = handleToolMessage(agentMessage);
     Command? nextCommand = manager.handleMessage(agentMessage);
     if (nextCommand != null) dispatcherMap.dispatch(nextCommand);
   }
-
-  // Command? handleToolMessage(agentMessage) {
-    // Command? nextCommand;
-    // if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
-    //   AgentMessage agentToolMessage = AgentMessage(
-    //     sessionId: agentMessage.sessionId,
-    //     taskId: agentMessage.taskId,
-    //     from: ToolRoleType.AGENT,
-    //     to: ToolRoleType.TOOL,
-    //     type: ToolMessageType.FUNCTION_CALL_LIST,
-    //     message: agentMessage.message
-    //   );
-    //   nextCommand = Command(toTool, agentToolMessage); // If LLM call function, forward to TOOL.
-    // } else if (agentMessage.from == ToolRoleType.TOOL) {
-    //   if (agentMessage.type == ToolMessageType.TOOL_RETURN) {
-    //     // If TOOL return result, add the result message
-    //     AgentMessage agentLLMMessage = AgentMessage(
-    //       sessionId: agentMessage.sessionId,
-    //       taskId: agentMessage.taskId,
-    //       from: ToolRoleType.AGENT,
-    //       to: TextRoleType.LLM,
-    //       type: ToolMessageType.TOOL_RETURN,
-    //       message: agentMessage.message
-    //     );
-    //     // nextCommand = Command(toLLM, agentLLMMessage);
-    //     // Only push to listener, NOT forward to LLM until ToolsStatus.DONE
-    //     agentSession.addListenAgentMessage(agentLLMMessage);
-    //   } else if (agentMessage.type == ToolMessageType.TEXT) {
-    //     // If TOOL return DONE status, forward to LLM
-    //     String toolAgentMessageText = agentMessage.message as String;
-    //     if (toolAgentMessageText == ToolsStatus.DONE) {
-    //       AgentMessage agentToolMessage = AgentMessage(
-    //         sessionId: agentMessage.sessionId,
-    //         taskId: agentMessage.taskId,
-    //         from: ToolRoleType.AGENT,
-    //         to: ToolRoleType.CLIENT,
-    //         type: ToolMessageType.TEXT,
-    //         message: agentMessage.message
-    //       );
-    //       nextCommand = Command(toLLM, agentToolMessage);
-    //     }
-    //   }
-    // }
-    // return nextCommand;
-  // }
 
   @override
   List<AgentMessage> prepareAgentLLMMessageList(AgentMessage agentMessage) {
@@ -214,8 +167,8 @@ class ToolAgent extends TextAgent {
       taskId: agentMessage.taskId,
       from: ToolRoleType.TOOL,
       to: ToolRoleType.AGENT,
-      type: ToolMessageType.TEXT,
-      message: ToolsStatus.DONE
+      type: ToolMessageType.TASK_STATUS,
+      message: TaskStatus(status: TaskStatusType.DONE)
     );
     Command command = Command(toAgent, toolDoneMessage);
     dispatcherMap.dispatch(command);
@@ -231,7 +184,7 @@ class ToolAgent extends TextAgent {
           from: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
           type: ToolMessageType.TASK_STATUS,
-          message: TaskStatus(status:ToolsStatus.START)
+          message: TaskStatus(status:TaskStatusType.START)
         ));
     dispatcherMap.dispatch(clientCommand);
     requestTools(agentMessage);

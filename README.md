@@ -24,7 +24,7 @@ LLM `AI Agent` multi sessions service.
 4. Use below method to run agent service.
 
 ### Method 1(Recommend): AgentService
-- According to `/example/agent_service_example.dart`
+- According to `/example/service_example/agent_service_example.dart`
 - Support multi agent session via session id.
 - Support multi task in the same agent, identify different tasks by `taskId`. After finishing task, task message could be added to session as new task context.
 
@@ -66,7 +66,7 @@ Future<void> main() async {
 
 ### Method 2: ToolAgent
 
-- According to `/example/tool_agent_example.dart`
+- According to `/example/agent_example/tool_agent_example.dart`
 - Pure native calling. Support single session.
 - [Method 1 AgentService](#method-1recommend-agentservice) is friendly encapsulation for this.
 

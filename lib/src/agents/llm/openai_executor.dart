@@ -183,8 +183,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.system,
           content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(
-                agentMessage.message as String)
+            OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
           ]);
     }
 
@@ -194,8 +193,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(
-                agentMessage.message as String)
+            OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
           ]);
     }
 
@@ -204,9 +202,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
         agentMessage.type == AgentMessageType.IMAGE_URL) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(
-                agentMessage.message as String)
+          content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)
           ]);
     }
 
@@ -233,10 +229,21 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.tool,
         content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              jsonEncode(toolReturn.result))
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(jsonEncode(toolReturn.result))
         ],
       ).asRequestFunctionMessage(toolCallId: toolReturn.id);
+    }
+
+    //AGENT return TOOL status
+    if (agentMessage.from == AgentRoleType.TOOL &&
+        agentMessage.type == AgentMessageType.TASK_STATUS) {
+      TaskStatus taskStatus = agentMessage.message as TaskStatus;
+      return OpenAIChatCompletionChoiceMessageModel(
+        role: OpenAIChatMessageRole.user,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(jsonEncode(jsonEncode(taskStatus.toJson())))
+        ],
+      );
     }
 
     //AGENT forward USER messages
@@ -263,8 +270,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.user,
         content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(
-              agentMessage.message as String)
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
         ]);
   }
 
@@ -281,8 +287,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
   AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {Completions? completions}) {
     dynamic message;
-    message = openAIChatCompletionChoiceMessageModel.toolCalls
-        ?.map((OpenAIResponseToolCall openAIResponseToolCall) {
+    message = openAIChatCompletionChoiceMessageModel.toolCalls?.map((OpenAIResponseToolCall openAIResponseToolCall) {
       String id = openAIResponseToolCall.id!;
       String name = openAIResponseToolCall.function.name!;
       Map<String, dynamic> parameters = jsonDecode(openAIResponseToolCall.function.arguments);

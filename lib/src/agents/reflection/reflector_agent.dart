@@ -30,7 +30,7 @@ class ReflectorAgent {
     String messageToReflect = message;
 
     try {
-      // if FunctionCallList, remove "id" field from each FunctionCall for reflect
+      // if FunctionCallList, remove "id" field from each FunctionCall for reflection
       List<dynamic> jsonList = jsonDecode(message);
       List<Map<String, dynamic>> jsonWithoutIdList = jsonList.map((dyn){
         Map<String, dynamic> json = dyn as Map<String, dynamic>;
@@ -89,7 +89,6 @@ class ReflectorAgent {
     } else {
       return ReflectScore(score: 0, description: "ReflectorAgent reply message type is NOT functionCallList");
     }
-
   }
 }
 

@@ -22,7 +22,17 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     AgentMessage agentMessage = agentMessageList.lastWhere((agentMessage)=> agentMessage.from == AgentRoleType.AGENT);
     _sessionId = agentMessage.sessionId;
     _taskId = agentMessage.taskId;
-    List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = agentMessageList.map((AgentMessage agentMessage) => _buildOpenAIMessage(agentMessage)).toList();
+    List<OpenAIChatCompletionChoiceMessageModel> requestMessageList = [];
+
+    for(AgentMessage agentMessage in agentMessageList) {
+      if (agentMessage.from == AgentRoleType.TOOL && agentMessage.type == AgentMessageType.TASK_STATUS) {
+        // If tool return status, skip
+        continue;
+      } else {
+        requestMessageList.add(_buildOpenAIMessage(agentMessage));
+      }
+    }
+
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
     try {
@@ -61,60 +71,6 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       parameter.schema,
       parameter.required
     );
-    // switch (parameter.schema.type) {
-    //   case DataType.BOOLEAN:
-    //     return OpenAIFunctionProperty.boolean(
-    //         name: name,
-    //         description: parameter.description,
-    //         isRequired: parameter.required);
-    //   case DataType.INTEGER:
-    //     return OpenAIFunctionProperty.integer(
-    //         name: name,
-    //         description: parameter.description,
-    //         isRequired: parameter.required);
-    //   case DataType.NUMBER:
-    //     return OpenAIFunctionProperty.number(
-    //         name: name,
-    //         description: parameter.description,
-    //         isRequired: parameter.required);
-    //   case DataType.STRING:
-    //     return OpenAIFunctionProperty.string(
-    //         name: name,
-    //         description: parameter.description,
-    //         isRequired: parameter.required,
-    //         enumValues: parameter.schema.enum_);
-    //   case DataType.ARRAY:
-    //     {
-    //       Parameter parameter0 = Parameter(name: name, schema: parameter.schema.items!);
-    //       OpenAIFunctionProperty openAIFunctionProperty =
-    //       _convertToOpenAIFunctionProperty(name, parameter0);
-    //       return OpenAIFunctionProperty.array(
-    //           name: name,
-    //           description: parameter.description,
-    //           isRequired: parameter.required,
-    //           items: openAIFunctionProperty
-    //       );
-    //     }
-    //   case DataType.OBJECT:
-    //     {
-    //       Map<String, Schema> properties = parameter.schema.properties!;
-    //       Map<String, OpenAIFunctionProperty> openAIFunctionProperties = {};
-    //       properties.forEach((String name, Schema schema0) {
-    //         OpenAIFunctionProperty openAIFunctionProperty =
-    //         _convertToOpenAIFunctionProperty(name, schema0);
-    //         openAIFunctionProperties[name] = openAIFunctionProperty;
-    //       });
-    //
-    //       return OpenAIFunctionProperty.object(
-    //           name: name,
-    //           description: parameter.description,
-    //           isRequired: parameter.required,
-    //           properties: openAIFunctionProperties.values);
-    //     }
-    //   default: {
-    //     return OpenAIFunctionProperty(name: "", typeMap: {});
-    //   }
-    // }
   }
 
   OpenAIFunctionProperty _toOpenAIFunctionProperty(String name, String? description, Schema schema, bool required) {
@@ -178,8 +134,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
   OpenAIChatCompletionChoiceMessageModel _buildOpenAIMessage(AgentMessage agentMessage) {
     //System Prompt
-    if (agentMessage.from == AgentRoleType.SYSTEM &&
-        agentMessage.type == AgentMessageType.TEXT) {
+    if (agentMessage.from == AgentRoleType.SYSTEM && agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.system,
           content: [
@@ -188,8 +143,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
 
     //LLM return text
-    if (agentMessage.from == AgentRoleType.LLM &&
-        agentMessage.type == AgentMessageType.TEXT) {
+    if (agentMessage.from == AgentRoleType.LLM && agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [
@@ -198,8 +152,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
 
     //LLM return image
-    if (agentMessage.from == AgentRoleType.LLM &&
-        agentMessage.type == AgentMessageType.IMAGE_URL) {
+    if (agentMessage.from == AgentRoleType.LLM && agentMessage.type == AgentMessageType.IMAGE_URL) {
       return OpenAIChatCompletionChoiceMessageModel(
           role: OpenAIChatMessageRole.assistant,
           content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)
@@ -207,8 +160,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
 
     //LLM return function calling
-    if (agentMessage.from == AgentRoleType.LLM &&
-        agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
+    if (agentMessage.from == AgentRoleType.LLM && agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
       List<FunctionCall> functionCallList =
       agentMessage.message as List<FunctionCall>;
       List<OpenAIResponseToolCall> openAIResponseToolCallList =
@@ -223,8 +175,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
 
     //AGENT return TOOL result
-    if (agentMessage.from == AgentRoleType.TOOL &&
-        agentMessage.type == AgentMessageType.TOOL_RETURN) {
+    if (agentMessage.from == AgentRoleType.TOOL && agentMessage.type == AgentMessageType.TOOL_RETURN) {
       ToolReturn toolReturn = agentMessage.message as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.tool,
@@ -234,21 +185,8 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       ).asRequestFunctionMessage(toolCallId: toolReturn.id);
     }
 
-    //AGENT return TOOL status
-    if (agentMessage.from == AgentRoleType.TOOL &&
-        agentMessage.type == AgentMessageType.TASK_STATUS) {
-      TaskStatus taskStatus = agentMessage.message as TaskStatus;
-      return OpenAIChatCompletionChoiceMessageModel(
-        role: OpenAIChatMessageRole.user,
-        content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(jsonEncode(jsonEncode(taskStatus.toJson())))
-        ],
-      );
-    }
-
     //AGENT forward USER messages
-    if (agentMessage.from == AgentRoleType.AGENT &&
-        agentMessage.type == AgentMessageType.CONTENT_LIST) {
+    if (agentMessage.from == AgentRoleType.AGENT && agentMessage.type == AgentMessageType.CONTENT_LIST) {
       List<LLMContent> contentList = agentMessage.message as List<LLMContent>;
 
       List<OpenAIChatCompletionChoiceMessageContentItemModel>
@@ -268,10 +206,10 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
     //Default, USER text message
     return OpenAIChatCompletionChoiceMessageModel(
-        role: OpenAIChatMessageRole.user,
-        content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
-        ]);
+      role: OpenAIChatMessageRole.user,
+      content: [
+        OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+      ]);
   }
 
   OpenAIResponseToolCall _toOpenAIResponseToolCall(FunctionCall functionCall) {

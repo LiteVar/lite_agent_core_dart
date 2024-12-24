@@ -13,7 +13,6 @@ import '../session_agent/dispatcher.dart';
 import '../text_agent/model.dart';
 import '../text_agent/text_agent_message_handler.dart';
 import '../tool_agent/model.dart';
-import '../../service/exception.dart';
 import 'tool_agent_message_handler.dart';
 
 class ToolAgent extends TextAgent {
@@ -189,8 +188,8 @@ class ToolAgent extends TextAgent {
         );
         Command command = Command(toAgent, toolMessage);
         dispatcherMap.dispatch(command);
-      } on TaskBreakException catch(e) {
-        /** When toolDriver.call throw TaskBreakException, it will break task.*/
+      } on ToolBreakException catch(e) {
+        /** When toolDriver.call throw ToolBreakException, it will break task.*/
         this.dispatcherMap.breakTask(agentMessage.taskId);
         throw e;
       } on StateError {

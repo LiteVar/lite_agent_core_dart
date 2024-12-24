@@ -18,9 +18,3 @@ Map<String, dynamic> _$AgentNameExceptionToJson(AgentNameException instance) =>
       'code': instance.code,
       'message': instance.message,
     };
-
-Map<String, dynamic> _$TaskBreakExceptionToJson(TaskBreakException instance) =>
-    <String, dynamic>{
-      'code': instance.code,
-      'message': instance.message,
-    };

@@ -90,14 +90,14 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
   @override
   Command? handle(AgentMessage agentMessage) {
     Reflection reflection = agentMessage.message as Reflection;
-    if(reflection.result.isPass || reflection.result.count == reflection.result.maxCount) {
+    if(reflection.isPass || reflection.count == reflection.maxCount) {
       AgentMessage agentUserMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
         from: TextRoleType.AGENT,
         to: TextRoleType.USER,
         type: TextMessageType.TEXT,
-        message: reflection.result.messageScore.message
+        message: reflection.messageScore.message
       );
       return Command(toUser, agentUserMessage); // If Reflection pass or maxCount, forward to USER.
     } else {

@@ -5,7 +5,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
-import 'listener.dart';
+import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.

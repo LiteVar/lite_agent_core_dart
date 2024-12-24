@@ -17,6 +17,7 @@ class ToolMessageType {
   static String CONTENT_LIST = TextMessageType.CONTENT_LIST; //List<Content>
   static String FUNCTION_CALL_LIST = AgentMessageType.FUNCTION_CALL_LIST; //List<FunctionCall>
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn
+  static String TASK_STATUS = TextMessageType.TASK_STATUS; //TaskStatus
 }
 
 class ToolsStatus {

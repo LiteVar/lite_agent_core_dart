@@ -27,7 +27,6 @@ class ToolAgent extends TextAgent {
     required super.agentSession,
     String? super.systemPrompt,
     super.timeoutSeconds = 3600,
-    super.textReflectPromptList,
     List<ReflectPrompt> toolReflectPromptList = const[]
   }) {
     toolReflectPromptList.forEach((reflectPrompt){
@@ -147,14 +146,15 @@ class ToolAgent extends TextAgent {
       List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
       List<Map<String, dynamic>> functionCallJsonList = functionCallList.map((functionCall)=>functionCall.toJson()).toList();
       Reflection reflection = await toolReflectionManager.reflect(agentMessage.type, jsonEncode(functionCallJsonList));
-      reflection.completions = currAgentReflectorCompletions;
+      // reflection.completions = currAgentReflectorCompletions;
       AgentMessage reflectionMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
           from: TextRoleType.REFLECTION,
           to: TextRoleType.AGENT,
           type: TextMessageType.REFLECTION,
-          message: reflection
+          message: reflection,
+          completions: currAgentReflectorCompletions
       );
       Command reflectionCommand = Command(toAgent, reflectionMessage);
       dispatcherMap.dispatch(reflectionCommand);
@@ -230,8 +230,8 @@ class ToolAgent extends TextAgent {
           taskId: agentMessage.taskId,
           from: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
-          type: ToolMessageType.TEXT,
-          message: ToolsStatus.START
+          type: ToolMessageType.TASK_STATUS,
+          message: TaskStatus(status:ToolsStatus.START)
         ));
     dispatcherMap.dispatch(clientCommand);
     requestTools(agentMessage);

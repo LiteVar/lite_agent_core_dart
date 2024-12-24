@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opentool_dart/opentool_dart.dart';
+import '../agents/llm/model.dart';
 import '../agents/model.dart';
 import '../agents/reflection/model.dart';
 import '../agents/session_agent/model.dart';
@@ -22,6 +23,8 @@ class SessionDto {
 
 @JsonSerializable()
 class SessionNameDto extends SessionDto {
+
+  @JsonKey(includeIfNull: false)
   String? name; // OpenAI: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
 
   SessionNameDto({required super.id, String? name}) {
@@ -53,8 +56,15 @@ class SimpleCapabilityDto {
 
 @JsonSerializable()
 class CapabilityDto extends SimpleCapabilityDto {
+  @JsonKey(includeIfNull: false)
   List<OpenSpecDto>? openSpecList;
+
+  @JsonKey(includeIfNull: false)
   List<SessionNameDto>? sessionList;
+
+  @JsonKey(includeIfNull: false)
+  List<ReflectPromptDto>? reflectPromptList;
+
   int timeoutSeconds;
 
   CapabilityDto({
@@ -62,6 +72,7 @@ class CapabilityDto extends SimpleCapabilityDto {
     required super.systemPrompt,
     this.openSpecList,
     this.sessionList,
+    this.reflectPromptList,
     this.timeoutSeconds = 3600
   });
 
@@ -80,10 +91,15 @@ class Protocol {
 @JsonSerializable()
 class OpenSpecDto {
   String openSpec;
+
+  @JsonKey(includeIfNull: false)
   ApiKeyDto? apiKey;
   String protocol;
 
-  OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol});
+  @JsonKey(includeIfNull: false)
+  String? openToolId; //When protocol is open tool, this is the tool id
+
+  OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol, this.openToolId});
 
   factory OpenSpecDto.fromJson(Map<String, dynamic> json) => _$OpenSpecDtoFromJson(json);
 
@@ -139,7 +155,10 @@ class AgentMessageDto {
   String to;
   String type;
   dynamic message;
+
+  @JsonKey(includeIfNull: false)
   CompletionsDto? completions; //When role is llm, this is current llm calling token usage
+
   DateTime createTime;
 
   AgentMessageDto({
@@ -158,18 +177,76 @@ class AgentMessageDto {
   Map<String, dynamic> toJson() => _$AgentMessageDtoToJson(this);
 
   factory AgentMessageDto.fromModel(AgentMessage agentMessage) {
+
+    dynamic message;
+
+    switch (agentMessage.type) {
+      case AgentMessageType.CONTENT_LIST: message = (agentMessage.message as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
+      case AgentMessageType.FUNCTION_CALL_LIST: message = (agentMessage.message as List<FunctionCall>).map((functionCall) => FunctionCallDto.fromModel(functionCall)).toList();break;
+      case AgentMessageType.TOOL_RETURN: message = ToolReturnDto.fromModel(agentMessage.message as ToolReturn);break;
+      case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.message as Reflection);break;
+      case AgentMessageType.TASK_STATUS: message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);break;
+      default: message = agentMessage.message;
+    }
+
+    // if(agentMessage.type == AgentMessageType.CONTENT_LIST) {
+    //   message = (agentMessage.message as List<Content>).map((content)=>ContentDto.fromModel(content)).toList();
+    // } else if(agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
+    //   message = (agentMessage.message as List<FunctionCall>).map((functionCall)=>FunctionCallDto.fromModel(functionCall)).toList();
+    // } else if(agentMessage.type == AgentMessageType.TOOL_RETURN) {
+    //   message = ToolReturnDto.fromModel(agentMessage.message as ToolReturn);
+    // } else if(agentMessage.type == AgentMessageType.REFLECTION) {
+    //   message = ReflectionDto.fromModel(agentMessage.message as Reflection);
+    // } else if(agentMessage.type == AgentMessageType.TASK_STATUS) {
+    //   message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);
+    // }
+
     return AgentMessageDto(
-        sessionId: agentMessage.sessionId,
-        taskId: agentMessage.taskId,
-        from: agentMessage.from,
-        to: agentMessage.to,
-        type: agentMessage.type,
-        message: agentMessage.message,
-        completions: agentMessage.completions == null
-            ? null
-            : CompletionsDto.fromModel(agentMessage.completions!),
-        createTime: agentMessage.createTime);
+      sessionId: agentMessage.sessionId,
+      taskId: agentMessage.taskId,
+      from: agentMessage.from,
+      to: agentMessage.to,
+      type: agentMessage.type,
+      message: message,
+      completions: agentMessage.completions == null ? null : CompletionsDto.fromModel(agentMessage.completions!),
+      createTime: agentMessage.createTime);
   }
+}
+
+@JsonSerializable()
+class FunctionCallDto {
+  late String id;
+  late String name;
+  late Map<String, dynamic> parameters;
+
+  FunctionCallDto({required this.id, required this.name, required this.parameters});
+
+  factory FunctionCallDto.fromModel(FunctionCall functionCall) => FunctionCallDto(
+    id: functionCall.id,
+    name: functionCall.name,
+    parameters: functionCall.parameters
+  );
+
+  factory FunctionCallDto.fromJson(Map<String, dynamic> json) => _$FunctionCallDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FunctionCallDtoToJson(this);
+}
+
+@JsonSerializable()
+class ToolReturnDto {
+  late String id;
+  late Map<String, dynamic> result;
+
+  ToolReturnDto({required this.id, required this.result});
+
+  factory ToolReturnDto.fromModel(ToolReturn toolReturn) => ToolReturnDto(
+      id: toolReturn.id,
+      result: toolReturn.result
+  );
+
+  factory ToolReturnDto.fromJson(Map<String, dynamic> json) => _$ToolReturnDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ToolReturnDtoToJson(this);
 }
 
 @JsonSerializable()
@@ -232,6 +309,7 @@ class ApiKeyDto {
 
 @JsonSerializable()
 class UserTaskDto {
+  @JsonKey(includeIfNull: false)
   String? taskId;
   List<UserMessageDto> contentList;
 
@@ -264,6 +342,8 @@ class UserMessageDto {
 @JsonSerializable()
 class SessionTaskDto {
   String id;
+
+  @JsonKey(includeIfNull: false)
   String? taskId;
 
   SessionTaskDto({required this.id, this.taskId});
@@ -274,16 +354,36 @@ class SessionTaskDto {
 }
 
 @JsonSerializable()
+class ReflectScoreDto {
+  int score;
+
+  @JsonKey(includeIfNull: false)
+  String? description;
+  ReflectScoreDto({required this.score, this.description});
+
+  factory ReflectScoreDto.fromModel(ReflectScore reflectScore) => ReflectScoreDto(
+      score: reflectScore.score,
+      description: reflectScore.description
+  );
+
+  factory ReflectScoreDto.fromJson(Map<String, dynamic> json) => _$ReflectScoreDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReflectScoreDtoToJson(this);
+}
+
+@JsonSerializable()
 class MessageScoreDto {
   List<Content> contentList;
+  String messageType; //Follow AgentMessage.type
   String message;
-  List<int> scoreList;
-  MessageScoreDto({required this.contentList, required this.message, required this.scoreList});
+  List<ReflectScoreDto> reflectScoreList;
+  MessageScoreDto({required this.contentList, required this.messageType, required this.message, required this.reflectScoreList});
 
   factory MessageScoreDto.fromModel(MessageScore messageScore) => MessageScoreDto(
     contentList: messageScore.contentList,
+    messageType: messageScore.messageType,
     message: messageScore.message,
-    scoreList: messageScore.scoreList
+    reflectScoreList: messageScore.reflectScoreList.map((reflectScore)=>ReflectScoreDto(score: reflectScore.score, description: reflectScore.description)).toList()
   );
 
   factory MessageScoreDto.fromJson(Map<String, dynamic> json) => _$MessageScoreDtoFromJson(json);
@@ -292,14 +392,14 @@ class MessageScoreDto {
 }
 
 @JsonSerializable()
-class ReflectResultDto {
+class ReflectionDto {
   final bool isPass;
   final MessageScoreDto messageScore;
   final int passScore;
   final int count;
   final int maxCount;
 
-  ReflectResultDto({
+  ReflectionDto({
     required this.isPass,
     required this.messageScore,
     required this.passScore,
@@ -307,7 +407,7 @@ class ReflectResultDto {
     required this.maxCount,
   });
 
-  factory ReflectResultDto.fromModel(ReflectResult result) => ReflectResultDto(
+  factory ReflectionDto.fromModel(Reflection result) => ReflectionDto(
     isPass: result.isPass,
     messageScore: MessageScoreDto.fromModel(result.messageScore),
     passScore: result.passScore,
@@ -315,24 +415,55 @@ class ReflectResultDto {
     maxCount: result.maxCount
   );
 
-  factory ReflectResultDto.fromJson(Map<String, dynamic> json) => _$ReflectResultDtoFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ReflectResultDtoToJson(this);
-}
-
-@JsonSerializable()
-class ReflectionDto {
-  final ReflectResultDto result;
-  CompletionsDto? completions;
-
-  ReflectionDto({required this.result, this.completions});
-
-  factory ReflectionDto.fromModel(Reflection reflection) => ReflectionDto(
-    result: ReflectResultDto.fromModel(reflection.result),
-    completions: reflection.completions==null? null : CompletionsDto.fromModel(reflection.completions!)
-  );
-
   factory ReflectionDto.fromJson(Map<String, dynamic> json) => _$ReflectionDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReflectionDtoToJson(this);
+}
+
+@JsonSerializable()
+class TaskStatusDto {
+  String status;
+
+  @JsonKey(includeIfNull: false)
+  Map<String, dynamic>? description;
+
+  TaskStatusDto({required this.status, this.description});
+
+  factory TaskStatusDto.fromModel(TaskStatus taskStatus) => TaskStatusDto(
+    status: taskStatus.status,
+    description: taskStatus.description
+  );
+
+  factory TaskStatusDto.fromJson(Map<String, dynamic> json) => _$TaskStatusDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TaskStatusDtoToJson(this);
+}
+
+@JsonSerializable()
+class ContentDto {
+  String type;
+  String message;
+
+  ContentDto({required this.type, required this.message});
+
+  factory ContentDto.fromModel(Content content) => ContentDto(
+    type: content.type,
+    message: content.message
+  );
+
+  factory ContentDto.fromJson(Map<String, dynamic> json) => _$ContentDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ContentDtoToJson(this);
+}
+
+@JsonSerializable()
+class ReflectPromptDto {
+  LLMConfigDto llmConfig;
+  String prompt;
+
+  ReflectPromptDto({required this.llmConfig, required this.prompt});
+
+  factory ReflectPromptDto.fromJson(Map<String, dynamic> json) => _$ReflectPromptDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReflectPromptDtoToJson(this);
 }

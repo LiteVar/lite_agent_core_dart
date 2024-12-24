@@ -23,18 +23,16 @@ class ReflectorManager {
   }
 
   Future<Reflection> reflect(String messageType, String message) async {
-    List<int> scoreList = [];
+    List<ReflectScore> reflectScoreList = [];
     for(Reflector reflector in reflectorList) {
-      int currScore = await reflector.reflect(userContentList, message);
-      scoreList.add(currScore);
-      if(currScore < passScore) {
-        MessageScore messageScore = MessageScore(contentList: userContentList, messageType: messageType, message: message, scoreList: scoreList);
-        ReflectResult result = ReflectResult(isPass: false, messageScore: messageScore, passScore: passScore, count: currCount, maxCount: maxRetryCount);
-        return Reflection(result: result);
+      ReflectScore currResult = await reflector.reflect(userContentList, message);
+      reflectScoreList.add(currResult);
+      if(currResult.score < passScore) {
+        MessageScore messageScore = MessageScore(contentList: userContentList, messageType: messageType, message: message, reflectScoreList: reflectScoreList);
+        return Reflection(isPass: false, messageScore: messageScore, passScore: passScore, count: currCount, maxCount: maxRetryCount);
       }
     }
-    MessageScore messageScore = MessageScore(contentList: userContentList, messageType: messageType, message: message, scoreList: scoreList);
-    ReflectResult result = ReflectResult(isPass: true, messageScore: messageScore, passScore: passScore, count: currCount, maxCount: maxRetryCount);
-    return Reflection(result: result);
+    MessageScore messageScore = MessageScore(contentList: userContentList, messageType: messageType, message: message, reflectScoreList: reflectScoreList);
+    return Reflection(isPass: true, messageScore: messageScore, passScore: passScore, count: currCount, maxCount: maxRetryCount);
   }
 }

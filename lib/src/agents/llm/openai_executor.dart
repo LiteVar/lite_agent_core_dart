@@ -285,8 +285,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
         ?.map((OpenAIResponseToolCall openAIResponseToolCall) {
       String id = openAIResponseToolCall.id!;
       String name = openAIResponseToolCall.function.name!;
-      Map<String, dynamic> parameters =
-      jsonDecode(openAIResponseToolCall.function.arguments);
+      Map<String, dynamic> parameters = jsonDecode(openAIResponseToolCall.function.arguments);
       return FunctionCall(id: id, name: name, parameters: parameters);
     }).toList();
 

@@ -31,7 +31,22 @@ class AgentMessage extends Message {
 }
 
 class TaskStatusType {
-  static const String START = "[TASK_START]";
-  static const String STOP = "[TASK_STOP]";
-  static const String DONE = "[TASK_DONE]";
+  static const String START = "start";
+  static const String STOP = "stop";
+  static const String DONE = "done";
+  static const String EXCEPTION = "exception";
+}
+
+class TaskStatus {
+  String status;  // Follow TaskStatusType
+  Map<String, dynamic>? description;
+
+  TaskStatus({required this.status, this.description});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      if(description != null)'description': description
+    };
+  }
 }

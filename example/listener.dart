@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
-import 'package:opentool_dart/opentool_dart.dart';
 
 void listen(String sessionId, AgentMessageDto agentMessageDto) {
   String system = "🖥SYSTEM";
@@ -17,19 +16,21 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   if (agentMessageDto.type == ToolMessageType.IMAGE_URL)
     message = agentMessageDto.message as String;
   if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL_LIST) {
-    List<FunctionCall> functionCallList = agentMessageDto.message as List<FunctionCall>;
+    List<FunctionCallDto> functionCallList = agentMessageDto.message as List<FunctionCallDto>;
     message = jsonEncode(functionCallList);
   }
   if (agentMessageDto.type == ToolMessageType.TOOL_RETURN) {
-    message = jsonEncode(agentMessageDto.message as ToolReturn);
+    message = jsonEncode(agentMessageDto.message as ToolReturnDto);
   };
   if (agentMessageDto.type == AgentMessageType.CONTENT_LIST) {
-    List<Content> contentList = agentMessageDto.message as List<Content>;
+    List<ContentDto> contentList = agentMessageDto.message as List<ContentDto>;
     message = jsonEncode(contentList);
   }
+  if (agentMessageDto.type == AgentMessageType.TASK_STATUS) {
+    message = jsonEncode(agentMessageDto.message as TaskStatusDto);
+  }
   if (agentMessageDto.type == TextMessageType.REFLECTION) {
-    ReflectionDto reflectionDto = ReflectionDto.fromModel(agentMessageDto.message as Reflection);
-    message = jsonEncode(reflectionDto);
+    message = jsonEncode(agentMessageDto.message as ReflectionDto);
   }
 
   String from = "";

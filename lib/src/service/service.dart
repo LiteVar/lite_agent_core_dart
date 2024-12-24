@@ -5,6 +5,7 @@ import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import '../agents/model.dart';
+import '../agents/reflection/model.dart';
 import '../agents/session_agent/session.dart';
 import '../agents/session_agent/model.dart';
 import '../agents/session_agent/session_agent.dart';
@@ -23,6 +24,7 @@ class AgentService {
   Map<String, SessionAgent> sessionAgents = {};
   Map<String, SimpleAgent> simpleAgents = {};
   List<ToolDriver> globalDriverList = [];
+  Map<String, OpenToolDriver> opentoolDriverMap = {};
 
   AgentService({List<ToolDriver>? globalToolDriverList = null}) {
     if(globalToolDriverList != null) globalDriverList.addAll(globalToolDriverList);
@@ -59,15 +61,18 @@ class AgentService {
     return AgentMessageDto.fromModel(agentMessage);
   }
 
-  Future<SessionDto> initChat(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {List<ToolDriver>? customToolDriverList}) async {
+  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList}) async {
     String sessionId = Uuid().v4();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
+    List<ReflectPrompt>? reflectPromptList = capabilityDto.reflectPromptList?.map((reflectPromptDto) => ReflectPrompt(llmConfig: reflectPromptDto.llmConfig.toModel(), prompt: reflectPromptDto.prompt)).toList();
+
+    if(opentoolDriverMap != null) opentoolDriverMap.forEach((key, value) { this.opentoolDriverMap[key] = value;});
 
     List<ToolDriver> agentToolDriverList = [];
     agentToolDriverList.addAll(globalDriverList);
-    agentToolDriverList.addAll(await buildToolDriverList(capabilityDto.openSpecList));
-    agentToolDriverList.addAll(await buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
+    agentToolDriverList.addAll(await _buildToolDriverList(capabilityDto.openSpecList));
+    agentToolDriverList.addAll(await _buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
     if(customToolDriverList != null) agentToolDriverList.addAll(customToolDriverList);
 
     if(agentToolDriverList.isEmpty) {
@@ -76,16 +81,18 @@ class AgentService {
         llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
         systemPrompt: systemPrompt,
+        textReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds
       );
       sessionAgents[sessionId] = textAgent;
     } else {
       TextAgent toolAgent = ToolAgent(
         sessionId: sessionId,
-          llmConfig: llmConfig,
+        llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
         toolDriverList: agentToolDriverList,
         systemPrompt: systemPrompt,
+        toolReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds
       );
       sessionAgents[sessionId] = toolAgent;
@@ -96,7 +103,7 @@ class AgentService {
     return sessionDto;
   }
 
-  Future<void> startChat(String sessionId, UserTaskDto userTaskDto) async {
+  Future<void> startSession(String sessionId, UserTaskDto userTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
     if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
@@ -105,7 +112,7 @@ class AgentService {
     sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
   }
 
-  Future<List<AgentMessageDto>?> getHistory(String sessionId) async {
+  Future<List<AgentMessageDto>?> getCacheHistory(String sessionId) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
     if (sessionAgent == null) return null;
     return sessionAgent
@@ -117,13 +124,13 @@ class AgentService {
     }).toList();
   }
 
-  Future<void> stopChat(SessionTaskDto sessionTaskDto) async {
+  Future<void> stopSession(SessionTaskDto sessionTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.id];
     if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionTaskDto.id);
     sessionAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
-  Future<void> clearChat(String sessionId) async {
+  Future<void> clearSession(String sessionId) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
     if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
     sessionAgent.clear();
@@ -148,7 +155,7 @@ class AgentService {
     return agentSession;
   }
 
-  Future<List<ToolDriver>> buildToolDriverList(List<OpenSpecDto>? openSpecDtoList) async {
+  Future<List<ToolDriver>> _buildToolDriverList(List<OpenSpecDto>? openSpecDtoList) async {
     if(openSpecDtoList == null) return [];
     List<ToolDriver> toolDriverList = [];
     for (OpenSpecDto openSpecDto in openSpecDtoList) {
@@ -158,22 +165,28 @@ class AgentService {
         if (openSpecDto.apiKey != null) {
           authorization = convertToAuthorization(openSpecDto.apiKey!.type, openSpecDto.apiKey!.apiKey);
         }
-        ToolDriver openAPIRunner = OpenAPIDriver(openAPI, authorization: authorization);
-        toolDriverList.add(openAPIRunner);
+        ToolDriver openAPIDriver = OpenAPIDriver(openAPI, authorization: authorization);
+        toolDriverList.add(openAPIDriver);
       } else if (openSpecDto.protocol == Protocol.OPENMODBUS) {
         OpenModbus openModbus = await OpenModbusLoader().load(openSpecDto.openSpec);
-        ToolDriver openModbusRunner = OpenModbusDriver(openModbus);
-        toolDriverList.add(openModbusRunner);
+        ToolDriver openModbusDriver = OpenModbusDriver(openModbus);
+        toolDriverList.add(openModbusDriver);
       } else if (openSpecDto.protocol == Protocol.JSONRPCHTTP) {
         OpenRPC openRPC = await OpenRPCLoader().load(openSpecDto.openSpec);
-        ToolDriver jsonrpcHttpRunner = JsonRPCDriver(openRPC);
-        toolDriverList.add(jsonrpcHttpRunner);
+        ToolDriver jsonrpcHttpDriver = JsonRPCDriver(openRPC);
+        toolDriverList.add(jsonrpcHttpDriver);
+      }else if (openSpecDto.protocol == Protocol.OPENTOOL) {
+        OpenToolDriver? opentoolDriver = await opentoolDriverMap[openSpecDto.openToolId];
+        if(opentoolDriver != null) {
+          OpenTool openTool = await OpenToolLoader().load(openSpecDto.openSpec);
+          toolDriverList.add(opentoolDriver.bind(openTool));
+        }
       }
     }
     return toolDriverList;
   }
 
-  Future<List<ToolDriver>> buildAgentDriverList(List<SessionNameDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) async {
+  Future<List<ToolDriver>> _buildAgentDriverList(List<SessionNameDto>? sessionList, String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) async {
     if( sessionList == null || sessionList.isEmpty ) return [];
     List<NamedSimpleAgent> namedSimpleAgentList = [];
     List<NamedSessionAgent> namedSessionAgentList = [];

@@ -15,7 +15,7 @@ dependencies:
   dart_openai: ^5.1.0
 
   # OpenSpec support
-  opentool_dart: ^0.2.2
+  opentool_dart: ^0.2.3
   openapi_dart: ^0.1.3
   openrpc_dart: ^0.1.3
   openmodbus_dart: ^0.2.0

@@ -23,10 +23,26 @@ class ReflectorAgent {
     this.taskId = taskId??Uuid().v4();
   }
 
-  Future<int> evaluate(List<Content> contentList, String message, void Function(Completions? completions) subscribeCompletions) async {
+  Future<ReflectScore> evaluate(List<Content> contentList, String message, void Function(Completions? completions) subscribeCompletions) async {
 
     String userMessage = jsonEncode(contentList.map((content)=>content.toJson()).toList());
-    String text = "# User Request:\n\n```json\n$userMessage\n```\n\n# LLM Response:\n\n```text\n$message\n```";
+
+    String messageToReflect = message;
+
+    try {
+      // if FunctionCallList, remove "id" field from each FunctionCall for reflect
+      List<dynamic> jsonList = jsonDecode(message);
+      List<Map<String, dynamic>> jsonWithoutIdList = jsonList.map((dyn){
+        Map<String, dynamic> json = dyn as Map<String, dynamic>;
+        if(json["id"] != null) json.remove("id");
+        return json;
+      }).toList();
+      messageToReflect = jsonEncode(jsonWithoutIdList);
+    } catch(e) {
+      //Do nothing
+    }
+
+    String text = "# User Request:\n\n```json\n$userMessage\n```\n\n# LLM Response:\n\n```text\n$messageToReflect\n```";
 
     Content content = Content(type: ContentType.TEXT, message: text);
 
@@ -65,13 +81,13 @@ class ReflectorAgent {
       List<FunctionCall> functionCallList = llmMessage.message as List<FunctionCall>;
       FunctionCall functionCall = functionCallList.first;
       try {
-        ReflectionResultCalling reflectionResultCalling = ReflectionResultCalling.fromJson(functionCall.parameters);
-        return reflectionResultCalling.score;
+        ReflectScore reflectScore = ReflectScore.fromJson(functionCall.parameters);
+        return reflectScore;
       } catch(e) {
-        return 0;
+        return ReflectScore(score: 0, description: e.toString());
       }
     } else {
-      return 0;
+      return ReflectScore(score: 0, description: "ReflectorAgent reply message type is NOT functionCallList");
     }
 
   }

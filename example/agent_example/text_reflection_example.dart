@@ -3,7 +3,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:uuid/uuid.dart';
 
-import 'listener.dart';
+import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Add LLM baseUrl and apiKey to `.env` file

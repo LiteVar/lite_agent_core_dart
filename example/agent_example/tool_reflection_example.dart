@@ -5,8 +5,8 @@ import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
-import 'custom_driver/mock_driver.dart';
-import 'listener.dart';
+import '../custom_driver/mock_driver.dart';
+import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
@@ -44,13 +44,13 @@ Future<List<ToolDriver>> _buildToolDriverList() async {
     "mock-tool.json"
   ];
 
-  List<ToolDriver> toolRunnerList = [];
+  List<ToolDriver> toolDriverList = [];
   for (String fileName in fileNameList) {
     OpenTool openTool = await OpenToolLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
-    ToolDriver toolRunner = MockDriver(openTool);
-    toolRunnerList.add(toolRunner);
+    ToolDriver toolDriver = MockDriver().bind(openTool);
+    toolDriverList.add(toolDriver);
   }
-  return toolRunnerList;
+  return toolDriverList;
 }
 
 AgentSession _buildSession(String sessionId) {

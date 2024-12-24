@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'custom_driver/mock_driver.dart';
-import 'listener.dart';
+import 'package:uuid/uuid.dart';
+import '../custom_driver/mock_driver.dart';
+import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.
@@ -24,24 +25,30 @@ Future<void> main() async {
 
   List<ToolDriver> customToolDriverList = await _buildCustomToolDriverList();
 
-  SessionDto sessionDto = await agentService.initChat(capabilityDto, listen, customToolDriverList: customToolDriverList);
+  SessionDto sessionDto = await agentService.initSession(
+    capabilityDto,
+    listen,
+    /// If needed, add customToolDriverList here, for preset tools
+    customToolDriverList: customToolDriverList
+  );
 
   print("[SessionDto] " + sessionDto.toJson().toString());
 
-  UserTaskDto userTaskDto = UserTaskDto(taskId: "0", contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
-  await agentService.startChat(sessionDto.id, userTaskDto);
+  String taskId = Uuid().v4();
+  UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  await agentService.startSession(sessionDto.id, userTaskDto);
 
   print("[prompt] " + prompt);
 
   await sleep(10);
 
   SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
-  await agentService.stopChat(sessionTaskDto);
+  await agentService.stopSession(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);
 
-  await agentService.clearChat(sessionDto.id);
+  await agentService.clearSession(sessionDto.id);
   print("[clearSession] ");
 }
 
@@ -110,7 +117,7 @@ Future<List<ToolDriver>> _buildCustomToolDriverList() async {
     String jsonPath = "$folder${Platform.pathSeparator}$fileName";
 
     OpenTool openTool = await OpenToolLoader().loadFromFile(jsonPath);
-    ToolDriver toolDriver = MockDriver(openTool);
+    ToolDriver toolDriver = MockDriver().bind(openTool);
 
     toolDriverList.add(toolDriver);
   }

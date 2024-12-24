@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../../llm/model.dart';
 import '../llm/exception.dart';
 import '../llm/openai_executor.dart';
@@ -51,14 +50,15 @@ class TextAgent extends SessionAgent {
 
   Future<void> toReflection(AgentMessage agentMessage) async {
     Reflection reflection = await reflectionManager.reflect(agentMessage.type, agentMessage.message as String);
-    reflection.completions = currAgentReflectorCompletions;
+    // reflection.completions = currAgentReflectorCompletions;
     AgentMessage reflectionMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
         from: TextRoleType.REFLECTION,
         to: TextRoleType.AGENT,
         type: TextMessageType.REFLECTION,
-        message: reflection
+        message: reflection,
+        completions: currAgentReflectorCompletions
     );
     Command reflectionCommand = Command(toAgent, reflectionMessage);
     dispatcherMap.dispatch(reflectionCommand);
@@ -159,12 +159,12 @@ class TextAgent extends SessionAgent {
   Future<void> toUser(AgentMessage sessionMessage) async {
     agentSession.addListenAgentMessage(sessionMessage);
     AgentMessage clientMessage = AgentMessage(
-        sessionId: sessionMessage.sessionId,
-        taskId: sessionMessage.taskId,
-        from: TextRoleType.AGENT,
-        to: TextRoleType.CLIENT,
-        type: TextMessageType.TEXT,
-        message: TaskStatusType.DONE
+      sessionId: sessionMessage.sessionId,
+      taskId: sessionMessage.taskId,
+      from: TextRoleType.AGENT,
+      to: TextRoleType.CLIENT,
+      type: TextMessageType.TASK_STATUS,
+      message: TaskStatus(status: TaskStatusType.DONE)
     );
     Command clientCommand = Command(toClient,clientMessage);
     dispatcherMap.dispatch(clientCommand);
@@ -210,8 +210,8 @@ class TextAgent extends SessionAgent {
         taskId: taskId,
         from: TextRoleType.AGENT,
         to: TextRoleType.CLIENT,
-        type: TextMessageType.TEXT,
-        message: TaskStatusType.STOP + jsonEncode(exceptionMessage.toJson()));
+        type: TextMessageType.TASK_STATUS,
+        message: TaskStatus(status:TaskStatusType.STOP, description: exceptionMessage.toJson()));
     Command exceptionCommand = Command(toClient, agentMessage);
     dispatcherMap.stop(agentMessage.taskId, exceptionCommand);
   }

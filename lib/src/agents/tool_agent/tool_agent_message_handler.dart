@@ -79,17 +79,17 @@ class ToolMessageHandler extends AgentMessageHandler {
       // nextCommand = Command(toLLM, agentLLMMessage);
       // Only push to listener, NOT forward to LLM until ToolsStatus.DONE
       if(onToolReturn != null ) onToolReturn!(agentLLMMessage);
-    } else if (agentMessage.type == ToolMessageType.TEXT) {
+    } else if (agentMessage.type == ToolMessageType.TASK_STATUS) {
       // If TOOL return DONE status, forward to LLM
-      String toolAgentMessageText = agentMessage.message as String;
-      if (toolAgentMessageText == ToolsStatus.DONE) {
+      TaskStatus taskStatus = agentMessage.message as TaskStatus;
+      if (taskStatus.status == ToolsStatus.DONE) {
         AgentMessage agentToolMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
           from: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
-          type: ToolMessageType.TEXT,
-          message: agentMessage.message
+          type: ToolMessageType.TASK_STATUS,
+          message: taskStatus
         );
         return Command(toLLM, agentToolMessage);  //
       }
@@ -111,8 +111,8 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
   @override
   Command? handle(AgentMessage agentMessage) {
     Reflection reflection = agentMessage.message as Reflection;
-    if(reflection.result.isPass || reflection.result.count == reflection.result.maxCount) {
-      List<dynamic> jsonList = jsonDecode(reflection.result.messageScore.message);
+    if(reflection.isPass || reflection.count == reflection.maxCount) {
+      List<dynamic> jsonList = jsonDecode(reflection.messageScore.message);
       List<FunctionCall> functionCallList = jsonList.map((json)=>FunctionCall.fromJson(json)).toList();
       AgentMessage agentUserMessage = AgentMessage(
           sessionId: agentMessage.sessionId,

@@ -27,15 +27,15 @@ abstract class SessionAgent {
     dispatcherMap.create(taskId);
 
     Command clientCommand = Command(
-        toClient,
-        AgentMessage(
-          sessionId: sessionId,
-          taskId: taskId,
-          from: SessionRoleType.AGENT,
-          to: SessionRoleType.CLIENT,
-          type: SessionMessageType.TEXT,
-          message: TaskStatusType.START
-        ));
+      toClient,
+      AgentMessage(
+        sessionId: sessionId,
+        taskId: taskId,
+        from: SessionRoleType.AGENT,
+        to: SessionRoleType.CLIENT,
+        type: SessionMessageType.TASK_STATUS,
+        message: TaskStatus(status: TaskStatusType.START)
+      ));
     dispatcherMap.dispatch(clientCommand);
 
     AgentMessage contentMessage = AgentMessage(
@@ -84,8 +84,8 @@ abstract class SessionAgent {
         sessionId: sessionId,
         from: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
-        type: SessionMessageType.TEXT,
-        message: TaskStatusType.STOP
+        type: SessionMessageType.TASK_STATUS,
+        message: TaskStatus(status: TaskStatusType.STOP)
       );
       dispatcherMap.stopAll(toClient, stopMessage);
     } else {
@@ -101,8 +101,8 @@ abstract class SessionAgent {
           taskId: taskId,
           from: SessionRoleType.AGENT,
           to: SessionRoleType.CLIENT,
-          type: SessionMessageType.TEXT,
-          message: TaskStatusType.STOP
+          type: SessionMessageType.TASK_STATUS,
+          message: TaskStatus(status: TaskStatusType.STOP)
         ));
     dispatcherMap.stop(taskId, clientCommand);
     timeout.start(clear);

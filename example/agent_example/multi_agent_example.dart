@@ -3,8 +3,8 @@ import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
-import 'custom_driver/mock_driver.dart';
-import 'listener.dart';
+import '../custom_driver/mock_driver.dart';
+import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenTool Driver, according to `/example/custom_driver`, which is callable.
@@ -25,20 +25,20 @@ Future<void> main() async {
     sessionList: [SessionNameDto(id: sessionDto1.id, name: ""), SessionNameDto(id: sessionDto2.id)]
   );
 
-  SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);
+  SessionDto sessionDto = await agentService.initSession(capabilityDto, listen);
 
   UserTaskDto userTaskDto = UserTaskDto(contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
-  await agentService.startChat(sessionDto.id, userTaskDto);
+  await agentService.startSession(sessionDto.id, userTaskDto);
 
   await sleep(20);
 
   SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
-  await agentService.stopChat(sessionTaskDto);
+  await agentService.stopSession(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);
 
-  await agentService.clearChat(sessionDto.id);
+  await agentService.clearSession(sessionDto.id);
   print("[clearSession] ");
 }
 
@@ -60,7 +60,7 @@ Future<SessionDto> _buildTextAgent() async {
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt);
   void Function(String sessionId, AgentMessageDto agentMessageDto) listen1 = (String sessionId, AgentMessageDto agentMessageDto){};
-  return await agentService.initChat(capabilityDto, listen1);
+  return await agentService.initSession(capabilityDto, listen1);
 }
 
 Future<SessionDto> _buildToolAgent() async {
@@ -70,7 +70,7 @@ Future<SessionDto> _buildToolAgent() async {
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt);
   void Function(String sessionId, AgentMessageDto agentMessageDto) listen2 = (String sessionId, AgentMessageDto agentMessageDto){};
-  return await agentService.initChat(capabilityDto, listen2, customToolDriverList: await _buildCustomDriverList());
+  return await agentService.initSession(capabilityDto, listen2, customToolDriverList: await _buildCustomDriverList());
 }
 
 Future<void> sleep(int seconds) async {
@@ -90,7 +90,7 @@ Future<List<ToolDriver>> _buildCustomDriverList() async {
   for(String fileName in fileNameList) {
     String jsonPath = "$folder${Platform.pathSeparator}$fileName";
     OpenTool openTool = await OpenToolLoader().loadFromFile(jsonPath);
-    MockDriver mockDriver = MockDriver(openTool);
+    OpenToolDriver mockDriver = MockDriver().bind(openTool);
     toolDriverList.add(mockDriver);
   }
   return toolDriverList;

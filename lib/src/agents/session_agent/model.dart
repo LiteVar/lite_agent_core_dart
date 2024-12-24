@@ -4,6 +4,7 @@ class SessionMessageType {
   static String TEXT = AgentMessageType.TEXT; //String
   static String IMAGE_URL = AgentMessageType.IMAGE_URL; //String
   static String CONTENT_LIST = AgentMessageType.CONTENT_LIST; //List<Content>
+  static String TASK_STATUS = AgentMessageType.TASK_STATUS; //TaskStatus
 }
 
 class SessionRoleType {

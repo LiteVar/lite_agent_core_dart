@@ -75,6 +75,8 @@ class AgentService {
     agentToolDriverList.addAll(await _buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
     if(customToolDriverList != null) agentToolDriverList.addAll(customToolDriverList);
 
+    // if(requestConflictStrategy != null) this.requestConflictStrategy = requestConflictStrategy;
+
     if(agentToolDriverList.isEmpty) {
       TextAgent textAgent = TextAgent(
         sessionId: sessionId,
@@ -82,7 +84,8 @@ class AgentService {
         agentSession: _buildSession(sessionId, listen),
         systemPrompt: systemPrompt,
         textReflectPromptList: reflectPromptList??[],
-        timeoutSeconds: capabilityDto.timeoutSeconds
+        timeoutSeconds: capabilityDto.timeoutSeconds,
+        pipelineStrategy: capabilityDto.pipelineStrategy
       );
       sessionAgents[sessionId] = textAgent;
     } else {
@@ -93,7 +96,8 @@ class AgentService {
         toolDriverList: agentToolDriverList,
         systemPrompt: systemPrompt,
         toolReflectPromptList: reflectPromptList??[],
-        timeoutSeconds: capabilityDto.timeoutSeconds
+        timeoutSeconds: capabilityDto.timeoutSeconds,
+        pipelineStrategy: capabilityDto.pipelineStrategy
       );
       sessionAgents[sessionId] = toolAgent;
     }

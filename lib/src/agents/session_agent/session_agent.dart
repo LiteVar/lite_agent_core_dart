@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:uuid/uuid.dart';
 import '../model.dart';
+import '../pipeline/model.dart';
+import '../pipeline/pipeline.dart';
 import 'dispatcher.dart';
+import 'exception.dart';
 import 'model.dart';
 import 'session.dart';
 import 'timeout.dart';
@@ -12,25 +15,39 @@ abstract class SessionAgent {
   AgentSession agentSession;
   DispatcherMap dispatcherMap = DispatcherMap();
   late Timeout timeout;
+  Pipeline<ContentsTask> pipeline;
 
   SessionAgent({
     required this.sessionId,
-    required AgentSession agentSession,
-    String? systemPrompt,
+    required this.agentSession,
+    this.systemPrompt,
+    String pipelineStrategy = PipelineStrategyType.PARALLEL,
     timeoutSeconds = 600
-  }) :  agentSession = agentSession,
-        systemPrompt = systemPrompt,
+  }) :  pipeline = Pipeline(pipelineStrategy),
         timeout = Timeout(timeoutSeconds);
 
   void userToAgent({required List<Content> contentList, String? taskId}) {
+
+    pipeline.setProcess(_userToAgent);
+
     if(taskId == null) taskId = Uuid().v4();
     dispatcherMap.create(taskId);
 
+    AddStatus status = pipeline.addJob(ContentsTask(taskId: taskId, contentList: contentList));
+
+    switch(status) {
+      case AddStatus.REJECT: throw TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType);
+      case AddStatus.ERROR_STRATEGY: throw StrategyNotExistException(source: "task: $taskId", strategy: pipeline.pipelineStrategyType);
+      case AddStatus.SUCCESS: break;
+    }
+  }
+
+  Future<void> _userToAgent(ContentsTask contentsTask) async {
     Command clientCommand = Command(
       toClient,
       AgentMessage(
         sessionId: sessionId,
-        taskId: taskId,
+        taskId: contentsTask.taskId,
         from: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
@@ -39,12 +56,12 @@ abstract class SessionAgent {
     dispatcherMap.dispatch(clientCommand);
 
     AgentMessage contentMessage = AgentMessage(
-        sessionId: sessionId,
-        taskId: taskId,
-        from: SessionRoleType.USER,
-        to: SessionRoleType.AGENT,
-        type: SessionMessageType.CONTENT_LIST,
-        message: contentList
+      sessionId: sessionId,
+      taskId: contentsTask.taskId,
+      from: SessionRoleType.USER,
+      to: SessionRoleType.AGENT,
+      type: SessionMessageType.CONTENT_LIST,
+      message: contentsTask.contentList
     );
 
     if ( systemPrompt == null || agentSession.hasSystemMessage ) {

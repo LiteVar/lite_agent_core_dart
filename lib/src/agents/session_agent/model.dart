@@ -32,3 +32,10 @@ class Content extends LLMContent {
       message: json["message"]
   );
 }
+
+class ContentsTask {
+  String taskId;
+  List<Content> contentList;
+
+  ContentsTask({required this.taskId, required this.contentList});
+}

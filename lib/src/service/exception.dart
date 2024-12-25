@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 
 part 'exception.g.dart';
@@ -35,27 +34,6 @@ class AgentNameException implements Exception {
   }
 
   Map<String, dynamic> toJson() => _$AgentNameExceptionToJson(this);
-
-  @override
-  String toString() {
-    return jsonEncode(this.toJson());
-  }
-}
-
-/// When catch `TaskBreakException`. The task will be stopped, and task messages will be discarded.
-@JsonSerializable(createFactory: false)
-class TaskBreakException implements Exception {
-  final int code = 500;
-  late String message;
-
-  TaskBreakException({
-    required String taskId,
-    String? message
-  }){
-    this.message = "TaskId: `$taskId` Exception. $message";
-  }
-
-  Map<String, dynamic> toJson() => _$TaskBreakExceptionToJson(this);
 
   @override
   String toString() {

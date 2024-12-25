@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../agents/llm/model.dart';
 import '../agents/model.dart';
+import '../agents/pipeline/model.dart';
 import '../agents/reflection/model.dart';
 import '../agents/session_agent/model.dart';
 import '../agents/text_agent/model.dart';
@@ -67,13 +68,16 @@ class CapabilityDto extends SimpleCapabilityDto {
 
   int timeoutSeconds;
 
+  String pipelineStrategy;
+
   CapabilityDto({
     required super.llmConfig,
     required super.systemPrompt,
     this.openSpecList,
     this.sessionList,
     this.reflectPromptList,
-    this.timeoutSeconds = 3600
+    this.timeoutSeconds = 3600,
+    this.pipelineStrategy  = PipelineStrategyType.PARALLEL
   });
 
   factory CapabilityDto.fromJson(Map<String, dynamic> json) => _$CapabilityDtoFromJson(json);
@@ -455,3 +459,15 @@ class ReflectPromptDto {
 
   Map<String, dynamic> toJson() => _$ReflectPromptDtoToJson(this);
 }
+
+// @JsonSerializable()
+// class PipelineStrategyDto {
+//   String type;
+//   String? description;
+//
+//   PipelineStrategyDto({this.type = PipelineStrategyType.PARALLEL, this.description});
+//
+//   factory PipelineStrategyDto.fromJson(Map<String, dynamic> json) => _$PipelineStrategyDtoFromJson(json);
+//
+//   Map<String, dynamic> toJson() => _$PipelineStrategyDtoToJson(this);
+// }

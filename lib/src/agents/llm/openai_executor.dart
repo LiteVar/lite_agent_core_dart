@@ -77,33 +77,37 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     switch (schema.type) {
       case DataType.BOOLEAN:
         return OpenAIFunctionProperty.boolean(
-            name: name,
-            description: description??(schema.description),
-            isRequired: required);
+          name: name,
+          description: description??(schema.description),
+          isRequired: required
+        );
       case DataType.INTEGER:
         return OpenAIFunctionProperty.integer(
-            name: name,
-            description: description??(schema.description),
-            isRequired: required);
+          name: name,
+          description: description??(schema.description),
+          isRequired: required
+        );
       case DataType.NUMBER:
         return OpenAIFunctionProperty.number(
-            name: name,
-            description: description??(schema.description),
-            isRequired: required);
+          name: name,
+          description: description??(schema.description),
+          isRequired: required
+        );
       case DataType.STRING:
         return OpenAIFunctionProperty.string(
-            name: name,
-            description: description??(schema.description),
-            isRequired: required,
-            enumValues: schema.enum_);
+          name: name,
+          description: description??(schema.description),
+          isRequired: required,
+          enumValues: schema.enum_
+        );
       case DataType.ARRAY:
         {
           OpenAIFunctionProperty openAIFunctionProperty = _toOpenAIFunctionProperty(name, description??(schema.description), schema.items!, required);
           return OpenAIFunctionProperty.array(
-              name: name,
-              description: schema.description,
-              isRequired: required,
-              items: openAIFunctionProperty
+            name: name,
+            description: schema.description,
+            isRequired: required,
+            items: openAIFunctionProperty
           );
         }
       case DataType.OBJECT:
@@ -121,10 +125,10 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
           });
 
           return OpenAIFunctionProperty.object(
-              name: name,
-              description: schema.description,
-              isRequired: required,
-              properties: openAIFunctionProperties.values);
+            name: name,
+            description: schema.description,
+            isRequired: required,
+            properties: openAIFunctionProperties.values);
         }
       default: {
         return OpenAIFunctionProperty(name: "", typeMap: {});
@@ -136,27 +140,27 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     //System Prompt
     if (agentMessage.from == AgentRoleType.SYSTEM && agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.system,
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
-          ]);
+        role: OpenAIChatMessageRole.system,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+        ]);
     }
 
     //LLM return text
     if (agentMessage.from == AgentRoleType.LLM && agentMessage.type == AgentMessageType.TEXT) {
       return OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.assistant,
-          content: [
-            OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
-          ]);
+        role: OpenAIChatMessageRole.assistant,
+        content: [
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+        ]);
     }
 
     //LLM return image
     if (agentMessage.from == AgentRoleType.LLM && agentMessage.type == AgentMessageType.IMAGE_URL) {
       return OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.assistant,
-          content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)
-          ]);
+        role: OpenAIChatMessageRole.assistant,
+        content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)
+        ]);
     }
 
     //LLM return function calling
@@ -169,9 +173,10 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       }).toList();
 
       return OpenAIChatCompletionChoiceMessageModel(
-          role: OpenAIChatMessageRole.assistant,
-          content: null,
-          toolCalls: openAIResponseToolCallList);
+        role: OpenAIChatMessageRole.assistant,
+        content: null,
+        toolCalls: openAIResponseToolCallList
+      );
     }
 
     //AGENT return TOOL result

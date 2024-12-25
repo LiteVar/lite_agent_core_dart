@@ -189,18 +189,6 @@ class AgentMessageDto {
       default: message = agentMessage.message;
     }
 
-    // if(agentMessage.type == AgentMessageType.CONTENT_LIST) {
-    //   message = (agentMessage.message as List<Content>).map((content)=>ContentDto.fromModel(content)).toList();
-    // } else if(agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
-    //   message = (agentMessage.message as List<FunctionCall>).map((functionCall)=>FunctionCallDto.fromModel(functionCall)).toList();
-    // } else if(agentMessage.type == AgentMessageType.TOOL_RETURN) {
-    //   message = ToolReturnDto.fromModel(agentMessage.message as ToolReturn);
-    // } else if(agentMessage.type == AgentMessageType.REFLECTION) {
-    //   message = ReflectionDto.fromModel(agentMessage.message as Reflection);
-    // } else if(agentMessage.type == AgentMessageType.TASK_STATUS) {
-    //   message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);
-    // }
-
     return AgentMessageDto(
       sessionId: agentMessage.sessionId,
       taskId: agentMessage.taskId,

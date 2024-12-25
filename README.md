@@ -24,7 +24,7 @@ LLM `AI Agent` multi sessions service.
 4. Use below method to run agent service.
 
 ### Method 1(Recommend): AgentService
-- According to `/example/service_example/agent_service_example.dart`
+- According to `/example/service_example`
 - Support multi agent session via session id.
 - Support multi task in the same agent, identify different tasks by `taskId`. After finishing task, task message could be added to session as new task context.
 
@@ -64,9 +64,27 @@ Future<void> main() async {
 }
 ```
 
+- Reflection support
+
+```dart
+Future<void> main() async {
+  CapabilityDto capabilityDto = CapabilityDto(
+      llmConfig: _buildLLMConfig(),
+      systemPrompt: _buildSystemPrompt(),
+      openSpecList: await _buildOpenSpecList(),
+      /// Add reflection prompt list here
+      toolReflectionList: await _buildToolReflectionList()
+  );
+  SessionDto sessionDto = await agentService.initChat(capabilityDto, listen);
+  String prompt = "<USER PROMPT, e.g. call any one tool>";
+  UserTaskDto userTaskDto = UserTaskDto(taskId: "<Identify different tasks, NOT more than 36 chars>", contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  await agentService.startChat(sessionDto.id, userTaskDto);
+}
+```
+
 ### Method 2: ToolAgent
 
-- According to `/example/agent_example/tool_agent_example.dart`
+- According to `/example/agent_example`
 - Pure native calling. Support single session.
 - [Method 1 AgentService](#method-1recommend-agentservice) is friendly encapsulation for this.
 
@@ -80,17 +98,5 @@ Future<void> main() async {
   );
   String prompt = "<USER PROMPT, e.g. call any one tool>";
   toolAgent.userToAgent(taskId: "<Identify different tasks, NOT more than 36 chars>", [Content(type: ContentType.text, message: prompt)]);
-}
-```
-```dart
-Future<void> main() async {
-  ToolAgent toolAgent = ToolAgent(
-      llmRunner: _buildLLMRunner(),
-      session: _buildSession(),
-      toolRunnerList: await _buildToolRunnerList(),
-      systemPrompt: _buildSystemPrompt()
-  );
-  String prompt = "<USER PROMPT, e.g. call any one tool>";
-  toolAgent.userToAgent(taskId: "<Identify different tasks, NOT more than 36 chars>", contentList: [Content(type: ContentType.text, message: prompt)]);
 }
 ```

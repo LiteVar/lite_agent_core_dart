@@ -1,4 +1,4 @@
-## 0.5.2
+## 0.6.0
 
 - add text and tool reflection
 - fixed api check issue

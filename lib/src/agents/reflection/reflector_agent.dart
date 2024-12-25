@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
 import '../../llm/model.dart';

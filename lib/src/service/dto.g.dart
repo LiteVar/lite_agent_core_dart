@@ -56,7 +56,7 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
           ?.map((e) => ReflectPromptDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 3600,
-      pipelineStrategy:
+      taskPipelineStrategy:
           json['pipelineStrategy'] as String? ?? PipelineStrategyType.PARALLEL,
     );
 
@@ -69,7 +69,7 @@ Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
       if (instance.reflectPromptList case final value?)
         'reflectPromptList': value,
       'timeoutSeconds': instance.timeoutSeconds,
-      'pipelineStrategy': instance.pipelineStrategy,
+      'pipelineStrategy': instance.taskPipelineStrategy,
     };
 
 OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(

@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
+
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
@@ -11,7 +11,7 @@ import '../listener.dart';
 /// 1. Some OpenSpec json file, according to `/example/json/open*/*.json`, which is callable.
 /// 2. Run your tool server, which is described in json file.
 /// 3. Add LLM baseUrl and apiKey to `.env` file
-String prompt = "Add text `Hello world`.";
+
 
 AgentService agentService = AgentService();
 
@@ -20,28 +20,53 @@ Future<void> main() async {
       llmConfig: _buildLLMConfig(),
       systemPrompt: _buildSystemPrompt(),
       openSpecList: await _buildOpenSpecList(),
-      /// Add reflection prompt list here
-      reflectPromptList: await _buildToolReflectPromptList()
+      /// Add tool pipeline strategy here
+      toolPipelineStrategy: PipelineStrategyType.REJECT
   );
 
   print("[CapabilityDto] " + capabilityDto.toJson().toString());
 
   SessionDto sessionDto = await agentService.initSession(
-    capabilityDto,
-    listen,
-    /// Add opentool Map here
-    opentoolDriverMap: await _buildOpenToolDriverMap()
+      capabilityDto,
+      listen,
+      /// Add opentool Map here
+      opentoolDriverMap: await _buildOpenToolDriverMap()
   );
 
   print("[SessionDto] " + sessionDto.toJson().toString());
 
-  String taskId = Uuid().v4();
-  UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
-  await agentService.startSession(sessionDto.id, userTaskDto);
+  try {
+    String prompt1 = "Help me set store a text 'hello1'.";
+    String taskId1 = Uuid().v4();
+    print("taskId1: $taskId1");
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt1)]);
+    await agentService.startSession(sessionDto.id, userTaskDto);
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
+  try {
+    String prompt2 = "Help me set store a text 'hello22'.";
+    String taskId2 = Uuid().v4();
+    print("taskId2: $taskId2");
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt2)]);
+    await agentService.startSession(sessionDto.id, userTaskDto);
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
+  try {
+    String prompt3 = "Help me set store a text 'hello333'.";
+    String taskId3 = Uuid().v4();
+    print("taskId3: $taskId3");
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt3)]);
+    await agentService.startSession(
+        sessionDto.id,
+        userTaskDto,
+    );
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
 
-  print("[prompt] " + prompt);
-
-  await sleep(10);
+  await sleep(15);
 
   SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
   await agentService.stopSession(sessionTaskDto);
@@ -109,30 +134,4 @@ Future<Map<String, OpenToolDriver>> _buildOpenToolDriverMap() async {
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
   return 'You are a tools caller, who can call tools to help me manage my storage.';
-}
-
-Future<List<ReflectPromptDto>> _buildToolReflectPromptList() async {
-  LLMConfigDto llmConfig = _buildLLMConfig();
-  String toolsDescription = await _buildToolsDescription();
-  String prompt = "# Role\n\nYou are a tool reflector, you can reflect user tool usage correct or not. You should mark score 0 to 10. 10 is full score. Below is tools that user can use. \n\n$toolsDescription";
-  return [
-    ReflectPromptDto(llmConfig: llmConfig, prompt: prompt),
-  ];
-}
-
-Future<String> _buildToolsDescription() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
-  List<String> fileNameList = [
-    "mock-tool.json"
-  ];
-
-  String toolsDescription = "# Tools\n\n";
-  for (String fileName in fileNameList) {
-    OpenTool openTool = await OpenToolLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
-    String jsonString = jsonEncode(openTool.toJson());
-    String toolDescription = "## ${openTool.info.title} \n\n```json\n${jsonString}\n```";
-    toolsDescription = toolsDescription + toolDescription;
-  }
-
-  return toolsDescription;
 }

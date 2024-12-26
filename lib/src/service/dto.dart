@@ -68,7 +68,9 @@ class CapabilityDto extends SimpleCapabilityDto {
 
   int timeoutSeconds;
 
-  String pipelineStrategy;
+  String taskPipelineStrategy;
+
+  String? toolPipelineStrategy;
 
   CapabilityDto({
     required super.llmConfig,
@@ -77,7 +79,8 @@ class CapabilityDto extends SimpleCapabilityDto {
     this.sessionList,
     this.reflectPromptList,
     this.timeoutSeconds = 3600,
-    this.pipelineStrategy  = PipelineStrategyType.PARALLEL
+    this.taskPipelineStrategy  = PipelineStrategyType.PARALLEL,
+    this.toolPipelineStrategy
   });
 
   factory CapabilityDto.fromJson(Map<String, dynamic> json) => _$CapabilityDtoFromJson(json);

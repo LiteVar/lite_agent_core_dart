@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:lite_agent_core_dart/src/agents/pipeline/pipeline.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../../agents/text_agent/text_agent.dart';
 import '../llm/exception.dart';
 import '../llm/openai_executor.dart';
 import '../model.dart';
+import '../pipeline/model.dart';
 import '../reflection/model.dart';
 import '../reflection/reflector.dart';
 import '../reflection/reflector_agent.dart';
@@ -18,6 +20,7 @@ import 'tool_agent_message_handler.dart';
 class ToolAgent extends TextAgent {
   List<ToolDriver> toolDriverList;
   ReflectorManager toolReflectionManager = ReflectorManager();
+  late Pipeline<FunctionCallParam> toolPipeLine;
 
   ToolAgent({
     required super.sessionId,
@@ -27,7 +30,8 @@ class ToolAgent extends TextAgent {
     String? super.systemPrompt,
     super.timeoutSeconds = 3600,
     List<ReflectPrompt> toolReflectPromptList = const[],
-    super.pipelineStrategy,
+    super.taskPipelineStrategy,
+    String toolPipelineStrategy = PipelineStrategyType.PARALLEL,
   }) {
     toolReflectPromptList.forEach((reflectPrompt){
       ReflectorAgent reflectorAgent = ReflectorAgent(llmExecutor: OpenAIExecutor(reflectPrompt.llmConfig), systemPrompt: reflectPrompt.prompt);
@@ -39,6 +43,8 @@ class ToolAgent extends TextAgent {
     manager.registerHandler(from: ToolRoleType.LLM, handler: LLMFunctionCallingMessageHandler(toolReflectionManager, toReflection, toUser, toTool)); //override TextAgent LLM handler
     manager.registerHandler(from: ToolRoleType.TOOL, handler: ToolMessageHandler(toolReflectionManager, toLLM, onToolReturn: onToolReturn));
     manager.registerHandler(from: ToolRoleType.REFLECTION, handler: ToolReflectionMessageHandler(toolReflectionManager, toLLM, toTool, onToolRetry: super.onReflectionRetry));
+
+    toolPipeLine = Pipeline(toolPipelineStrategy);
   }
 
   void onToolReturn(AgentMessage agentLLMMessage) {
@@ -129,49 +135,93 @@ class ToolAgent extends TextAgent {
     List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
 
     for (FunctionCall functionCall in functionCallList) {
-      try {
-        ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
-        ToolReturn toolReturn = await toolDriver.call(functionCall);
-        AgentMessage toolMessage = AgentMessage(
-          sessionId: agentMessage.sessionId,
-          taskId: agentMessage.taskId,
-          from: ToolRoleType.TOOL,
-          to: ToolRoleType.AGENT,
-          type: ToolMessageType.TOOL_RETURN,
-          message: toolReturn
-        );
-        Command command = Command(toAgent, toolMessage);
-        dispatcherMap.dispatch(command);
-      } on ToolBreakException catch(e) {
-        /** When toolDriver.call throw ToolBreakException, it will break task.*/
-        this.dispatcherMap.breakTask(agentMessage.taskId);
-        throw e;
-      } on StateError {
-        /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
-        Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCall.name).toJson();
-        ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
-        AgentMessage toolMessage = AgentMessage(
-          sessionId: agentMessage.sessionId,
-          taskId: agentMessage.taskId,
-          from: ToolRoleType.TOOL,
-          to: ToolRoleType.AGENT,
-          type: ToolMessageType.TOOL_RETURN,
-          message: toolReturn
-        );
-        Command command = Command(toAgent, toolMessage);
-        dispatcherMap.dispatch(command);
-      }
+      FunctionCallParam functionCallParam = FunctionCallParam(sessionId: agentMessage.sessionId, taskId: agentMessage.taskId, functionCall: functionCall);
+      toolPipeLine.addJob(functionCallParam);
     }
-    AgentMessage toolDoneMessage = AgentMessage(
-      sessionId: agentMessage.sessionId,
-      taskId: agentMessage.taskId,
-      from: ToolRoleType.TOOL,
-      to: ToolRoleType.AGENT,
-      type: ToolMessageType.TASK_STATUS,
-      message: TaskStatus(status: TaskStatusType.DONE)
-    );
-    Command command = Command(toAgent, toolDoneMessage);
-    dispatcherMap.dispatch(command);
+
+    toolPipeLine.run(_requestTool, onComplete: () async {
+      AgentMessage toolDoneMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          from: ToolRoleType.TOOL,
+          to: ToolRoleType.AGENT,
+          type: ToolMessageType.TASK_STATUS,
+          message: TaskStatus(status: TaskStatusType.DONE)
+      );
+      Command command = Command(toAgent, toolDoneMessage);
+      dispatcherMap.dispatch(command);
+    });
+
+    // for (FunctionCall functionCall in functionCallList) {
+      // try {
+      //   ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
+      //   ToolReturn toolReturn = await toolDriver.call(functionCall);
+      //   AgentMessage toolMessage = AgentMessage(
+      //     sessionId: agentMessage.sessionId,
+      //     taskId: agentMessage.taskId,
+      //     from: ToolRoleType.TOOL,
+      //     to: ToolRoleType.AGENT,
+      //     type: ToolMessageType.TOOL_RETURN,
+      //     message: toolReturn
+      //   );
+      //   Command command = Command(toAgent, toolMessage);
+      //   dispatcherMap.dispatch(command);
+      // } on ToolBreakException catch(e) {
+      //   /** When toolDriver.call throw ToolBreakException, it will break task.*/
+      //   this.dispatcherMap.breakTask(agentMessage.taskId);
+      //   throw e;
+      // } on StateError {
+      //   /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
+      //   Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCall.name).toJson();
+      //   ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
+      //   AgentMessage toolMessage = AgentMessage(
+      //     sessionId: agentMessage.sessionId,
+      //     taskId: agentMessage.taskId,
+      //     from: ToolRoleType.TOOL,
+      //     to: ToolRoleType.AGENT,
+      //     type: ToolMessageType.TOOL_RETURN,
+      //     message: toolReturn
+      //   );
+      //   Command command = Command(toAgent, toolMessage);
+      //   dispatcherMap.dispatch(command);
+      // }
+    // }
+
+  }
+
+  Future<void> _requestTool(FunctionCallParam functionCallParam) async {
+    try {
+      ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCallParam.functionCall.name));
+      ToolReturn toolReturn = await toolDriver.call(functionCallParam.functionCall);
+      AgentMessage toolMessage = AgentMessage(
+          sessionId: functionCallParam.sessionId,
+          taskId: functionCallParam.taskId,
+          from: ToolRoleType.TOOL,
+          to: ToolRoleType.AGENT,
+          type: ToolMessageType.TOOL_RETURN,
+          message: toolReturn
+      );
+      Command command = Command(toAgent, toolMessage);
+      dispatcherMap.dispatch(command);
+    } on ToolBreakException catch(e) {
+      /** When toolDriver.call throw ToolBreakException, it will break task.*/
+      this.dispatcherMap.breakTask(functionCallParam.taskId);
+      throw e;
+    } on StateError {
+      /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
+      Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCallParam.functionCall.name).toJson();
+      ToolReturn toolReturn = ToolReturn(id: functionCallParam.functionCall.id, result: result);
+      AgentMessage toolMessage = AgentMessage(
+          sessionId: functionCallParam.sessionId,
+          taskId: functionCallParam.taskId,
+          from: ToolRoleType.TOOL,
+          to: ToolRoleType.AGENT,
+          type: ToolMessageType.TOOL_RETURN,
+          message: toolReturn
+      );
+      Command command = Command(toAgent, toolMessage);
+      dispatcherMap.dispatch(command);
+    }
   }
 
   Future<void> toTool(AgentMessage agentMessage) async {

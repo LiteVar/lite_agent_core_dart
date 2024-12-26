@@ -18,7 +18,8 @@ Future<void> main() async {
     systemPrompt: _buildSystemPrompt(),
     textReflectPromptList: _buildTextReflectPromptList(),
   );
-  textAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.TEXT, message: prompt)]);
+  String taskId = Uuid().v4();
+  await textAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 
 LLMConfig _buildLLMConfig() {

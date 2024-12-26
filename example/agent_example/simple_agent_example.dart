@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:uuid/uuid.dart';
 
 String systemPrompt = "";
 String userPrompt = "Hello!";
@@ -9,7 +10,8 @@ ResponseFormat responseFormat = ResponseFormat(type: ResponseFormatType.TEXT);
 Future<void> main() async {
   LLMConfig llmConfig = _buildLLMConfig();
   SimpleAgent simpleAgent = SimpleAgent(llmConfig: llmConfig, systemPrompt: systemPrompt, responseFormat: responseFormat);
-  AgentMessage agentMessage = await simpleAgent.userToAgent(contentList: [Content(message: userPrompt, type: ContentType.TEXT)], taskId: "task-1");
+  String taskId = Uuid().v4();
+  AgentMessage agentMessage = await simpleAgent.userToAgent(contentList: [Content(message: userPrompt, type: ContentType.TEXT)], taskId: taskId);
   print(jsonEncode(AgentMessageDto.fromModel(agentMessage).toJson()));
 }
 

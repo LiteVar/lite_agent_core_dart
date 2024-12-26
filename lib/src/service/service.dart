@@ -5,6 +5,7 @@ import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import '../agents/model.dart';
+import '../agents/pipeline/model.dart';
 import '../agents/reflection/model.dart';
 import '../agents/session_agent/session.dart';
 import '../agents/session_agent/model.dart';
@@ -75,21 +76,19 @@ class AgentService {
     agentToolDriverList.addAll(await _buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
     if(customToolDriverList != null) agentToolDriverList.addAll(customToolDriverList);
 
-    // if(requestConflictStrategy != null) this.requestConflictStrategy = requestConflictStrategy;
-
     if(agentToolDriverList.isEmpty) {
-      TextAgent textAgent = TextAgent(
+      SessionAgent textAgent = TextAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
         systemPrompt: systemPrompt,
         textReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds,
-        pipelineStrategy: capabilityDto.pipelineStrategy
+        taskPipelineStrategy: capabilityDto.taskPipelineStrategy
       );
       sessionAgents[sessionId] = textAgent;
     } else {
-      TextAgent toolAgent = ToolAgent(
+      SessionAgent toolAgent = ToolAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen),
@@ -97,7 +96,8 @@ class AgentService {
         systemPrompt: systemPrompt,
         toolReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds,
-        pipelineStrategy: capabilityDto.pipelineStrategy
+        taskPipelineStrategy: capabilityDto.taskPipelineStrategy,
+        toolPipelineStrategy: capabilityDto.toolPipelineStrategy??PipelineStrategyType.PARALLEL
       );
       sessionAgents[sessionId] = toolAgent;
     }
@@ -113,7 +113,7 @@ class AgentService {
     List<Content> userMessageList = userTaskDto.contentList
       .map((userMessageDto) => _convertToContent(userMessageDto))
       .toList();
-    sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
+    await sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
   }
 
   Future<List<AgentMessageDto>?> getCacheHistory(String sessionId) async {

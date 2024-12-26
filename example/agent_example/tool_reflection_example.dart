@@ -24,7 +24,8 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt(),
       toolReflectPromptList: await _buildToolReflectPromptList(),
   );
-  toolAgent.userToAgent(taskId: "0", contentList: [Content(type: ContentType.TEXT, message: prompt)]);
+  String taskId = Uuid().v4();
+  await toolAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 
 LLMConfig _buildLLMConfig() {
@@ -64,7 +65,7 @@ AgentSession _buildSession(String sessionId) {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return 'You are a tools caller, who can call book system tools to help me manage my storage.';
+  return 'You are a tools caller, who can call tools to help me manage my storage.';
 }
 
 Future<List<ReflectPrompt>> _buildToolReflectPromptList() async {

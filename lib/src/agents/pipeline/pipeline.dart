@@ -4,75 +4,109 @@ import 'model.dart';
 
 class Pipeline<T> {
   final String pipelineStrategyType;
+  final List<T> _jobList = [];
   final Queue<T> _jobQueue = Queue<T>();
   late Future<void> Function(T job) process;
   bool _isProcessing = false;
 
   Pipeline(this.pipelineStrategyType);
 
-  void setProcess(Future<void> Function(T job) process) {
-    this.process = process;
+  void addJob(T job) {
+    _jobList.add(job);
   }
 
-  AddStatus addJob(T job) {
+  Future<AddStatus> run(Future<void> Function(T job) process, {Future<void> Function()? onComplete}) async {
+    this.process = process;
     switch (pipelineStrategyType) {
-      case PipelineStrategyType.PARALLEL: return _processJobParallel(job);
-      case PipelineStrategyType.SERIAL: return _processJobSerial(job);
-      case PipelineStrategyType.REJECT: return _processJobReject(job);
+      case PipelineStrategyType.PARALLEL: return _runParallel(onComplete);
+      case PipelineStrategyType.SERIAL: return _runSerial(onComplete);
+      case PipelineStrategyType.REJECT: return _runReject(onComplete);
       default: return AddStatus.ERROR_STRATEGY;
     }
+
   }
 
-  AddStatus _processJobParallel(T job) {
-      process(job);
-      return AddStatus.SUCCESS;
-  }
-
-  AddStatus _processJobSerial(T job) {
-    _jobQueue.add(job);
-    if (!_isProcessing) {
-      _processQueue();
+  Future<AddStatus> _runParallel(Future<void> Function()? onComplete) async {
+    final List<Future<void>> futures = [];
+    for (var job in _jobList) {
+      futures.add(process(job));
     }
+    _jobList.clear();
+    Future(() async {
+      await Future.wait(futures);
+      if (onComplete != null) onComplete();
+    });
+
+    return AddStatus.SUCCESS;
+  }
+
+  Future<AddStatus> _runSerial(Future<void> Function()? onComplete) async {
+    for (var job in _jobList) {
+      _jobQueue.add(job);
+    }
+    _jobList.clear();
+    Future(() async {
+      await _processQueue();
+      if (onComplete != null) onComplete();
+    });
+    return AddStatus.SUCCESS;
+  }
+
+  Future<AddStatus> _runReject(Future<void> Function()? onComplete) async {
+    if(_isProcessing) return AddStatus.REJECT;
+    _isProcessing = true;
+    for (var job in _jobList) {
+      _jobQueue.add(job);
+    }
+    _jobList.clear();
+    Future(() async {
+      await _processQueue();
+      _isProcessing = false;
+      if (onComplete != null) onComplete();
+    });
     return AddStatus.SUCCESS;
   }
 
   Future<void> _processQueue() async {
-    _isProcessing = true;
     while (_jobQueue.isNotEmpty) {
       final job = _jobQueue.removeFirst();
       await process(job);
     }
-    _isProcessing = false;
   }
 
-  AddStatus _processJobReject(T job) {
-    if(_isProcessing) return AddStatus.REJECT;
-    _processJob(job);
-    return AddStatus.SUCCESS;
-  }
-
-  Future<void> _processJob(T job) async {
-    _isProcessing = true;
-    await process(job);
-    _isProcessing = false;
-  }
 }
 
-// Future<void> main() async {
-//
-//   Future<void> Function(String job) process = (String job) async {
-//     print("Processing job: $job");
-//     await Future.delayed(Duration(seconds: 2)); // 模拟异步处理
-//     print("Finished job: $job");
-//   };
-//
-//   Pipeline<String> pipeline = Pipeline(PipelineStrategyType.SERIAL);
-//   pipeline.setProcess(process);
-//
-//   print(pipeline.addJob("job1"));
-//   print(pipeline.addJob("job2"));
-//   print(pipeline.addJob("job3"));
-//
-//   await Future.delayed(Duration(seconds: 10));
-//
-// }
+Future<void> main() async {
+
+  Future<void> Function(String job) process = (String job) async {
+    print("Processing job: $job");
+    await Future.delayed(Duration(seconds: 2)); // 模拟异步处理
+    print("Finished job: $job");
+  };
+
+
+
+  Pipeline<String> pipeline = Pipeline(PipelineStrategyType.REJECT);
+
+  Future(() async {
+    pipeline.addJob("job1");
+
+    AddStatus addStatus = await pipeline.run(process, onComplete: () async {
+      print("job1  done");
+    });
+    print(addStatus);
+  });
+
+  Future(() async {
+    pipeline.addJob("job2");
+    pipeline.addJob("job3");
+
+    AddStatus addStatus = await pipeline.run(process, onComplete: () async {
+      print("job2&3 done");
+    });
+    print(addStatus);
+  });
+
+  await Future.delayed(Duration(seconds: 10));
+
+}

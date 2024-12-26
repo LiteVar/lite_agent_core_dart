@@ -25,7 +25,7 @@ class TextAgent extends SessionAgent {
     String? super.systemPrompt,
     super.timeoutSeconds = 600,
     List<ReflectPrompt> textReflectPromptList = const [],
-    super.pipelineStrategy,
+    super.taskPipelineStrategy,
   }) {
     textReflectPromptList.forEach((reflectPrompt){
       ReflectorAgent reflectorAgent = ReflectorAgent(llmExecutor: OpenAIExecutor(reflectPrompt.llmConfig), systemPrompt: reflectPrompt.prompt);

@@ -21,19 +21,20 @@ abstract class SessionAgent {
     required this.sessionId,
     required this.agentSession,
     this.systemPrompt,
-    String pipelineStrategy = PipelineStrategyType.PARALLEL,
+    String taskPipelineStrategy = PipelineStrategyType.PARALLEL,
     timeoutSeconds = 600
-  }) :  pipeline = Pipeline(pipelineStrategy),
+  }) :  pipeline = Pipeline(taskPipelineStrategy),
         timeout = Timeout(timeoutSeconds);
 
-  void userToAgent({required List<Content> contentList, String? taskId}) {
+  Future<void> userToAgent({required List<Content> contentList, String? taskId}) async {
 
-    pipeline.setProcess(_userToAgent);
+    // pipeline.setProcess(_userToAgent, onComplete: onPipelineComplete);
 
     if(taskId == null) taskId = Uuid().v4();
     dispatcherMap.create(taskId);
 
-    AddStatus status = pipeline.addJob(ContentsTask(taskId: taskId, contentList: contentList));
+    pipeline.addJob(ContentsTask(taskId: taskId, contentList: contentList));
+    AddStatus status = await pipeline.run(_userToAgent);
 
     switch(status) {
       case AddStatus.REJECT: throw TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType);

@@ -34,7 +34,7 @@ class OpenAIUtil {
           tools: toolList,
           temperature: llmConfig.temperature,
           maxTokens: llmConfig.maxTokens,
-          topP: llmConfig.topP
+          topP: llmConfig.topP,
       );
 
       TokenUsage tokenUsage = TokenUsage(

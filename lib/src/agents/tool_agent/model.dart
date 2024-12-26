@@ -1,3 +1,5 @@
+import 'package:opentool_dart/opentool_dart.dart';
+
 import '../llm/model.dart';
 import '../text_agent/model.dart';
 
@@ -18,4 +20,11 @@ class ToolMessageType {
   static String FUNCTION_CALL_LIST = AgentMessageType.FUNCTION_CALL_LIST; //List<FunctionCall>
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn
   static String TASK_STATUS = TextMessageType.TASK_STATUS; //TaskStatus
+}
+
+class FunctionCallParam {
+  String sessionId;
+  String taskId;
+  FunctionCall functionCall;
+  FunctionCallParam({required this.sessionId, required this.taskId, required this.functionCall});
 }

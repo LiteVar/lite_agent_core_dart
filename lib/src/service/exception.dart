@@ -8,9 +8,7 @@ class AgentNotFoundException implements Exception {
   final int code = 404;
   late String message;
 
-  AgentNotFoundException({
-    required String sessionId,
-  }) {
+  AgentNotFoundException({ required String sessionId }) {
     this.message = "SessionId `${sessionId}` Agent Not Found";
   }
 

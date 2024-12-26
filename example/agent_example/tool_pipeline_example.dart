@@ -2,16 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:dotenv/dotenv.dart';
-import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
+import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
 /// 2. Run your tool server, which is described in json file.
 /// 3. Add LLM baseUrl and apiKey to `.env` file
-String prompt = "Check the status of the book which id is 1.";
 
 Future<void> main() async {
   String sessionId = Uuid().v4();
@@ -20,10 +19,34 @@ Future<void> main() async {
     llmConfig: _buildLLMConfig(),
     agentSession: _buildSession(sessionId),
     toolDriverList: await _buildToolDriverList(),
-    systemPrompt: _buildSystemPrompt()
+    systemPrompt: _buildSystemPrompt(),
+    toolPipelineStrategy: PipelineStrategyType.SERIAL /// Can change to PARALLEL or REJECT to test
   );
-  String taskId = Uuid().v4();
-  await toolAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
+
+  try {
+    String prompt1 = "Help me set store a text 'hello1'.";
+    String taskId1 = Uuid().v4();
+    print("taskId1: $taskId1");
+    await toolAgent.userToAgent(taskId: taskId1, contentList: [Content(type: ContentType.TEXT, message: prompt1)]);
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
+  try {
+    String prompt2 = "Help me set store a text 'hello22'.";
+    String taskId2 = Uuid().v4();
+    print("taskId2: $taskId2");
+    await toolAgent.userToAgent(taskId: taskId2, contentList: [Content(type: ContentType.TEXT, message: prompt2)]);
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
+  try {
+    String prompt3 = "Help me set store a text 'hello333'.";
+    String taskId3 = Uuid().v4();
+    print("taskId3: $taskId3");
+    await toolAgent.userToAgent(taskId: taskId3, contentList: [Content(type: ContentType.TEXT, message: prompt3)]);
+  } on TaskRejectException catch (e) {
+    print(e);
+  }
 }
 
 LLMConfig _buildLLMConfig() {
@@ -37,28 +60,19 @@ LLMConfig _buildLLMConfig() {
   );
 }
 
-/// Use Prompt engineering to design SystemPrompt
-/// https://platform.openai.com/docs/guides/prompt-engineering
 Future<List<ToolDriver>> _buildToolDriverList() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
+  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
   List<String> fileNameList = [
-    "json-rpc-book.json"
-    // "json-rpc-food.json" // you can add more tool spec json file.
+    "mock-tool.json"
   ];
 
-  List<ToolDriver> toolRunnerList = [];
+  List<ToolDriver> toolDriverList = [];
   for (String fileName in fileNameList) {
-    OpenRPC openRPC = await OpenRPCLoader()
-        .loadFromFile("$folder${Platform.pathSeparator}$fileName");
-    ToolDriver toolRunner = JsonRPCDriver(openRPC);
-
-    /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolDriver of the tools.
-    // OpenAPI openAPI = await OpenAPILoader().loadFromFile("$folder/$fileName");
-    // ToolDriver toolRunner = OpenAPIRunner(openAPI);
-
-    toolRunnerList.add(toolRunner);
+    OpenTool openTool = await OpenToolLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
+    ToolDriver toolDriver = MockDriver().bind(openTool);
+    toolDriverList.add(toolDriver);
   }
-  return toolRunnerList;
+  return toolDriverList;
 }
 
 AgentSession _buildSession(String sessionId) {

@@ -104,7 +104,7 @@ class OpenSpecDto {
   String protocol;
 
   @JsonKey(includeIfNull: false)
-  String? openToolId; //When protocol is open tool, this is the tool id
+  List<String>? openToolId; //When protocol is open tool, this is the tool id
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol, this.openToolId});
 

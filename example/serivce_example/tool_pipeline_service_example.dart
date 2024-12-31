@@ -106,7 +106,7 @@ Future<List<OpenSpecDto>> _buildOpenSpecList() async {
   for (String fileName in fileNameList) {
     File file = File("$folder${Platform.pathSeparator}$fileName");
     String jsonString = await file.readAsString();
-    OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.OPENTOOL, openToolId: "mock-tool");
+    OpenSpecDto openSpecDto = OpenSpecDto(openSpec: jsonString, protocol: Protocol.OPENTOOL, openToolId: ["mock-tool"]);
     openSpecList.add(openSpecDto);
   }
 

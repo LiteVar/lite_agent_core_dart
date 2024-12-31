@@ -56,8 +56,9 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
           ?.map((e) => ReflectPromptDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 3600,
-      taskPipelineStrategy:
-          json['pipelineStrategy'] as String? ?? PipelineStrategyType.PARALLEL,
+      taskPipelineStrategy: json['taskPipelineStrategy'] as String? ??
+          PipelineStrategyType.PARALLEL,
+      toolPipelineStrategy: json['toolPipelineStrategy'] as String?,
     );
 
 Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
@@ -69,7 +70,8 @@ Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
       if (instance.reflectPromptList case final value?)
         'reflectPromptList': value,
       'timeoutSeconds': instance.timeoutSeconds,
-      'pipelineStrategy': instance.taskPipelineStrategy,
+      'taskPipelineStrategy': instance.taskPipelineStrategy,
+      'toolPipelineStrategy': instance.toolPipelineStrategy,
     };
 
 OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(
@@ -78,7 +80,9 @@ OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(
           ? null
           : ApiKeyDto.fromJson(json['apiKey'] as Map<String, dynamic>),
       protocol: json['protocol'] as String,
-      openToolId: json['openToolId'] as String?,
+      openToolId: (json['openToolId'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$OpenSpecDtoToJson(OpenSpecDto instance) =>

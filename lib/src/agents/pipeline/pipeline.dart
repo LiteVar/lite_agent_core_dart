@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'model.dart';
 
+/// Support job for parallel, serial, reject strategy
 class Pipeline<T> {
   final String pipelineStrategyType;
   final List<T> _jobList = [];

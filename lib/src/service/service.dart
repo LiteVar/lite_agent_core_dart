@@ -180,10 +180,12 @@ class AgentService {
         ToolDriver jsonrpcHttpDriver = JsonRPCDriver(openRPC);
         toolDriverList.add(jsonrpcHttpDriver);
       }else if (openSpecDto.protocol == Protocol.OPENTOOL) {
-        OpenToolDriver? opentoolDriver = await opentoolDriverMap[openSpecDto.openToolId];
-        if(opentoolDriver != null) {
-          OpenTool openTool = await OpenToolLoader().load(openSpecDto.openSpec);
-          toolDriverList.add(opentoolDriver.bind(openTool));
+        for(String openToolId in openSpecDto.openToolId!) {
+          OpenToolDriver? opentoolDriver = await opentoolDriverMap[openToolId];
+          if(opentoolDriver != null) {
+            OpenTool openTool = await OpenToolLoader().load(openSpecDto.openSpec);
+            toolDriverList.add(opentoolDriver.bind(openTool));
+          }
         }
       }
     }

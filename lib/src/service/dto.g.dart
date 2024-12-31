@@ -80,9 +80,7 @@ OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(
           ? null
           : ApiKeyDto.fromJson(json['apiKey'] as Map<String, dynamic>),
       protocol: json['protocol'] as String,
-      openToolId: (json['openToolId'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+      openToolId: json['openToolId'] as String?,
     );
 
 Map<String, dynamic> _$OpenSpecDtoToJson(OpenSpecDto instance) =>

@@ -1,3 +1,7 @@
+## 0.6.1
+
+- add tasks and tools pipeline support
+
 ## 0.6.0
 
 - add text and tool reflection

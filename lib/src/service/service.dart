@@ -27,8 +27,8 @@ class AgentService {
   List<ToolDriver> globalDriverList = [];
   Map<String, OpenToolDriver> opentoolDriverMap = {};
 
-  AgentService({List<ToolDriver>? globalToolDriverList = null}) {
-    if(globalToolDriverList != null) globalDriverList.addAll(globalToolDriverList);
+  AgentService({List<ToolDriver> globalToolDriverList = const []}) {
+    globalDriverList.addAll(globalToolDriverList);
   }
 
   Future<bool> testLLMConfig(String baseUrl, String apiKey) async {

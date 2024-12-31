@@ -28,8 +28,6 @@ abstract class SessionAgent {
 
   Future<void> userToAgent({required List<Content> contentList, String? taskId}) async {
 
-    // pipeline.setProcess(_userToAgent, onComplete: onPipelineComplete);
-
     if(taskId == null) taskId = Uuid().v4();
     dispatcherMap.create(taskId);
 
@@ -37,7 +35,19 @@ abstract class SessionAgent {
     AddStatus status = await pipeline.run(_userToAgent);
 
     switch(status) {
-      case AddStatus.REJECT: throw TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType);
+      case AddStatus.REJECT: {
+        Command clientCommand = Command(
+          toClient,
+          AgentMessage(
+              sessionId: sessionId,
+              taskId: taskId,
+              from: SessionRoleType.AGENT,
+              to: SessionRoleType.CLIENT,
+              type: SessionMessageType.TASK_STATUS,
+              message: TaskStatus(status: TaskStatusType.START, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
+          ));
+        dispatcherMap.dispatch(clientCommand);
+      };
       case AddStatus.ERROR_STRATEGY: throw StrategyNotExistException(source: "task: $taskId", strategy: pipeline.pipelineStrategyType);
       case AddStatus.SUCCESS: break;
     }

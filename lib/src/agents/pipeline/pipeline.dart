@@ -76,37 +76,36 @@ class Pipeline<T> {
 
 }
 
-Future<void> main() async {
-
-  Future<void> Function(String job) process = (String job) async {
-    print("Processing job: $job");
-    await Future.delayed(Duration(seconds: 2)); // 模拟异步处理
-    print("Finished job: $job");
-  };
-
-
-
-  Pipeline<String> pipeline = Pipeline(PipelineStrategyType.REJECT);
-
-  Future(() async {
-    pipeline.addJob("job1");
-
-    AddStatus addStatus = await pipeline.run(process, onComplete: () async {
-      print("job1  done");
-    });
-    print(addStatus);
-  });
-
-  Future(() async {
-    pipeline.addJob("job2");
-    pipeline.addJob("job3");
-
-    AddStatus addStatus = await pipeline.run(process, onComplete: () async {
-      print("job2&3 done");
-    });
-    print(addStatus);
-  });
-
-  await Future.delayed(Duration(seconds: 10));
-
-}
+/// DEMO for pineline
+// Future<void> main() async {
+//
+//   Future<void> Function(String job) process = (String job) async {
+//     print("Processing job: $job");
+//     await Future.delayed(Duration(seconds: 2));
+//     print("Finished job: $job");
+//   };
+//
+//   Pipeline<String> pipeline = Pipeline(PipelineStrategyType.REJECT); // PARALLEL, SERIAL, REJECT
+//
+//   Future(() async {
+//     pipeline.addJob("job1");
+//
+//     AddStatus addStatus = await pipeline.run(process, onComplete: () async {
+//       print("job1  done");
+//     });
+//     print(addStatus);
+//   });
+//
+//   Future(() async {
+//     pipeline.addJob("job2");
+//     pipeline.addJob("job3");
+//
+//     AddStatus addStatus = await pipeline.run(process, onComplete: () async {
+//       print("job2&3 done");
+//     });
+//     print(addStatus);
+//   });
+//
+//   await Future.delayed(Duration(seconds: 10));
+//
+// }

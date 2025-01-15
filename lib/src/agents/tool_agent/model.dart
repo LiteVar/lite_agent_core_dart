@@ -1,3 +1,4 @@
+import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 
 import '../llm/model.dart';
@@ -20,6 +21,23 @@ class ToolMessageType {
   static String FUNCTION_CALL_LIST = AgentMessageType.FUNCTION_CALL_LIST; //List<FunctionCall>
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn
   static String TASK_STATUS = TextMessageType.TASK_STATUS; //TaskStatus
+}
+
+class ToolStatusType {
+  static const String START = "toolsStart";
+  // static const String STOP = "toolStop";
+  static const String DONE = "toolsDone";
+  // static const String EXCEPTION = "toolException";
+}
+
+class ToolStatusDescription {
+  List<String> functionCallIdList;
+
+  ToolStatusDescription({this.functionCallIdList = const []});
+
+  Map<String, dynamic> toJson() => {
+    'functionCallIdList': functionCallIdList,
+  };
 }
 
 class FunctionCallParam {

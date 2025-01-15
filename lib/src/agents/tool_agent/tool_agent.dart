@@ -139,6 +139,8 @@ class ToolAgent extends TextAgent {
       toolPipeLine.addJob(functionCallParam);
     }
 
+    List<String> functionCallIdList = functionCallList.map((functionCall) => functionCall.id).toList();
+
     toolPipeLine.run(_requestTool, onComplete: () async {
       AgentMessage toolDoneMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
@@ -146,7 +148,7 @@ class ToolAgent extends TextAgent {
           from: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TASK_STATUS,
-          message: TaskStatus(status: TaskStatusType.DONE)
+          message: TaskStatus(status: ToolStatusType.DONE, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
       );
       Command command = Command(toAgent, toolDoneMessage);
       dispatcherMap.dispatch(command);
@@ -225,18 +227,22 @@ class ToolAgent extends TextAgent {
   }
 
   Future<void> toTool(AgentMessage agentMessage) async {
-    agentSession.addListenAgentMessage(agentMessage);
-    Command clientCommand = Command(
-        toClient,
-        AgentMessage(
-          sessionId: agentMessage.sessionId,
-          taskId: agentMessage.taskId,
-          from: ToolRoleType.AGENT,
-          to: ToolRoleType.CLIENT,
-          type: ToolMessageType.TASK_STATUS,
-          message: TaskStatus(status:TaskStatusType.START)
-        ));
-    dispatcherMap.dispatch(clientCommand);
-    requestTools(agentMessage);
+    if(agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
+      List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+      List<String> functionCallIdList = functionCallList.map((functionCall) => functionCall.id).toList();
+      agentSession.addListenAgentMessage(agentMessage);
+      Command clientCommand = Command(
+          toClient,
+          AgentMessage(
+              sessionId: agentMessage.sessionId,
+              taskId: agentMessage.taskId,
+              from: ToolRoleType.AGENT,
+              to: ToolRoleType.CLIENT,
+              type: ToolMessageType.TASK_STATUS,
+              message: TaskStatus(status:ToolStatusType.START, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
+          ));
+      dispatcherMap.dispatch(clientCommand);
+      requestTools(agentMessage);
+    }
   }
 }

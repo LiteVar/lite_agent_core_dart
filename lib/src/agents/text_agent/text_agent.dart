@@ -8,6 +8,7 @@ import '../reflection/reflector_agent.dart';
 import '../reflection/reflector_manager.dart';
 import '../session_agent/agent_message_handler.dart';
 import '../session_agent/dispatcher.dart';
+import '../session_agent/model.dart';
 import '../session_agent/session_agent.dart';
 import 'text_agent_message_handler.dart';
 import 'model.dart';
@@ -77,7 +78,7 @@ class TextAgent extends SessionAgent {
       from: TextRoleType.AGENT,
       to: TextRoleType.CLIENT,
       type: TextMessageType.TASK_STATUS,
-      message: TaskStatus(status: TaskStatusType.DONE)
+      message: TaskStatus(status: TaskStatusType.DONE, taskId: sessionMessage.taskId)
     );
     Command clientCommand = Command(toClient,clientMessage);
     dispatcherMap.dispatch(clientCommand);
@@ -124,7 +125,7 @@ class TextAgent extends SessionAgent {
         from: TextRoleType.AGENT,
         to: TextRoleType.CLIENT,
         type: TextMessageType.TASK_STATUS,
-        message: TaskStatus(status:TaskStatusType.STOP, description: exceptionMessage.toJson()));
+        message: TaskStatus(status:TaskStatusType.STOP, taskId: taskId, description: exceptionMessage.toJson()));
     Command exceptionCommand = Command(toClient, agentMessage);
     dispatcherMap.stop(agentMessage.taskId, exceptionCommand);
   }

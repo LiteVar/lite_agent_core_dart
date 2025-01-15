@@ -303,12 +303,14 @@ Map<String, dynamic> _$ReflectionDtoToJson(ReflectionDto instance) =>
 TaskStatusDto _$TaskStatusDtoFromJson(Map<String, dynamic> json) =>
     TaskStatusDto(
       status: json['status'] as String,
+      taskId: json['taskId'] as String,
       description: json['description'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$TaskStatusDtoToJson(TaskStatusDto instance) =>
     <String, dynamic>{
       'status': instance.status,
+      'taskId': instance.taskId,
       if (instance.description case final value?) 'description': value,
     };
 

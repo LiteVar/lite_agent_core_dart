@@ -19,6 +19,13 @@ class ContentType {
   static const String IMAGE_URL = LLMContentType.IMAGE_URL;
 }
 
+class TaskStatusType {
+  static const String START = "start";
+  static const String STOP = "stop";
+  static const String DONE = "done";
+  static const String EXCEPTION = "exception";
+}
+
 class Content extends LLMContent {
   Content({required super.type, required super.message});
 
@@ -39,3 +46,13 @@ class ContentsTask {
 
   ContentsTask({required this.taskId, required this.contentList});
 }
+
+// class TaskStatusDescription {
+//   String taskId;
+//
+//   TaskStatusDescription({required this.taskId});
+//
+//   Map<String, dynamic> toJson() => {
+//     'taskId': taskId,
+//   };
+// }

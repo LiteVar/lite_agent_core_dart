@@ -5,13 +5,14 @@ import 'package:dotenv/dotenv.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:uuid/uuid.dart';
+import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Some OpenSpec json file, according to `/example/json/*.json`, which is callable.
 /// 2. Run your tool server, which is described in json file.
 /// 3. Add LLM baseUrl and apiKey to `.env` file
-String prompt = "Check the status of the book which id is 1.";
+String prompt = "Help me set store a text 'hello1'";
 
 Future<void> main() async {
   String sessionId = Uuid().v4();
@@ -37,29 +38,43 @@ LLMConfig _buildLLMConfig() {
   );
 }
 
-/// Use Prompt engineering to design SystemPrompt
-/// https://platform.openai.com/docs/guides/prompt-engineering
 Future<List<ToolDriver>> _buildToolDriverList() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
+  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
   List<String> fileNameList = [
-    "json-rpc-book.json"
-    // "json-rpc-food.json" // you can add more tool spec json file.
+    "mock-tool.json"
   ];
 
-  List<ToolDriver> toolRunnerList = [];
+  List<ToolDriver> toolDriverList = [];
   for (String fileName in fileNameList) {
-    OpenRPC openRPC = await OpenRPCLoader()
-        .loadFromFile("$folder${Platform.pathSeparator}$fileName");
-    ToolDriver toolRunner = JsonRPCDriver(openRPC);
-
-    /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolDriver of the tools.
-    // OpenAPI openAPI = await OpenAPILoader().loadFromFile("$folder/$fileName");
-    // ToolDriver toolRunner = OpenAPIRunner(openAPI);
-
-    toolRunnerList.add(toolRunner);
+    OpenTool openTool = await OpenToolLoader().loadFromFile("$folder${Platform.pathSeparator}$fileName");
+    ToolDriver toolDriver = MockDriver().bind(openTool);
+    toolDriverList.add(toolDriver);
   }
-  return toolRunnerList;
+  return toolDriverList;
 }
+
+/// Standard protocol for tool driver, openrpc/openapi3
+// Future<List<ToolDriver>> _buildToolDriverList() async {
+//   String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}json${Platform.pathSeparator}openrpc";
+//   List<String> fileNameList = [
+//     "json-rpc-book.json"
+//     // "json-rpc-food.json" // you can add more tool spec json file.
+//   ];
+//
+//   List<ToolDriver> toolRunnerList = [];
+//   for (String fileName in fileNameList) {
+//     OpenRPC openRPC = await OpenRPCLoader()
+//         .loadFromFile("$folder${Platform.pathSeparator}$fileName");
+//     ToolDriver toolRunner = JsonRPCDriver(openRPC);
+//
+//     /// If your tools interface is `HTTP API`/`json-rpc 2.0 over HTTP`/`Modbus`, REMEMBER return these ToolDriver of the tools.
+//     // OpenAPI openAPI = await OpenAPILoader().loadFromFile("$folder/$fileName");
+//     // ToolDriver toolRunner = OpenAPIRunner(openAPI);
+//
+//     toolRunnerList.add(toolRunner);
+//   }
+//   return toolRunnerList;
+// }
 
 AgentSession _buildSession(String sessionId) {
   AgentSession session = AgentSession();
@@ -72,5 +87,5 @@ AgentSession _buildSession(String sessionId) {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return 'You are a tools caller, who can call book system tools to help me manage my books.';
+  return 'You are a tools caller, who can call tools to help me manage my storage.';
 }

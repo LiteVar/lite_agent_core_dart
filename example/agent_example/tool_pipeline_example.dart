@@ -86,5 +86,5 @@ AgentSession _buildSession(String sessionId) {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return 'You are a tools caller, who can call book system tools to help me manage my books.';
+  return 'You are a tools caller, who can call tools to help me manage my storage.';
 }

@@ -44,7 +44,7 @@ abstract class SessionAgent {
               from: SessionRoleType.AGENT,
               to: SessionRoleType.CLIENT,
               type: SessionMessageType.TASK_STATUS,
-              message: TaskStatus(status: TaskStatusType.START, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
+              message: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
           ));
         dispatcherMap.dispatch(clientCommand);
       };
@@ -62,7 +62,7 @@ abstract class SessionAgent {
         from: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
-        message: TaskStatus(status: TaskStatusType.START)
+        message: TaskStatus(status: TaskStatusType.START, taskId: contentsTask.taskId)
       ));
     dispatcherMap.dispatch(clientCommand);
 
@@ -113,7 +113,7 @@ abstract class SessionAgent {
         from: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
-        message: TaskStatus(status: TaskStatusType.STOP)
+        message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId??"")
       );
       dispatcherMap.stopAll(toClient, stopMessage);
     } else {
@@ -130,7 +130,7 @@ abstract class SessionAgent {
           from: SessionRoleType.AGENT,
           to: SessionRoleType.CLIENT,
           type: SessionMessageType.TASK_STATUS,
-          message: TaskStatus(status: TaskStatusType.STOP)
+          message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)
         ));
     dispatcherMap.stop(taskId, clientCommand);
     timeout.start(clear);

@@ -418,14 +418,16 @@ class ReflectionDto {
 @JsonSerializable()
 class TaskStatusDto {
   String status;
+  String taskId;
 
   @JsonKey(includeIfNull: false)
   Map<String, dynamic>? description;
 
-  TaskStatusDto({required this.status, this.description});
+  TaskStatusDto({required this.status, required this.taskId, this.description});
 
   factory TaskStatusDto.fromModel(TaskStatus taskStatus) => TaskStatusDto(
     status: taskStatus.status,
+    taskId: taskStatus.taskId,
     description: taskStatus.description
   );
 
@@ -462,15 +464,3 @@ class ReflectPromptDto {
 
   Map<String, dynamic> toJson() => _$ReflectPromptDtoToJson(this);
 }
-
-// @JsonSerializable()
-// class PipelineStrategyDto {
-//   String type;
-//   String? description;
-//
-//   PipelineStrategyDto({this.type = PipelineStrategyType.PARALLEL, this.description});
-//
-//   factory PipelineStrategyDto.fromJson(Map<String, dynamic> json) => _$PipelineStrategyDtoFromJson(json);
-//
-//   Map<String, dynamic> toJson() => _$PipelineStrategyDtoToJson(this);
-// }

@@ -36,6 +36,7 @@ abstract class SessionAgent {
 
     switch(statusAsync.addStatus) {
       case AddStatus.REJECT: {
+        pipeline.completeAsync(taskId);
         Command clientCommand = Command(
           toClient,
           AgentMessage(
@@ -103,7 +104,6 @@ abstract class SessionAgent {
   }
 
   Future<void> toClient(AgentMessage sessionMessage) async {
-    pipeline.completeAsync(sessionMessage.taskId);
     agentSession.addListenAgentMessage(sessionMessage);
   }
 
@@ -123,6 +123,7 @@ abstract class SessionAgent {
   }
 
   void _stop(String taskId) {
+    pipeline.completeAsync(taskId);
     Command clientCommand = Command(
         toClient,
         AgentMessage(

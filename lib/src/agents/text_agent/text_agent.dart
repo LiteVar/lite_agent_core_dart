@@ -72,6 +72,7 @@ class TextAgent extends SessionAgent {
 
   Future<void> toUser(AgentMessage sessionMessage) async {
     agentSession.addListenAgentMessage(sessionMessage);
+    pipeline.completeAsync(sessionMessage.taskId);
     AgentMessage clientMessage = AgentMessage(
       sessionId: sessionMessage.sessionId,
       taskId: sessionMessage.taskId,
@@ -119,6 +120,7 @@ class TextAgent extends SessionAgent {
   }
 
   void pushException(String sessionId, String taskId, ExceptionMessage exceptionMessage) {
+    pipeline.completeAsync(taskId);
     AgentMessage agentMessage = AgentMessage(
         sessionId: sessionId,
         taskId: taskId,

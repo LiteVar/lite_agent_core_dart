@@ -30,3 +30,10 @@ enum AddStatus {
   REJECT,
   ERROR_STRATEGY
 }
+
+class AddStatusAsync {
+  AddStatus addStatus;
+  String asyncId;
+
+  AddStatusAsync({required this.addStatus, required this.asyncId});
+}

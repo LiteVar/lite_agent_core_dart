@@ -15,7 +15,7 @@ abstract class SessionAgent {
   AgentSession agentSession;
   DispatcherMap dispatcherMap = DispatcherMap();
   late Timeout timeout;
-  Pipeline<ContentsTask> pipeline;
+  PipelineAsync<ContentsTask> pipeline;
 
   SessionAgent({
     required this.sessionId,
@@ -23,7 +23,7 @@ abstract class SessionAgent {
     this.systemPrompt,
     String taskPipelineStrategy = PipelineStrategyType.PARALLEL,
     timeoutSeconds = 600
-  }) :  pipeline = Pipeline(taskPipelineStrategy),
+  }) :  pipeline = PipelineAsync(taskPipelineStrategy),
         timeout = Timeout(timeoutSeconds);
 
   Future<void> userToAgent({required List<Content> contentList, String? taskId}) async {
@@ -32,9 +32,9 @@ abstract class SessionAgent {
     dispatcherMap.create(taskId);
 
     pipeline.addJob(ContentsTask(taskId: taskId, contentList: contentList));
-    AddStatus status = await pipeline.run(_userToAgent);
+    AddStatusAsync statusAsync = await pipeline.runAsync(_userToAgent, asyncId: taskId);
 
-    switch(status) {
+    switch(statusAsync.addStatus) {
       case AddStatus.REJECT: {
         Command clientCommand = Command(
           toClient,
@@ -103,6 +103,7 @@ abstract class SessionAgent {
   }
 
   Future<void> toClient(AgentMessage sessionMessage) async {
+    pipeline.completeAsync(sessionMessage.taskId);
     agentSession.addListenAgentMessage(sessionMessage);
   }
 

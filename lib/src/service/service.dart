@@ -179,12 +179,18 @@ class AgentService {
         OpenRPC openRPC = await OpenRPCLoader().load(openSpecDto.openSpec);
         ToolDriver jsonrpcHttpDriver = JsonRPCDriver(openRPC);
         toolDriverList.add(jsonrpcHttpDriver);
-      }else if (openSpecDto.protocol == Protocol.OPENTOOL) {
+      } else if (openSpecDto.protocol == Protocol.OPENTOOL) {
+        if(openSpecDto.openToolId == null) throw OpenToolIdNotFoundException(openToolId: "NULL");
         OpenToolDriver? opentoolDriver = await opentoolDriverMap[openSpecDto.openToolId!];
         if(opentoolDriver != null) {
           OpenTool openTool = await OpenToolLoader().load(openSpecDto.openSpec);
           toolDriverList.add(opentoolDriver.bind(openTool));
+        } else {
+          throw OpenToolIdNotFoundException(openToolId: openSpecDto.openToolId!);
         }
+      } else if (openSpecDto.protocol == Protocol.SERIALPORT) {
+        SerialPortDriver serialPortDriver = SerialPortDriver();
+        toolDriverList.add(serialPortDriver);
       }
     }
     return toolDriverList;

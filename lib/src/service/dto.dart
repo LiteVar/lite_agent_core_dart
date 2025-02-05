@@ -93,6 +93,7 @@ class Protocol {
   static const String OPENMODBUS = "openmodbus";
   static const String JSONRPCHTTP = "jsonrpcHttp";
   static const String OPENTOOL = "opentool";
+  static const String SERIALPORT = "serialport";
 }
 
 @JsonSerializable()

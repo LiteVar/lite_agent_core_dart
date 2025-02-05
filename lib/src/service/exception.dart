@@ -38,3 +38,18 @@ class AgentNameException implements Exception {
     return jsonEncode(this.toJson());
   }
 }
+
+@JsonSerializable(createFactory: false)
+class OpenToolIdNotFoundException implements Exception {
+  final int code = 404;
+  late String message;
+
+  OpenToolIdNotFoundException({required String openToolId,}){
+    this.message = "OpenToolId not found: `$openToolId`";
+  }
+
+  Map<String, dynamic> toJson() => _$OpenToolIdNotFoundExceptionToJson(this);
+
+  @override
+  String toString() => jsonEncode(this.toJson());
+}

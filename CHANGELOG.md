@@ -1,3 +1,8 @@
+## 0.7.0
+
+- add serial port driver supported
+- add dynamic libs driver supported
+
 ## 0.6.1
 
 - add tasks and tools pipeline support

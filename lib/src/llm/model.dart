@@ -37,12 +37,20 @@ class TokenUsage {
   });
 }
 
-class SimpleCompletion {
+class ChatCompletion {
   OpenAIChatCompletionChoiceMessageModel message;
 
   Completions completions;
 
-  SimpleCompletion({required this.message, required this.completions});
+  ChatCompletion({required this.message, required this.completions});
+}
+
+class ChatCompletionDelta {
+  OpenAIStreamChatCompletionChoiceDeltaModel delta;
+
+  Completions? completions;
+
+  ChatCompletionDelta({required this.delta, this.completions});
 }
 
 class ResponseFormatType {

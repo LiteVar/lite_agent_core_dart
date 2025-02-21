@@ -25,7 +25,7 @@ class OpenAIUtil {
     }
   }
 
-  Future<SimpleCompletion> chat({required List<OpenAIChatCompletionChoiceMessageModel> messageList, List<OpenAIToolModel>? toolList, ResponseFormat? responseFormat}) async {
+  Future<ChatCompletion> chat({required List<OpenAIChatCompletionChoiceMessageModel> messageList, List<OpenAIToolModel>? toolList, ResponseFormat? responseFormat}) async {
       OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat.create(
           model: llmConfig.model,
           responseFormat: responseFormat == null ? ResponseFormat(type: ResponseFormatType.TEXT).toJson() : responseFormat.toJson(),
@@ -45,7 +45,37 @@ class OpenAIUtil {
 
       Completions completions = Completions(tokenUsage: tokenUsage, id: chatCompletion.id, model: llmConfig.model);
 
-      return SimpleCompletion(message: chatCompletion.choices.first.message, completions: completions);
+      return ChatCompletion(message: chatCompletion.choices.first.message, completions: completions);
+  }
+
+  Future<Stream<ChatCompletionDelta>> chatByStream({required List<OpenAIChatCompletionChoiceMessageModel> messageList, List<OpenAIToolModel>? toolList, ResponseFormat? responseFormat}) async {
+    Stream<OpenAIStreamChatCompletionModel> chatCompletionStream = await OpenAI.instance.chat.createStream(
+      model: llmConfig.model,
+      responseFormat: responseFormat == null ? ResponseFormat(type: ResponseFormatType.TEXT).toJson() : responseFormat.toJson(),
+      seed: 6,
+      messages: messageList,
+      tools: toolList,
+      temperature: llmConfig.temperature,
+      maxTokens: llmConfig.maxTokens,
+      topP: llmConfig.topP,
+    );
+
+    return chatCompletionStream
+      .where((streamCompletion) => streamCompletion.choices.first.delta.content != null)
+      .map((streamCompletion) {
+        Completions? completions = null;
+        /// Waiting for the completion usage to be supported
+        // if(streamCompletion.usage != null) {
+        //   TokenUsage tokenUsage = TokenUsage(
+        //       promptTokens: streamCompletion.usage.promptTokens,
+        //       completionTokens: streamCompletion.usage.completionTokens,
+        //       totalTokens: streamCompletion.usage.totalTokens
+        //   );
+        //   completions = Completions(tokenUsage: tokenUsage, id: streamCompletion.id, model: llmConfig.model);
+        // }
+        return ChatCompletionDelta(delta: streamCompletion.choices.first.delta, completions: completions);
+    });
+
   }
 
 }

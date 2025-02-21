@@ -36,7 +36,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     List<OpenAIToolModel>? tools = functionModelList?.map((FunctionModel functionModel) => _buildOpenAIToolModel(functionModel)).toList();
 
     try {
-      SimpleCompletion chatCompletion = await super.chat(messageList: requestMessageList, toolList: tools, responseFormat: responseFormat);
+      ChatCompletion chatCompletion = await super.chat(messageList: requestMessageList, toolList: tools, responseFormat: responseFormat);
 
       AgentMessage agentMessage = _toAgentMessage(
           chatCompletion.message,

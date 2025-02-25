@@ -52,7 +52,7 @@ class ReflectorAgent {
       AgentMessage systemMessage = AgentMessage(
           sessionId: sessionId,
           taskId: taskId,
-          from: TextRoleType.SYSTEM,
+          role: TextRoleType.DEVELOPER,
           to: TextRoleType.AGENT,
           type: TextMessageType.TEXT,
           message: systemPrompt
@@ -63,8 +63,8 @@ class ReflectorAgent {
     AgentMessage reflectMessage = AgentMessage(
         sessionId: sessionId,
         taskId: taskId,
-        from: TextRoleType.AGENT,
-        to: TextRoleType.LLM,
+        role: TextRoleType.AGENT,
+        to: TextRoleType.ASSISTANT,
         type: TextMessageType.CONTENT_LIST,
         message: reflectContentList
     );

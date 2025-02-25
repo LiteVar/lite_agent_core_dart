@@ -3,10 +3,10 @@ import '../reflection/model.dart';
 import '../session_agent/model.dart';
 
 class TextRoleType {
-  static const String SYSTEM = SessionRoleType.SYSTEM; // system prompt
+  static const String DEVELOPER = SessionRoleType.SYSTEM; // system prompt
   static const String USER = SessionRoleType.USER; // user
   static const String AGENT = SessionRoleType.AGENT; // agent
-  static const String LLM = AgentRoleType.LLM; // llm
+  static const String ASSISTANT = AgentRoleType.LLM; // llm
   static const String CLIENT = SessionRoleType.CLIENT; // external caller
   static const String REFLECTION = "reflection";
 }
@@ -14,6 +14,7 @@ class TextRoleType {
 class TextMessageType {
   static String TEXT = SessionMessageType.TEXT; //String
   static String IMAGE_URL = SessionMessageType.IMAGE_URL; //String
+  static String CHUNK = SessionMessageType.CHUNK; //String
   static String CONTENT_LIST = SessionMessageType.CONTENT_LIST; //List<Content>
   static String TASK_STATUS = SessionMessageType.TASK_STATUS; //TaskStatus
   static String EXCEPTION = "exception"; //Exception
@@ -51,6 +52,10 @@ class Reflection {
     required this.count,
     required this.maxCount,
   });
+}
+
+class TextStatusType {
+  static const String CHUNK_DONE = "chunkDone";
 }
 
 // class Reflection {

@@ -43,7 +43,7 @@ class DispatcherMap {
         AgentMessage currAgentMessage = AgentMessage(
           sessionId: message.sessionId,
           taskId: taskId,
-          from: message.from,
+          role: message.role,
           to: message.to,
           type: message.type,
           message: message.message

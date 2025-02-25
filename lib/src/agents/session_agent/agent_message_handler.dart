@@ -9,7 +9,7 @@ class AgentMessageHandlerManager {
   }
 
   Command? handleMessage(AgentMessage agentMessage) {
-    var strategy = _strategies[agentMessage.from];
+    var strategy = _strategies[agentMessage.role];
     return strategy?.handle(agentMessage);
   }
 }

@@ -1,4 +1,4 @@
-import 'package:dart_openai/dart_openai.dart';
+import 'package:dart_openai_sdk/dart_openai_sdk.dart';
 
 class LLMConfig {
   String baseUrl;
@@ -45,17 +45,25 @@ class ChatCompletion {
   ChatCompletion({required this.message, required this.completions});
 }
 
-class ChatCompletionDelta {
-  OpenAIStreamChatCompletionChoiceDeltaModel delta;
+class FinishReasonType {
+  static String STOP = "stop";
+  static String TOOL_CALLS = "tool_calls";
+  static String LENGTH = "length";
+  static String CONTENT_FILTER = "content_filter";
+}
 
+class ChatCompletionDelta {
+  OpenAIStreamChatCompletionChoiceDeltaModel? delta;
+  String? finishReason;
   Completions? completions;
 
-  ChatCompletionDelta({required this.delta, this.completions});
+  ChatCompletionDelta({this.delta, this.finishReason, this.completions});
 }
 
 class ResponseFormatType {
   static String TEXT = "text";
   static String JSON_OBJECT = "json_object";
+  static String JSON_SCHEMA = "json_schema";
 }
 
 class ResponseFormat {

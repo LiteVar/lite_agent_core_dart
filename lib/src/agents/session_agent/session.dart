@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:lite_agent_core_dart/lite_agent_core.dart';
+
 import '../model.dart';
 
 class AgentSession {
@@ -6,6 +8,8 @@ class AgentSession {
   List<AgentMessage> listenAgentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
   List<AgentMessage> taskDoneAgentMessageList = [];
+  bool isStream;
+  AgentSession({this.isStream = false});
 
   void clearMessage() {
     hasSystemMessage = false;
@@ -20,14 +24,28 @@ class AgentSession {
   }
 
   Future<void> addListenAgentMessage(AgentMessage agentMessage) async {
-    listenAgentMessageList.add(agentMessage);
-    _agentMessageListenerList.forEach((agentLLMMessageListener) async {
-      agentLLMMessageListener(agentMessage);
-    });
+    if(isStream && agentMessage.type == AgentMessageType.CHUNK) {
+      _broadcast(agentMessage);
+    } else if (isStream && ((agentMessage.role == AgentRoleType.LLM && agentMessage.to == AgentRoleType.AGENT) || (agentMessage.role == AgentRoleType.AGENT && agentMessage.to == AgentRoleType.USER))&& agentMessage.type == AgentMessageType.TEXT) {
+      _record(agentMessage);
+    } else {
+      _record(agentMessage);
+      _broadcast(agentMessage);
+    }
   }
 
   void addTaskDoneAgentMessageList(List<AgentMessage> agentMessageList) {
     this.taskDoneAgentMessageList.addAll(agentMessageList);
+  }
+
+  void _record(AgentMessage agentMessage) {
+    listenAgentMessageList.add(agentMessage);
+  }
+
+  void _broadcast(AgentMessage agentMessage) {
+    _agentMessageListenerList.forEach((agentLLMMessageListener) async {
+      agentLLMMessageListener(agentMessage);
+    });
   }
 
 }

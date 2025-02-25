@@ -18,8 +18,8 @@ class UserMessageHandler extends AgentMessageHandler {
     AgentMessage newAgentMessage = AgentMessage(
       sessionId: agentMessage.sessionId,
       taskId: agentMessage.taskId,
-      from: TextRoleType.AGENT,
-      to: TextRoleType.LLM,
+      role: TextRoleType.AGENT,
+      to: TextRoleType.ASSISTANT,
       type: TextMessageType.CONTENT_LIST,
       message: userContentList
     );
@@ -37,6 +37,7 @@ class LLMMessageHandler extends AgentMessageHandler {
   final ReflectorManager reflectionManager;
   final Future<void> Function(AgentMessage) toReflection;
   final Future<void> Function(AgentMessage) toUser;
+  String chunkAccumulation = "";
 
   LLMMessageHandler(this.reflectionManager, this.toReflection, this.toUser);
 
@@ -47,7 +48,7 @@ class LLMMessageHandler extends AgentMessageHandler {
         AgentMessage reflectionMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
             taskId: agentMessage.taskId,
-            from: TextRoleType.AGENT,
+            role: TextRoleType.AGENT,
             to: TextRoleType.REFLECTION,
             type: TextMessageType.TEXT,
             message: agentMessage.message
@@ -57,7 +58,7 @@ class LLMMessageHandler extends AgentMessageHandler {
         AgentMessage agentUserMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
             taskId: agentMessage.taskId,
-            from: TextRoleType.AGENT,
+            role: TextRoleType.AGENT,
             to: TextRoleType.USER,
             type: TextMessageType.TEXT,
             message: agentMessage.message
@@ -68,11 +69,44 @@ class LLMMessageHandler extends AgentMessageHandler {
       AgentMessage agentUserMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: TextRoleType.AGENT,
+          role: TextRoleType.AGENT,
           to: TextRoleType.USER,
           type: TextMessageType.IMAGE_URL,
           message: agentMessage.message);
       return Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
+    } else if(agentMessage.type == TextMessageType.CHUNK) {
+      chunkAccumulation += agentMessage.message as String;
+      AgentMessage agentUserMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          role: TextRoleType.AGENT,
+          to: TextRoleType.USER,
+          type: TextMessageType.CHUNK,
+          message: agentMessage.message
+      );
+      return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
+    } else if(agentMessage.type == TextMessageType.TASK_STATUS && agentMessage.message == TextStatusType.CHUNK_DONE) {
+      if(reflectionManager.shouldReflect) {
+        AgentMessage reflectionMessage = AgentMessage(
+            sessionId: agentMessage.sessionId,
+            taskId: agentMessage.taskId,
+            role: TextRoleType.AGENT,
+            to: TextRoleType.REFLECTION,
+            type: TextMessageType.TEXT,
+            message: chunkAccumulation
+        );
+        return Command(toReflection, reflectionMessage); // If LLM return text, and should reflect, forward to REFLECTION.
+      } else {
+        AgentMessage agentUserMessage = AgentMessage(
+            sessionId: agentMessage.sessionId,
+            taskId: agentMessage.taskId,
+            role: TextRoleType.AGENT,
+            to: TextRoleType.USER,
+            type: TextMessageType.TEXT,
+            message: chunkAccumulation
+        );
+        return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
+      }
     }
     return null;
   }
@@ -94,7 +128,7 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
       AgentMessage agentUserMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
-        from: TextRoleType.AGENT,
+        role: TextRoleType.AGENT,
         to: TextRoleType.USER,
         type: TextMessageType.TEXT,
         message: reflection.messageScore.message
@@ -105,8 +139,8 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
       AgentMessage newAgentMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
-        from: TextRoleType.AGENT,
-        to: TextRoleType.LLM,
+        role: TextRoleType.AGENT,
+        to: TextRoleType.ASSISTANT,
         type: TextMessageType.CONTENT_LIST,
         message: userContentList
       );

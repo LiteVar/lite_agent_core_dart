@@ -42,7 +42,7 @@ abstract class SessionAgent {
           AgentMessage(
               sessionId: sessionId,
               taskId: taskId,
-              from: SessionRoleType.AGENT,
+              role: SessionRoleType.AGENT,
               to: SessionRoleType.CLIENT,
               type: SessionMessageType.TASK_STATUS,
               message: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
@@ -60,7 +60,7 @@ abstract class SessionAgent {
       AgentMessage(
         sessionId: sessionId,
         taskId: contentsTask.taskId,
-        from: SessionRoleType.AGENT,
+        role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
         message: TaskStatus(status: TaskStatusType.START, taskId: contentsTask.taskId)
@@ -70,7 +70,7 @@ abstract class SessionAgent {
     AgentMessage contentMessage = AgentMessage(
       sessionId: sessionId,
       taskId: contentsTask.taskId,
-      from: SessionRoleType.USER,
+      role: SessionRoleType.USER,
       to: SessionRoleType.AGENT,
       type: SessionMessageType.CONTENT_LIST,
       message: contentsTask.contentList
@@ -90,7 +90,7 @@ abstract class SessionAgent {
       AgentMessage systemMessage = AgentMessage(
         sessionId: sessionMessage.sessionId,
         taskId: sessionMessage.taskId,
-        from: SessionRoleType.SYSTEM,
+        role: SessionRoleType.SYSTEM,
         to: SessionRoleType.AGENT,
         type: SessionMessageType.TEXT,
         message: systemPrompt
@@ -111,7 +111,7 @@ abstract class SessionAgent {
     if(taskId == null) {
       Message stopMessage = Message(
         sessionId: sessionId,
-        from: SessionRoleType.AGENT,
+        role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
         message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId??"")
@@ -129,7 +129,7 @@ abstract class SessionAgent {
         AgentMessage(
           sessionId: sessionId,
           taskId: taskId,
-          from: SessionRoleType.AGENT,
+          role: SessionRoleType.AGENT,
           to: SessionRoleType.CLIENT,
           type: SessionMessageType.TASK_STATUS,
           message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)

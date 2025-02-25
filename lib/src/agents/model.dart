@@ -2,14 +2,14 @@ import '../llm/model.dart';
 
 class Message {
   String sessionId;
-  String from;
+  String role;
   String to;
   String type;
   dynamic message;
   DateTime createTime = DateTime.now();
   Message({
     required this.sessionId,
-    required this.from,
+    required this.role,
     required this.to,
     required this.type,
     required this.message
@@ -22,7 +22,7 @@ class AgentMessage extends Message {
   AgentMessage({
     required super.sessionId,
     required this.taskId,
-    required super.from,
+    required super.role,
     required super.to,
     required super.type,
     required super.message,
@@ -44,3 +44,12 @@ class TaskStatus {
     };
   }
 }
+
+// class AgentMessageChunk extends MessageBase {
+//   String taskId;
+//   String type;
+//   String part;
+//
+//   AgentMessageChunk({required super.sessionId, required this.taskId, required super.role, required super.to, required this.type, required this.part, super.completions});
+// }
+

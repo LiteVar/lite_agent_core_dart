@@ -44,10 +44,12 @@ class SessionNameDto extends SessionDto {
 class SimpleCapabilityDto {
   LLMConfigDto llmConfig;
   String systemPrompt;
+  bool isStream;
 
   SimpleCapabilityDto({
     required this.llmConfig,
-    required this.systemPrompt
+    required this.systemPrompt,
+    this.isStream = false
   });
 
   factory SimpleCapabilityDto.fromJson(Map<String, dynamic> json) => _$SimpleCapabilityDtoFromJson(json);
@@ -155,11 +157,11 @@ class LLMConfigDto {
   );
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class AgentMessageDto {
   String sessionId;
   String taskId;
-  String from;
+  String role;
   String to;
   String type;
   dynamic message;
@@ -172,7 +174,7 @@ class AgentMessageDto {
   AgentMessageDto({
     required this.sessionId,
     required this.taskId,
-    required this.from,
+    required this.role,
     required this.to,
     required this.type,
     required this.message,
@@ -190,6 +192,7 @@ class AgentMessageDto {
 
     switch (agentMessage.type) {
       case AgentMessageType.CONTENT_LIST: message = (agentMessage.message as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
+      case AgentMessageType.FUNCTION_CALL: message = FunctionCallDto.fromModel(agentMessage.message as FunctionCall);break;
       case AgentMessageType.FUNCTION_CALL_LIST: message = (agentMessage.message as List<FunctionCall>).map((functionCall) => FunctionCallDto.fromModel(functionCall)).toList();break;
       case AgentMessageType.TOOL_RETURN: message = ToolReturnDto.fromModel(agentMessage.message as ToolReturn);break;
       case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.message as Reflection);break;
@@ -200,7 +203,7 @@ class AgentMessageDto {
     return AgentMessageDto(
       sessionId: agentMessage.sessionId,
       taskId: agentMessage.taskId,
-      from: agentMessage.from,
+      role: agentMessage.role,
       to: agentMessage.to,
       type: agentMessage.type,
       message: message,

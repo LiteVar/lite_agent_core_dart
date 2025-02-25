@@ -32,6 +32,7 @@ SimpleCapabilityDto _$SimpleCapabilityDtoFromJson(Map<String, dynamic> json) =>
       llmConfig:
           LLMConfigDto.fromJson(json['llmConfig'] as Map<String, dynamic>),
       systemPrompt: json['systemPrompt'] as String,
+      isStream: json['isStream'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SimpleCapabilityDtoToJson(
@@ -39,6 +40,7 @@ Map<String, dynamic> _$SimpleCapabilityDtoToJson(
     <String, dynamic>{
       'llmConfig': instance.llmConfig,
       'systemPrompt': instance.systemPrompt,
+      'isStream': instance.isStream,
     };
 
 CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
@@ -59,12 +61,13 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
       taskPipelineStrategy: json['taskPipelineStrategy'] as String? ??
           PipelineStrategyType.PARALLEL,
       toolPipelineStrategy: json['toolPipelineStrategy'] as String?,
-    );
+    )..isStream = json['isStream'] as bool;
 
 Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
     <String, dynamic>{
       'llmConfig': instance.llmConfig,
       'systemPrompt': instance.systemPrompt,
+      'isStream': instance.isStream,
       if (instance.openSpecList case final value?) 'openSpecList': value,
       if (instance.sessionList case final value?) 'sessionList': value,
       if (instance.reflectPromptList case final value?)
@@ -114,7 +117,7 @@ AgentMessageDto _$AgentMessageDtoFromJson(Map<String, dynamic> json) =>
     AgentMessageDto(
       sessionId: json['sessionId'] as String,
       taskId: json['taskId'] as String,
-      from: json['from'] as String,
+      role: json['role'] as String,
       to: json['to'] as String,
       type: json['type'] as String,
       message: json['message'],
@@ -129,11 +132,12 @@ Map<String, dynamic> _$AgentMessageDtoToJson(AgentMessageDto instance) =>
     <String, dynamic>{
       'sessionId': instance.sessionId,
       'taskId': instance.taskId,
-      'from': instance.from,
+      'role': instance.role,
       'to': instance.to,
       'type': instance.type,
       'message': instance.message,
-      if (instance.completions case final value?) 'completions': value,
+      if (instance.completions?.toJson() case final value?)
+        'completions': value,
       'createTime': instance.createTime.toIso8601String(),
     };
 

@@ -62,7 +62,7 @@ class AgentService {
     return AgentMessageDto.fromModel(agentMessage);
   }
 
-  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList}) async {
+  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList, bool isStream = false}) async {
     String sessionId = Uuid().v4();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
@@ -80,7 +80,7 @@ class AgentService {
       SessionAgent textAgent = TextAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, listen),
+        agentSession: _buildSession(sessionId, isStream, listen),
         systemPrompt: systemPrompt,
         textReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds,
@@ -91,7 +91,7 @@ class AgentService {
       SessionAgent toolAgent = ToolAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, listen),
+        agentSession: _buildSession(sessionId, isStream, listen),
         toolDriverList: agentToolDriverList,
         systemPrompt: systemPrompt,
         toolReflectPromptList: reflectPromptList??[],
@@ -151,8 +151,8 @@ class AgentService {
     }
   }
 
-  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) {
-    AgentSession agentSession = AgentSession();
+  AgentSession _buildSession(String sessionId, bool isStream, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) {
+    AgentSession agentSession = AgentSession(isStream: isStream);
     agentSession.addAgentMessageListener((AgentMessage agentMessage) {
       listen(sessionId, AgentMessageDto.fromModel(agentMessage));
     });

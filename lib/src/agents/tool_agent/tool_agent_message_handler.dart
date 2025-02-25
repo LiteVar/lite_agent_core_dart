@@ -14,6 +14,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
   final Future<void> Function(AgentMessage) toReflection;
   final Future<void> Function(AgentMessage) toUser;
   final Future<void> Function(AgentMessage) toTool;
+  String chunkAccumulation = "";
 
   LLMFunctionCallingMessageHandler(this.reflectionManager, this.toReflection, this.toUser, this.toTool);
 
@@ -25,7 +26,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
         AgentMessage reflectionMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
             taskId: agentMessage.taskId,
-            from: ToolRoleType.AGENT,
+            role: ToolRoleType.AGENT,
             to: ToolRoleType.REFLECTION,
             type: ToolMessageType.FUNCTION_CALL_LIST,
             message: functionCallList
@@ -35,7 +36,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
           AgentMessage agentToolMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
             taskId: agentMessage.taskId,
-            from: ToolRoleType.AGENT,
+            role: ToolRoleType.AGENT,
             to: ToolRoleType.TOOL,
             type: ToolMessageType.FUNCTION_CALL_LIST,
             message: agentMessage.message
@@ -46,11 +47,22 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
       AgentMessage agentUserMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: ToolRoleType.AGENT,
+          role: ToolRoleType.AGENT,
           to: ToolRoleType.USER,
           type: agentMessage.type,
           message: agentMessage.message);
       return Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
+    } else if(agentMessage.type == TextMessageType.CHUNK) {
+      chunkAccumulation += agentMessage.message as String;
+      AgentMessage agentUserMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          role: TextRoleType.AGENT,
+          to: TextRoleType.USER,
+          type: TextMessageType.CHUNK,
+          message: agentMessage.message
+      );
+      return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
     }
     return null;
   }
@@ -71,8 +83,8 @@ class ToolMessageHandler extends AgentMessageHandler {
       AgentMessage agentLLMMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
-        from: ToolRoleType.AGENT,
-        to: ToolRoleType.LLM,
+        role: ToolRoleType.AGENT,
+        to: ToolRoleType.ASSISTANT,
         type: ToolMessageType.TOOL_RETURN,
         message: agentMessage.message
       );
@@ -86,7 +98,7 @@ class ToolMessageHandler extends AgentMessageHandler {
         AgentMessage agentToolMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: ToolRoleType.AGENT,
+          role: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
           type: ToolMessageType.TASK_STATUS,
           message: agentMessage.message
@@ -117,7 +129,7 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
       AgentMessage agentUserMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: ToolRoleType.AGENT,
+          role: ToolRoleType.AGENT,
           to: ToolRoleType.TOOL,
           type: ToolMessageType.FUNCTION_CALL_LIST,
           message: functionCallList
@@ -128,8 +140,8 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
       AgentMessage newAgentMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: ToolRoleType.AGENT,
-          to: ToolRoleType.LLM,
+          role: ToolRoleType.AGENT,
+          to: ToolRoleType.ASSISTANT,
           type: ToolMessageType.CONTENT_LIST,
           message: userContentList
       );

@@ -40,7 +40,7 @@ class ToolAgent extends TextAgent {
     });
 
     manager.registerHandler(from: TextRoleType.USER, handler: UserMessageHandler(toolReflectionManager, toLLM));//override TextAgent User handler, for save List<Content>
-    manager.registerHandler(from: ToolRoleType.LLM, handler: LLMFunctionCallingMessageHandler(toolReflectionManager, toReflection, toUser, toTool)); //override TextAgent LLM handler
+    manager.registerHandler(from: ToolRoleType.ASSISTANT, handler: LLMFunctionCallingMessageHandler(toolReflectionManager, toReflection, toUser, toTool)); //override TextAgent LLM handler
     manager.registerHandler(from: ToolRoleType.TOOL, handler: ToolMessageHandler(toolReflectionManager, toLLM, onToolReturn: onToolReturn));
     manager.registerHandler(from: ToolRoleType.REFLECTION, handler: ToolReflectionMessageHandler(toolReflectionManager, toLLM, toTool, onToolRetry: super.onReflectionRetry));
 
@@ -65,10 +65,10 @@ class ToolAgent extends TextAgent {
     List<AgentMessage> taskMessageList = dispatcherMap.getTaskMessageList(agentMessage.taskId);
     sessionMessageList.addAll(taskMessageList);
     sessionMessageList.forEach((sessionMessage){
-      if( sessionMessage.from == TextRoleType.SYSTEM ||
-          sessionMessage.from == TextRoleType.LLM ||
-          sessionMessage.to == TextRoleType.LLM ||
-          sessionMessage.from == ToolRoleType.TOOL ) {
+      if( sessionMessage.role == TextRoleType.DEVELOPER ||
+          sessionMessage.role == TextRoleType.ASSISTANT ||
+          sessionMessage.to == TextRoleType.ASSISTANT ||
+          sessionMessage.role == ToolRoleType.TOOL ) {
         agentLLMMessageList.add(sessionMessage);
       }
     });
@@ -83,12 +83,27 @@ class ToolAgent extends TextAgent {
     List<FunctionModel>? functionModelList = await buildFunctionModelList();
 
     try {
-      AgentMessage llmMessage = await OpenAIExecutor(llmConfig).request(
-          agentMessageList: agentLLMMessageList,
-          functionModelList: functionModelList
-      );
-      Command nextCommand = Command(toAgent, llmMessage);
-      dispatcherMap.dispatch(nextCommand);
+      if(super.agentSession.isStream) {
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
+        agentMessageStream.listen((newAgentMessage) {
+          Command nextCommand = Command(toAgent, newAgentMessage);
+          dispatcherMap.dispatch(nextCommand);
+        },
+          onDone: () {},
+          onError: (e) {
+            ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
+            pushException(
+                agentMessage.sessionId,
+                agentMessage.taskId,
+                exceptionMessage
+            );
+          }
+        );
+      } else {
+        AgentMessage llmMessage = await OpenAIExecutor(llmConfig).request(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
+        Command nextCommand = Command(toAgent, llmMessage);
+        dispatcherMap.dispatch(nextCommand);
+      }
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
       pushException(
@@ -109,7 +124,7 @@ class ToolAgent extends TextAgent {
       AgentMessage reflectionMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: TextRoleType.REFLECTION,
+          role: TextRoleType.REFLECTION,
           to: TextRoleType.AGENT,
           type: TextMessageType.REFLECTION,
           message: reflection,
@@ -145,7 +160,7 @@ class ToolAgent extends TextAgent {
       AgentMessage toolDoneMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
-          from: ToolRoleType.TOOL,
+          role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TASK_STATUS,
           message: TaskStatus(status: ToolStatusType.DONE, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
@@ -161,7 +176,7 @@ class ToolAgent extends TextAgent {
       //   AgentMessage toolMessage = AgentMessage(
       //     sessionId: agentMessage.sessionId,
       //     taskId: agentMessage.taskId,
-      //     from: ToolRoleType.TOOL,
+      //     role: ToolRoleType.TOOL,
       //     to: ToolRoleType.AGENT,
       //     type: ToolMessageType.TOOL_RETURN,
       //     message: toolReturn
@@ -173,13 +188,13 @@ class ToolAgent extends TextAgent {
       //   this.dispatcherMap.breakTask(agentMessage.taskId);
       //   throw e;
       // } on StateError {
-      //   /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
+      //   /** role internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
       //   Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCall.name).toJson();
       //   ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
       //   AgentMessage toolMessage = AgentMessage(
       //     sessionId: agentMessage.sessionId,
       //     taskId: agentMessage.taskId,
-      //     from: ToolRoleType.TOOL,
+      //     role: ToolRoleType.TOOL,
       //     to: ToolRoleType.AGENT,
       //     type: ToolMessageType.TOOL_RETURN,
       //     message: toolReturn
@@ -198,7 +213,7 @@ class ToolAgent extends TextAgent {
       AgentMessage toolMessage = AgentMessage(
           sessionId: functionCallParam.sessionId,
           taskId: functionCallParam.taskId,
-          from: ToolRoleType.TOOL,
+          role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TOOL_RETURN,
           message: toolReturn
@@ -210,13 +225,13 @@ class ToolAgent extends TextAgent {
       this.dispatcherMap.breakTask(functionCallParam.taskId);
       throw e;
     } on StateError {
-      /** FROM internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
+      /** role internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
       Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCallParam.functionCall.name).toJson();
       ToolReturn toolReturn = ToolReturn(id: functionCallParam.functionCall.id, result: result);
       AgentMessage toolMessage = AgentMessage(
           sessionId: functionCallParam.sessionId,
           taskId: functionCallParam.taskId,
-          from: ToolRoleType.TOOL,
+          role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TOOL_RETURN,
           message: toolReturn
@@ -236,7 +251,7 @@ class ToolAgent extends TextAgent {
           AgentMessage(
               sessionId: agentMessage.sessionId,
               taskId: agentMessage.taskId,
-              from: ToolRoleType.AGENT,
+              role: ToolRoleType.AGENT,
               to: ToolRoleType.CLIENT,
               type: ToolMessageType.TASK_STATUS,
               message: TaskStatus(status:ToolStatusType.START, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())

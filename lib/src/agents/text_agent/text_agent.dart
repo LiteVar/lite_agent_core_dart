@@ -17,7 +17,7 @@ class TextAgent extends SessionAgent {
   LLMConfig llmConfig;
   ReflectorManager reflectionManager = ReflectorManager();
   Completions? currAgentReflectorCompletions;
-  late AgentMessageHandlerManager manager = AgentMessageHandlerManager();
+  AgentMessageHandlerManager manager = AgentMessageHandlerManager();
 
   TextAgent({
     required super.sessionId,
@@ -26,7 +26,7 @@ class TextAgent extends SessionAgent {
     String? super.systemPrompt,
     super.timeoutSeconds = 600,
     List<ReflectPrompt> textReflectPromptList = const [],
-    super.taskPipelineStrategy,
+    super.taskPipelineStrategy
   }) {
     textReflectPromptList.forEach((reflectPrompt){
       ReflectorAgent reflectorAgent = ReflectorAgent(llmExecutor: OpenAIExecutor(reflectPrompt.llmConfig), systemPrompt: reflectPrompt.prompt);
@@ -35,7 +35,7 @@ class TextAgent extends SessionAgent {
     });
 
     manager.registerHandler(from: TextRoleType.USER, handler: UserMessageHandler(reflectionManager, toLLM));
-    manager.registerHandler(from: TextRoleType.LLM, handler: LLMMessageHandler(reflectionManager, toReflection, toUser));
+    manager.registerHandler(from: TextRoleType.ASSISTANT, handler: LLMMessageHandler(reflectionManager, toReflection, toUser));
     manager.registerHandler(from: TextRoleType.REFLECTION, handler: TextReflectionMessageHandler(reflectionManager, toLLM, toUser, onTextRetry: onReflectionRetry));
   }
 
@@ -56,7 +56,7 @@ class TextAgent extends SessionAgent {
     AgentMessage reflectionMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
         taskId: agentMessage.taskId,
-        from: TextRoleType.REFLECTION,
+        role: TextRoleType.REFLECTION,
         to: TextRoleType.AGENT,
         type: TextMessageType.REFLECTION,
         message: reflection,
@@ -72,20 +72,22 @@ class TextAgent extends SessionAgent {
 
   Future<void> toUser(AgentMessage sessionMessage) async {
     agentSession.addListenAgentMessage(sessionMessage);
-    pipeline.completeAsync(sessionMessage.taskId);
-    AgentMessage clientMessage = AgentMessage(
-      sessionId: sessionMessage.sessionId,
-      taskId: sessionMessage.taskId,
-      from: TextRoleType.AGENT,
-      to: TextRoleType.CLIENT,
-      type: TextMessageType.TASK_STATUS,
-      message: TaskStatus(status: TaskStatusType.DONE, taskId: sessionMessage.taskId)
-    );
-    Command clientCommand = Command(toClient,clientMessage);
-    dispatcherMap.dispatch(clientCommand);
-    List<AgentMessage> taskDoneMessageList = dispatcherMap.getTaskMessageList(sessionMessage.taskId);
-    agentSession.addTaskDoneAgentMessageList(taskDoneMessageList);
-    timeout.start(clear);
+    if(sessionMessage.type != TextMessageType.CHUNK) {
+      pipeline.completeAsync(sessionMessage.taskId);
+      AgentMessage clientMessage = AgentMessage(
+          sessionId: sessionMessage.sessionId,
+          taskId: sessionMessage.taskId,
+          role: TextRoleType.AGENT,
+          to: TextRoleType.CLIENT,
+          type: TextMessageType.TASK_STATUS,
+          message: TaskStatus(status: TaskStatusType.DONE, taskId: sessionMessage.taskId)
+      );
+      Command clientCommand = Command(toClient,clientMessage);
+      dispatcherMap.dispatch(clientCommand);
+      List<AgentMessage> taskDoneMessageList = dispatcherMap.getTaskMessageList(sessionMessage.taskId);
+      agentSession.addTaskDoneAgentMessageList(taskDoneMessageList);
+      timeout.start(clear);
+    }
   }
 
   List<AgentMessage> prepareAgentLLMMessageList(AgentMessage agentMessage) {
@@ -94,7 +96,7 @@ class TextAgent extends SessionAgent {
     List<AgentMessage> taskMessageList = dispatcherMap.getTaskMessageList(agentMessage.taskId);
     sessionMessageList.addAll(taskMessageList);
     sessionMessageList.forEach((sessionMessage){
-      if(sessionMessage.from == TextRoleType.SYSTEM || sessionMessage.from == TextRoleType.LLM || sessionMessage.to == TextRoleType.LLM) {
+      if(sessionMessage.role == TextRoleType.DEVELOPER || sessionMessage.role == TextRoleType.ASSISTANT || sessionMessage.to == TextRoleType.ASSISTANT) {
         agentLLMMessageList.add(sessionMessage);
       }
     });
@@ -106,9 +108,27 @@ class TextAgent extends SessionAgent {
 
     List<AgentMessage> agentLLMMessageList = prepareAgentLLMMessageList(agentMessage);
     try {
-      AgentMessage newAgentMessage = await OpenAIExecutor(llmConfig).request(agentMessageList: agentLLMMessageList);
-      Command nextCommand = Command(toAgent, newAgentMessage);
-      dispatcherMap.dispatch(nextCommand);
+      if(super.agentSession.isStream) {
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList);
+        agentMessageStream.listen((newAgentMessage) {
+          Command nextCommand = Command(toAgent, newAgentMessage);
+          dispatcherMap.dispatch(nextCommand);
+        },
+          onDone: () {},
+          onError: (e) {
+            ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
+            pushException(
+                agentMessage.sessionId,
+                agentMessage.taskId,
+                exceptionMessage
+            );
+          }
+        );
+      } else {
+        AgentMessage newAgentMessage = await OpenAIExecutor(llmConfig).request(agentMessageList: agentLLMMessageList);
+        Command nextCommand = Command(toAgent, newAgentMessage);
+        dispatcherMap.dispatch(nextCommand);
+      }
     } on LLMException catch(e) {
       ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
       pushException(
@@ -124,7 +144,7 @@ class TextAgent extends SessionAgent {
     AgentMessage agentMessage = AgentMessage(
         sessionId: sessionId,
         taskId: taskId,
-        from: TextRoleType.AGENT,
+        role: TextRoleType.AGENT,
         to: TextRoleType.CLIENT,
         type: TextMessageType.TASK_STATUS,
         message: TaskStatus(status:TaskStatusType.STOP, taskId: taskId, description: exceptionMessage.toJson()));

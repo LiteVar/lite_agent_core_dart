@@ -14,7 +14,6 @@ class TextRoleType {
 class TextMessageType {
   static String TEXT = SessionMessageType.TEXT; //String
   static String IMAGE_URL = SessionMessageType.IMAGE_URL; //String
-  static String CHUNK = SessionMessageType.CHUNK; //String
   static String CONTENT_LIST = SessionMessageType.CONTENT_LIST; //List<Content>
   static String TASK_STATUS = SessionMessageType.TASK_STATUS; //TaskStatus
   static String EXCEPTION = "exception"; //Exception

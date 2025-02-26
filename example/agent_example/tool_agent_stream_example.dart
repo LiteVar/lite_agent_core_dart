@@ -19,7 +19,7 @@ Future<void> main() async {
   ToolAgent toolAgent = ToolAgent(
     sessionId: sessionId,
     llmConfig: _buildLLMConfig(),
-    agentSession: _buildSession(sessionId, true),
+    agentSession: _buildSession(sessionId),
     toolDriverList: await _buildToolDriverList(),
     systemPrompt: _buildSystemPrompt()
   );
@@ -80,10 +80,13 @@ Future<List<ToolDriver>> _buildToolDriverList() async {
 //   return toolRunnerList;
 // }
 
-AgentSession _buildSession(String sessionId, bool isStream) {
-  AgentSession session = AgentSession(isStream: isStream);
+AgentSession _buildSession(String sessionId) {
+  AgentSession session = AgentSession();
   session.addAgentMessageListener((AgentMessage agentMessage) {
     listen(sessionId, AgentMessageDto.fromModel(agentMessage));
+  });
+  session.addAgentMessageChunkListener((AgentMessageChunk agentMessageChunk) {
+    listenChunk(AgentMessageChunkDto.fromModel(agentMessageChunk));
   });
   return session;
 }

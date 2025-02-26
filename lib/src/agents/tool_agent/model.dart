@@ -15,7 +15,6 @@ class ToolRoleType {
 class ToolMessageType {
   static String TEXT = TextMessageType.TEXT; //String
   static String IMAGE_URL = TextMessageType.IMAGE_URL; //String
-  static String CHUNK = TextMessageType.CHUNK;
   static String CONTENT_LIST = TextMessageType.CONTENT_LIST; //List<Content>
   static String FUNCTION_CALL_LIST = AgentMessageType.FUNCTION_CALL_LIST; //List<FunctionCall>
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn

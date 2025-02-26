@@ -169,15 +169,14 @@ Map<String, dynamic> _$ToolReturnDtoToJson(ToolReturnDto instance) =>
 
 CompletionsDto _$CompletionsDtoFromJson(Map<String, dynamic> json) =>
     CompletionsDto(
-      tokenUsage:
-          TokenUsageDto.fromJson(json['tokenUsage'] as Map<String, dynamic>),
+      usage: TokenUsageDto.fromJson(json['usage'] as Map<String, dynamic>),
       id: json['id'] as String,
       model: json['model'] as String,
     );
 
 Map<String, dynamic> _$CompletionsDtoToJson(CompletionsDto instance) =>
     <String, dynamic>{
-      'tokenUsage': instance.tokenUsage,
+      'usage': instance.usage,
       'id': instance.id,
       'model': instance.model,
     };
@@ -340,4 +339,28 @@ Map<String, dynamic> _$ReflectPromptDtoToJson(ReflectPromptDto instance) =>
     <String, dynamic>{
       'llmConfig': instance.llmConfig,
       'prompt': instance.prompt,
+    };
+
+AgentMessageChunkDto _$AgentMessageChunkDtoFromJson(
+        Map<String, dynamic> json) =>
+    AgentMessageChunkDto(
+      sessionId: json['sessionId'] as String,
+      taskId: json['taskId'] as String,
+      role: json['role'] as String,
+      to: json['to'] as String,
+      type: json['type'] as String,
+      part: json['part'] as String,
+      createTime: DateTime.parse(json['createTime'] as String),
+    );
+
+Map<String, dynamic> _$AgentMessageChunkDtoToJson(
+        AgentMessageChunkDto instance) =>
+    <String, dynamic>{
+      'sessionId': instance.sessionId,
+      'taskId': instance.taskId,
+      'role': instance.role,
+      'to': instance.to,
+      'type': instance.type,
+      'part': instance.part,
+      'createTime': instance.createTime.toIso8601String(),
     };

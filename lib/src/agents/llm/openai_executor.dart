@@ -50,7 +50,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
   }
 
-  Future<Stream<AgentMessage>> requestByStream({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList, ResponseFormat? responseFormat}) async {
+  Future<Stream<AgentMessage>> requestByStream({required List<AgentMessage> agentMessageList, List<FunctionModel>? functionModelList, ResponseFormat? responseFormat, void Function(AgentMessageChunk)? listenChunk}) async {
     AgentMessage agentMessage = agentMessageList.lastWhere((agentMessage)=> agentMessage.role == AgentRoleType.AGENT);
     _sessionId = agentMessage.sessionId;
     _taskId = agentMessage.taskId;
@@ -94,9 +94,24 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
             agentMessageStreamController.add(agentMessage);
           });
         } else if(chatCompletionDelta.delta?.content != null ||  chatCompletionDelta.finishReason == FinishReasonType.STOP || (finishReason == FinishReasonType.STOP && chatCompletionDelta.completions != null)) {
-          AgentMessage? agentMessage = _chunkDeltaToAgentMessage(chatCompletionDelta);
-          if(agentMessage != null) agentMessageStreamController.add(agentMessage);
+
+          AgentMessageChunk? agentMessageChunk = _chunkDeltaToAgentMessageChunk(chatCompletionDelta);
+          if(agentMessageChunk != null && listenChunk != null) listenChunk(agentMessageChunk);
+
           textAccumulation.appendDelta(chatCompletionDelta, <String>(text, Completions completions) {
+
+            if( listenChunk != null) {
+              AgentMessageChunk chunkDoneMessageChunk = AgentMessageChunk(
+                  sessionId: _sessionId,
+                  taskId: _taskId,
+                  role: AgentRoleType.LLM,
+                  to: AgentRoleType.AGENT,
+                  type: AgentMessageType.TASK_STATUS,
+                  part: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: _taskId)
+              );
+              listenChunk(chunkDoneMessageChunk);
+            }
+
             AgentMessage agentMessage = AgentMessage(
               sessionId: _sessionId,
               taskId: _taskId,
@@ -107,16 +122,6 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
               completions: completions
             );
             agentMessageStreamController.add(agentMessage);
-
-            AgentMessage chunkDoneMessage = AgentMessage(
-                sessionId: agentMessage.sessionId,
-                taskId: agentMessage.taskId,
-                role: AgentRoleType.LLM,
-                to: AgentRoleType.AGENT,
-                type: AgentMessageType.TASK_STATUS,
-                message: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: agentMessage.taskId)
-            );
-            agentMessageStreamController.add(chunkDoneMessage);
           });
         }
       },
@@ -139,11 +144,10 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     functionModel.parameters.forEach((Parameter parameter) {
       openAIFunctionPropertyList.add(_convertToOpenAIFunctionProperty(parameter));
     });
-    OpenAIFunctionModel openAIFunctionModel =
-    OpenAIFunctionModel.withParameters(
-        name: functionModel.name,
-        description: functionModel.description,
-        parameters: openAIFunctionPropertyList
+    OpenAIFunctionModel openAIFunctionModel = OpenAIFunctionModel.withParameters(
+      name: functionModel.name,
+      description: functionModel.description,
+      parameters: openAIFunctionPropertyList
     );
     OpenAIToolModel openAIToolModel = OpenAIToolModel(type: "function", function: openAIFunctionModel);
     return openAIToolModel;
@@ -351,17 +355,16 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
   //   );
   // }
 
-  AgentMessage? _chunkDeltaToAgentMessage(ChatCompletionDelta chatCompletionDelta) {
+  AgentMessageChunk? _chunkDeltaToAgentMessageChunk(ChatCompletionDelta chatCompletionDelta) {
     String text = chatCompletionDelta.delta?.content?.first?.text??"";
     if(text.isNotEmpty) {
-      return AgentMessage(
+      return AgentMessageChunk(
         sessionId: _sessionId,
         taskId: _taskId,
         role: AgentRoleType.LLM,
         to: AgentRoleType.AGENT,
-        type: AgentMessageType.CHUNK,
-        message: text,
-        completions: chatCompletionDelta.completions
+        type: AgentMessageType.TEXT,
+        part: text
       );
     }
     return null;

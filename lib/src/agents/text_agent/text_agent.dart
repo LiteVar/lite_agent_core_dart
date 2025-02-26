@@ -72,22 +72,22 @@ class TextAgent extends SessionAgent {
 
   Future<void> toUser(AgentMessage sessionMessage) async {
     agentSession.addListenAgentMessage(sessionMessage);
-    if(sessionMessage.type != TextMessageType.CHUNK) {
-      pipeline.completeAsync(sessionMessage.taskId);
-      AgentMessage clientMessage = AgentMessage(
-          sessionId: sessionMessage.sessionId,
-          taskId: sessionMessage.taskId,
-          role: TextRoleType.AGENT,
-          to: TextRoleType.CLIENT,
-          type: TextMessageType.TASK_STATUS,
-          message: TaskStatus(status: TaskStatusType.DONE, taskId: sessionMessage.taskId)
-      );
-      Command clientCommand = Command(toClient,clientMessage);
-      dispatcherMap.dispatch(clientCommand);
-      List<AgentMessage> taskDoneMessageList = dispatcherMap.getTaskMessageList(sessionMessage.taskId);
-      agentSession.addTaskDoneAgentMessageList(taskDoneMessageList);
-      timeout.start(clear);
-    }
+
+    pipeline.completeAsync(sessionMessage.taskId);
+    AgentMessage clientMessage = AgentMessage(
+        sessionId: sessionMessage.sessionId,
+        taskId: sessionMessage.taskId,
+        role: TextRoleType.AGENT,
+        to: TextRoleType.CLIENT,
+        type: TextMessageType.TASK_STATUS,
+        message: TaskStatus(status: TaskStatusType.DONE, taskId: sessionMessage.taskId)
+    );
+    Command clientCommand = Command(toClient,clientMessage);
+    dispatcherMap.dispatch(clientCommand);
+    List<AgentMessage> taskDoneMessageList = dispatcherMap.getTaskMessageList(sessionMessage.taskId);
+    agentSession.addTaskDoneAgentMessageList(taskDoneMessageList);
+    timeout.start(clear);
+
   }
 
   List<AgentMessage> prepareAgentLLMMessageList(AgentMessage agentMessage) {
@@ -109,7 +109,20 @@ class TextAgent extends SessionAgent {
     List<AgentMessage> agentLLMMessageList = prepareAgentLLMMessageList(agentMessage);
     try {
       if(super.agentSession.isStream) {
-        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList);
+
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList,
+          listenChunk: (AgentMessageChunk agentMessageChunk){
+            if(agentMessageChunk.type == TextMessageType.TEXT) {
+              agentMessageChunk.role = TextRoleType.AGENT;
+              agentMessageChunk.to = TextRoleType.USER;
+            } else if(agentMessageChunk.type == TextMessageType.TASK_STATUS) {
+              agentMessageChunk.role = TextRoleType.AGENT;
+              agentMessageChunk.to = TextRoleType.CLIENT;
+            }
+            agentSession.addListenAgentMessageChunk(agentMessageChunk);
+          }
+        );
+
         agentMessageStream.listen((newAgentMessage) {
           Command nextCommand = Command(toAgent, newAgentMessage);
           dispatcherMap.dispatch(nextCommand);

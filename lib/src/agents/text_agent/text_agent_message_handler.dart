@@ -74,17 +74,6 @@ class LLMMessageHandler extends AgentMessageHandler {
           type: TextMessageType.IMAGE_URL,
           message: agentMessage.message);
       return Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
-    } else if(agentMessage.type == TextMessageType.CHUNK) {
-      chunkAccumulation += agentMessage.message as String;
-      AgentMessage agentUserMessage = AgentMessage(
-          sessionId: agentMessage.sessionId,
-          taskId: agentMessage.taskId,
-          role: TextRoleType.AGENT,
-          to: TextRoleType.USER,
-          type: TextMessageType.CHUNK,
-          message: agentMessage.message
-      );
-      return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
     } else if(agentMessage.type == TextMessageType.TASK_STATUS && agentMessage.message == TextStatusType.CHUNK_DONE) {
       if(reflectionManager.shouldReflect) {
         AgentMessage reflectionMessage = AgentMessage(

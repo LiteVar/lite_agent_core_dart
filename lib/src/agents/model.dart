@@ -5,18 +5,27 @@ class Message {
   String role;
   String to;
   String type;
-  dynamic message;
   DateTime createTime = DateTime.now();
   Message({
     required this.sessionId,
     required this.role,
     required this.to,
-    required this.type,
+    required this.type
+  });
+}
+
+class AgentMessageBase extends Message {
+  dynamic message;
+  AgentMessageBase({
+    required super.sessionId,
+    required super.role,
+    required super.to,
+    required super.type,
     required this.message
   });
 }
 
-class AgentMessage extends Message {
+class AgentMessage extends AgentMessageBase {
   String taskId;
   Completions? completions;
   AgentMessage({
@@ -45,11 +54,10 @@ class TaskStatus {
   }
 }
 
-// class AgentMessageChunk extends MessageBase {
-//   String taskId;
-//   String type;
-//   String part;
-//
-//   AgentMessageChunk({required super.sessionId, required this.taskId, required super.role, required super.to, required this.type, required this.part, super.completions});
-// }
+class AgentMessageChunk extends Message {
+  String taskId;
+  dynamic part;
+
+  AgentMessageChunk({required super.sessionId, required this.taskId, required super.role, required super.to, required super.type, required this.part});
+}
 

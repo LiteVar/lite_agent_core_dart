@@ -109,7 +109,7 @@ abstract class SessionAgent {
 
   void stop({String? taskId = null}) {
     if(taskId == null) {
-      Message stopMessage = Message(
+      AgentMessageBase stopMessage = AgentMessageBase(
         sessionId: sessionId,
         role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,

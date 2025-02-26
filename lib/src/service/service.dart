@@ -62,7 +62,7 @@ class AgentService {
     return AgentMessageDto.fromModel(agentMessage);
   }
 
-  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList, bool isStream = false}) async {
+  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList, void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) async {
     String sessionId = Uuid().v4();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
@@ -80,7 +80,7 @@ class AgentService {
       SessionAgent textAgent = TextAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, isStream, listen),
+        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
         systemPrompt: systemPrompt,
         textReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds,
@@ -91,7 +91,7 @@ class AgentService {
       SessionAgent toolAgent = ToolAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, isStream, listen),
+        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
         toolDriverList: agentToolDriverList,
         systemPrompt: systemPrompt,
         toolReflectPromptList: reflectPromptList??[],
@@ -151,11 +151,16 @@ class AgentService {
     }
   }
 
-  AgentSession _buildSession(String sessionId, bool isStream, void Function(String sessionId, AgentMessageDto agentMessageDto) listen) {
-    AgentSession agentSession = AgentSession(isStream: isStream);
+  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) {
+    AgentSession agentSession = AgentSession();
     agentSession.addAgentMessageListener((AgentMessage agentMessage) {
       listen(sessionId, AgentMessageDto.fromModel(agentMessage));
     });
+    if(listenChunk != null) {
+      agentSession.addAgentMessageChunkListener((AgentMessageChunk agentMessageChunk) {
+        listenChunk(AgentMessageChunkDto.fromModel(agentMessageChunk));
+      });
+    }
     return agentSession;
   }
 

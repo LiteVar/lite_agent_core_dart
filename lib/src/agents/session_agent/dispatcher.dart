@@ -37,7 +37,7 @@ class DispatcherMap {
     _dispatcherMap[taskId]?.clearTaskMessageList();
   }
 
-  void stopAll(Future<void> Function(AgentMessage) stopFunc, Message message) {
+  void stopAll(Future<void> Function(AgentMessage) stopFunc, AgentMessageBase message) {
     _dispatcherMap.forEach((taskId, dispatcher){
       if(dispatcher.isListening()) {
         AgentMessage currAgentMessage = AgentMessage(
@@ -59,7 +59,7 @@ class DispatcherMap {
     _dispatcherMap[taskId]!.stop();
   }
 
-  void clear(Future<void> Function(AgentMessage) stopFunc, Message message) {
+  void clear(Future<void> Function(AgentMessage) stopFunc, AgentMessageBase message) {
     stopAll(stopFunc, message);
     _dispatcherMap.clear();
   }

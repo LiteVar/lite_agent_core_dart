@@ -7,9 +7,9 @@ class AgentSession {
   bool hasSystemMessage = false;
   List<AgentMessage> listenAgentMessageList = [];
   List<void Function(AgentMessage)> _agentMessageListenerList = [];
+  List<void Function(AgentMessageChunk)> _agentMessageChunkListenerList = [];
   List<AgentMessage> taskDoneAgentMessageList = [];
-  bool isStream;
-  AgentSession({this.isStream = false});
+  bool isStream = false;
 
   void clearMessage() {
     hasSystemMessage = false;
@@ -23,15 +23,20 @@ class AgentSession {
     _agentMessageListenerList.add(agentMessageListener);
   }
 
+  void addAgentMessageChunkListener(void Function(AgentMessageChunk) agentMessageChunkListener) {
+    _agentMessageChunkListenerList.add(agentMessageChunkListener);
+    this.isStream = _agentMessageChunkListenerList.isNotEmpty;
+  }
+
   Future<void> addListenAgentMessage(AgentMessage agentMessage) async {
-    if(isStream && agentMessage.type == AgentMessageType.CHUNK) {
-      _broadcast(agentMessage);
-    } else if (isStream && ((agentMessage.role == AgentRoleType.LLM && agentMessage.to == AgentRoleType.AGENT) || (agentMessage.role == AgentRoleType.AGENT && agentMessage.to == AgentRoleType.USER))&& agentMessage.type == AgentMessageType.TEXT) {
-      _record(agentMessage);
-    } else {
-      _record(agentMessage);
-      _broadcast(agentMessage);
-    }
+    _record(agentMessage);
+    _broadcast(agentMessage);
+  }
+
+  Future<void> addListenAgentMessageChunk(AgentMessageChunk agentMessageChunk) async {
+    _agentMessageChunkListenerList.forEach((agentLLMMessageChunkListener) async {
+      agentLLMMessageChunkListener(agentMessageChunk);
+    });
   }
 
   void addTaskDoneAgentMessageList(List<AgentMessage> agentMessageList) {

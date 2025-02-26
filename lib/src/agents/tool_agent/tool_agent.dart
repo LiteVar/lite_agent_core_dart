@@ -84,7 +84,18 @@ class ToolAgent extends TextAgent {
 
     try {
       if(super.agentSession.isStream) {
-        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList);
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList,
+            listenChunk: (AgentMessageChunk agentMessageChunk){
+              if(agentMessageChunk.type == TextMessageType.TEXT) {
+                agentMessageChunk.role = TextRoleType.AGENT;
+                agentMessageChunk.to = TextRoleType.USER;
+              } else if(agentMessageChunk.type == TextMessageType.TASK_STATUS) {
+                agentMessageChunk.role = TextRoleType.AGENT;
+                agentMessageChunk.to = TextRoleType.CLIENT;
+              }
+              agentSession.addListenAgentMessageChunk(agentMessageChunk);
+            }
+        );
         agentMessageStream.listen((newAgentMessage) {
           Command nextCommand = Command(toAgent, newAgentMessage);
           dispatcherMap.dispatch(nextCommand);

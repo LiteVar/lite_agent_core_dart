@@ -250,7 +250,7 @@ class ToolReturnDto {
 
 @JsonSerializable()
 class CompletionsDto {
-  TokenUsageDto tokenUsage;
+  TokenUsageDto usage;
 
   /// When role is llm, this is current llm calling token usage
   String id;
@@ -258,14 +258,14 @@ class CompletionsDto {
   /// When role is llm, this is current /chat/completions return message id
   String model;
 
-  CompletionsDto({required this.tokenUsage, required this.id, required this.model});
+  CompletionsDto({required this.usage, required this.id, required this.model});
 
   factory CompletionsDto.fromJson(Map<String, dynamic> json) => _$CompletionsDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$CompletionsDtoToJson(this);
 
   factory CompletionsDto.fromModel(Completions completions) => CompletionsDto(
-      tokenUsage: TokenUsageDto.fromModel(completions.tokenUsage),
+      usage: TokenUsageDto.fromModel(completions.tokenUsage),
       id: completions.id,
       model: completions.model
   );
@@ -467,4 +467,48 @@ class ReflectPromptDto {
   factory ReflectPromptDto.fromJson(Map<String, dynamic> json) => _$ReflectPromptDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReflectPromptDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AgentMessageChunkDto {
+  String sessionId;
+  String taskId;
+  String role;
+  String to;
+  String type;
+  dynamic part;
+  DateTime createTime;
+
+  AgentMessageChunkDto({
+    required this.sessionId,
+    required this.taskId,
+    required this.role,
+    required this.to,
+    required this.type,
+    required this.part,
+    required this.createTime
+  });
+
+  factory AgentMessageChunkDto.fromJson(Map<String, dynamic> json) => _$AgentMessageChunkDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AgentMessageChunkDtoToJson(this);
+
+  factory AgentMessageChunkDto.fromModel(AgentMessageChunk agentMessageChunk) {
+    dynamic part;
+
+    switch (agentMessageChunk.type) {
+      case AgentMessageType.TASK_STATUS: part = TaskStatusDto.fromModel(agentMessageChunk.part as TaskStatus);break;
+      default: part = agentMessageChunk.part;
+    }
+
+    return AgentMessageChunkDto(
+      sessionId: agentMessageChunk.sessionId,
+      taskId: agentMessageChunk.taskId,
+      role: agentMessageChunk.role,
+      to: agentMessageChunk.to,
+      type: agentMessageChunk.type,
+      part: part,
+      createTime: agentMessageChunk.createTime
+    );
+  }
 }

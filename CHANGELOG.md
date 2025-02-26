@@ -2,6 +2,7 @@
 
 - add serial port driver supported
 - add dynamic libs driver supported
+- add chunk data supported
 
 ## 0.6.1
 

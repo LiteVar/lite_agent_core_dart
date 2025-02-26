@@ -28,7 +28,7 @@ LLMConfig _buildLLMConfig() {
   return LLMConfig(
     baseUrl: env["baseUrl"]!,
     apiKey: env["apiKey"]!,
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
   );
 }
 

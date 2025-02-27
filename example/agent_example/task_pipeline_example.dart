@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
-import 'package:uuid/uuid.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
 /// 1. Add LLM baseUrl and apiKey to `.env` file
 
 Future<void> main() async {
-  String sessionId = Uuid().v4();
+  String sessionId = uniqueId();
   TextAgent textAgent = TextAgent(
     sessionId: sessionId,
     llmConfig: _buildLLMConfig(),
@@ -18,7 +18,7 @@ Future<void> main() async {
   );
   try {
     String prompt1 = "Who are you?";
-    String taskId1 = Uuid().v4();
+    String taskId1 = uniqueId();
     print("taskId1: $taskId1");
     await textAgent.userToAgent(taskId: taskId1, contentList: [Content(type: ContentType.TEXT, message: prompt1)]);
   } on TaskRejectException catch (e) {
@@ -26,7 +26,7 @@ Future<void> main() async {
   }
   try {
     String prompt2 = "Where are you from?";
-    String taskId2 = Uuid().v4();
+    String taskId2 = uniqueId();
     print("taskId2: $taskId2");
     await textAgent.userToAgent(taskId: taskId2, contentList: [Content(type: ContentType.TEXT, message: prompt2)]);
   } on TaskRejectException catch (e) {
@@ -34,7 +34,7 @@ Future<void> main() async {
   }
   try {
     String prompt3 = "What do you want to do?";
-    String taskId3 = Uuid().v4();
+    String taskId3 = uniqueId();
     print("taskId3: $taskId3");
     await textAgent.userToAgent(taskId: taskId3, contentList: [Content(type: ContentType.TEXT, message: prompt3)]);
   } on TaskRejectException catch (e) {

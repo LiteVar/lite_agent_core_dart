@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
-import 'package:uuid/uuid.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 
 import '../listener.dart';
 
@@ -10,7 +10,7 @@ import '../listener.dart';
 String prompt = "你好！";
 
 Future<void> main() async {
-  String sessionId = Uuid().v4();
+  String sessionId = uniqueId();
   TextAgent textAgent = TextAgent(
     sessionId: sessionId,
     llmConfig: _buildLLMConfig(),
@@ -18,7 +18,7 @@ Future<void> main() async {
     systemPrompt: _buildSystemPrompt(),
     textReflectPromptList: _buildTextReflectPromptList(),
   );
-  String taskId = Uuid().v4();
+  String taskId = uniqueId();
   await textAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 

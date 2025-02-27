@@ -32,7 +32,6 @@ SimpleCapabilityDto _$SimpleCapabilityDtoFromJson(Map<String, dynamic> json) =>
       llmConfig:
           LLMConfigDto.fromJson(json['llmConfig'] as Map<String, dynamic>),
       systemPrompt: json['systemPrompt'] as String,
-      isStream: json['isStream'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SimpleCapabilityDtoToJson(
@@ -40,7 +39,6 @@ Map<String, dynamic> _$SimpleCapabilityDtoToJson(
     <String, dynamic>{
       'llmConfig': instance.llmConfig,
       'systemPrompt': instance.systemPrompt,
-      'isStream': instance.isStream,
     };
 
 CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
@@ -61,13 +59,12 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
       taskPipelineStrategy: json['taskPipelineStrategy'] as String? ??
           PipelineStrategyType.PARALLEL,
       toolPipelineStrategy: json['toolPipelineStrategy'] as String?,
-    )..isStream = json['isStream'] as bool;
+    );
 
 Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
     <String, dynamic>{
       'llmConfig': instance.llmConfig,
       'systemPrompt': instance.systemPrompt,
-      'isStream': instance.isStream,
       if (instance.openSpecList case final value?) 'openSpecList': value,
       if (instance.sessionList case final value?) 'sessionList': value,
       if (instance.reflectPromptList case final value?)
@@ -349,7 +346,7 @@ AgentMessageChunkDto _$AgentMessageChunkDtoFromJson(
       role: json['role'] as String,
       to: json['to'] as String,
       type: json['type'] as String,
-      part: json['part'] as String,
+      part: json['part'],
       createTime: DateTime.parse(json['createTime'] as String),
     );
 

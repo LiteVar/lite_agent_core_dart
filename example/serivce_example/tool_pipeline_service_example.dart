@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
@@ -37,7 +37,7 @@ Future<void> main() async {
 
   try {
     String prompt1 = "Help me set store a text 'hello1'.";
-    String taskId1 = Uuid().v4();
+    String taskId1 = uniqueId();
     print("taskId1: $taskId1");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt1)]);
     await agentService.startSession(sessionDto.id, userTaskDto);
@@ -46,7 +46,7 @@ Future<void> main() async {
   }
   try {
     String prompt2 = "Help me set store a text 'hello22'.";
-    String taskId2 = Uuid().v4();
+    String taskId2 = uniqueId();
     print("taskId2: $taskId2");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt2)]);
     await agentService.startSession(sessionDto.id, userTaskDto);
@@ -55,7 +55,7 @@ Future<void> main() async {
   }
   try {
     String prompt3 = "Help me set store a text 'hello333'.";
-    String taskId3 = Uuid().v4();
+    String taskId3 = uniqueId();
     print("taskId3: $taskId3");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt3)]);
     await agentService.startSession(

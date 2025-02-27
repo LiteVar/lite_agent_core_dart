@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:uuid/uuid.dart';
-
+import '../../util/unique_id_generator.dart';
 import 'model.dart';
 
 /// Support job for parallel, serial, reject strategy
@@ -95,7 +94,7 @@ class PipelineAsync<T> {
 
   Future<AddStatusAsync> runAsync(Future<void> Function(T job) process, {String? asyncId, Future<void> Function()? onComplete}) async {
     this.process = process;
-    if(asyncId == null) asyncId = Uuid().v4();
+    if(asyncId == null) asyncId = uniqueId();
     var userCompleter = Completer<void>();
     var queueCompleter = Completer<void>();
     _userCompleterMap[asyncId] = userCompleter;

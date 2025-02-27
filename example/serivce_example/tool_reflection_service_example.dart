@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
@@ -35,7 +35,7 @@ Future<void> main() async {
 
   print("[SessionDto] " + sessionDto.toJson().toString());
 
-  String taskId = Uuid().v4();
+  String taskId = uniqueId();
   UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
   await agentService.startSession(sessionDto.id, userTaskDto);
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../../llm/model.dart';
+import '../../util/unique_id_generator.dart';
 import '../llm/llm_executor.dart';
 import '../llm/model.dart';
 import '../model.dart';
@@ -17,8 +17,8 @@ class ReflectorAgent {
   late String taskId;
 
   ReflectorAgent({required this.llmExecutor, required this.systemPrompt, sessionId, taskId}) {
-    this.sessionId = sessionId??Uuid().v4();
-    this.taskId = taskId??Uuid().v4();
+    this.sessionId = sessionId??uniqueId();
+    this.taskId = taskId??uniqueId();
   }
 
   Future<ReflectScore> evaluate(List<Content> contentList, String message, void Function(Completions? completions) subscribeCompletions) async {

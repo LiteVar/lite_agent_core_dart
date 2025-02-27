@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:uuid/uuid.dart';
+import '../../util/unique_id_generator.dart';
 import '../model.dart';
 import '../pipeline/model.dart';
 import '../pipeline/pipeline.dart';
@@ -28,7 +28,7 @@ abstract class SessionAgent {
 
   Future<void> userToAgent({required List<Content> contentList, String? taskId}) async {
 
-    if(taskId == null) taskId = Uuid().v4();
+    if(taskId == null) taskId = uniqueId();
     dispatcherMap.create(taskId);
 
     pipeline.addJob(ContentsTask(taskId: taskId, contentList: contentList));

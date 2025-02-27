@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 
 void listen(String sessionId, AgentMessageDto agentMessageDto) {
   String system = "🖥DEVEL ";

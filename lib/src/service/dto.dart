@@ -1,12 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import '../agents/llm/model.dart';
-import '../agents/model.dart';
-import '../agents/pipeline/model.dart';
-import '../agents/reflection/model.dart';
-import '../agents/session_agent/model.dart';
-import '../agents/text_agent/model.dart';
-import '../llm/model.dart';
+import '../../lite_agent_core.dart';
 import 'exception.dart';
 
 part 'dto.g.dart';
@@ -44,12 +38,10 @@ class SessionNameDto extends SessionDto {
 class SimpleCapabilityDto {
   LLMConfigDto llmConfig;
   String systemPrompt;
-  bool isStream;
 
   SimpleCapabilityDto({
     required this.llmConfig,
-    required this.systemPrompt,
-    this.isStream = false
+    required this.systemPrompt
   });
 
   factory SimpleCapabilityDto.fromJson(Map<String, dynamic> json) => _$SimpleCapabilityDtoFromJson(json);

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:lite_agent_core_dart/src/agents/pipeline/pipeline.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../../agents/text_agent/text_agent.dart';
 import '../llm/exception.dart';
 import '../llm/openai_executor.dart';
 import '../model.dart';
 import '../pipeline/model.dart';
+import '../pipeline/pipeline.dart';
 import '../reflection/model.dart';
 import '../reflection/reflector.dart';
 import '../reflection/reflector_agent.dart';

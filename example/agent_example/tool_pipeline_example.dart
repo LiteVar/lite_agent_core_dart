@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
@@ -13,7 +13,7 @@ import '../listener.dart';
 /// 3. Add LLM baseUrl and apiKey to `.env` file
 
 Future<void> main() async {
-  String sessionId = Uuid().v4();
+  String sessionId = uniqueId();
   ToolAgent toolAgent = ToolAgent(
     sessionId: sessionId,
     llmConfig: _buildLLMConfig(),
@@ -25,7 +25,7 @@ Future<void> main() async {
 
   try {
     String prompt1 = "Help me set store a text 'hello1'.";
-    String taskId1 = Uuid().v4();
+    String taskId1 = uniqueId();
     print("taskId1: $taskId1");
     await toolAgent.userToAgent(taskId: taskId1, contentList: [Content(type: ContentType.TEXT, message: prompt1)]);
   } on TaskRejectException catch (e) {
@@ -33,7 +33,7 @@ Future<void> main() async {
   }
   try {
     String prompt2 = "Help me set store a text 'hello22'.";
-    String taskId2 = Uuid().v4();
+    String taskId2 = uniqueId();
     print("taskId2: $taskId2");
     await toolAgent.userToAgent(taskId: taskId2, contentList: [Content(type: ContentType.TEXT, message: prompt2)]);
   } on TaskRejectException catch (e) {
@@ -41,7 +41,7 @@ Future<void> main() async {
   }
   try {
     String prompt3 = "Help me set store a text 'hello333'.";
-    String taskId3 = Uuid().v4();
+    String taskId3 = uniqueId();
     print("taskId3: $taskId3");
     await toolAgent.userToAgent(taskId: taskId3, contentList: [Content(type: ContentType.TEXT, message: prompt3)]);
   } on TaskRejectException catch (e) {

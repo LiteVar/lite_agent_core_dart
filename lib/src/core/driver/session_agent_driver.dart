@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../agents/llm/model.dart';
 import '../agents/model.dart';
 import '../agents/session_agent/model.dart';
+import '../util/unique_id_generator.dart';
 import 'model.dart';
 import 'agent_driver.dart';
 
@@ -44,7 +44,7 @@ class SessionAgentDriver extends AgentDriver {
       NamedSessionAgent namedSessionAgent = namedSessionAgents.where((agentModel) => agentModel.name == functionCall.name).first;
       Content content = Content(type: ContentType.TEXT, message: prompt);
 
-      String taskId = Uuid().v4();
+      String taskId = uniqueId();
 
       Completer<AgentMessage> completer = Completer();
       void Function(AgentMessage) listen = (agentMessage) {

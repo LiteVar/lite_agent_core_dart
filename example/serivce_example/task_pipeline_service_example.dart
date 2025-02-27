@@ -1,6 +1,6 @@
 import 'package:dotenv/dotenv.dart';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
-import 'package:uuid/uuid.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import '../listener.dart';
 
 /// [IMPORTANT] Prepare:
@@ -27,7 +27,7 @@ Future<void> main() async {
 
   try {
     String prompt1 = "你是谁？";
-    String taskId1 = Uuid().v4();
+    String taskId1 = uniqueId();
     print("taskId1: $taskId1, prompt1: $prompt1");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt1)]);
     await agentService.startSession(sessionDto.id, userTaskDto);
@@ -36,7 +36,7 @@ Future<void> main() async {
   }
   try {
     String prompt2 = "你从哪里来？";
-    String taskId2 = Uuid().v4();
+    String taskId2 = uniqueId();
     print("taskId2: $taskId2, prompt1: $prompt2");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt2)]);
     await agentService.startSession(sessionDto.id, userTaskDto);
@@ -45,7 +45,7 @@ Future<void> main() async {
   }
   try {
     String prompt3 = "你要到哪里去？";
-    String taskId3 = Uuid().v4();
+    String taskId3 = uniqueId();
     print("taskId3: $taskId3, prompt1: $prompt3");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt3)]);
     await agentService.startSession(sessionDto.id, userTaskDto);

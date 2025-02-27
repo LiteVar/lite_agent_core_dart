@@ -1,23 +1,9 @@
 import 'dart:async';
-import 'package:uuid/uuid.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
-import '../agents/model.dart';
-import '../agents/pipeline/model.dart';
-import '../agents/reflection/model.dart';
-import '../agents/session_agent/session.dart';
-import '../agents/session_agent/model.dart';
-import '../agents/session_agent/session_agent.dart';
-import '../agents/simple_agent.dart';
-import '../agents/text_agent/text_agent.dart';
-import '../agents/tool_agent/tool_agent.dart';
-import '../driver/model.dart';
-import '../driver/simple_agent_driver.dart';
-import '../driver/session_agent_driver.dart';
-import '../llm/model.dart';
-import '../llm/openai_util.dart';
+import '../../lite_agent_core.dart';
 import 'dto.dart';
 import 'exception.dart';
 
@@ -36,7 +22,7 @@ class AgentService {
   }
 
   Future<SessionDto> initSimple(SimpleCapabilityDto simpleCapabilityDto) async {
-    String sessionId = Uuid().v4();
+    String sessionId = uniqueId();
     String systemPrompt = simpleCapabilityDto.systemPrompt;
     LLMConfig llmConfig = simpleCapabilityDto.llmConfig.toModel();
 
@@ -63,7 +49,7 @@ class AgentService {
   }
 
   Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList, void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) async {
-    String sessionId = Uuid().v4();
+    String sessionId = uniqueId();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
     List<ReflectPrompt>? reflectPromptList = capabilityDto.reflectPromptList?.map((reflectPromptDto) => ReflectPrompt(llmConfig: reflectPromptDto.llmConfig.toModel(), prompt: reflectPromptDto.prompt)).toList();

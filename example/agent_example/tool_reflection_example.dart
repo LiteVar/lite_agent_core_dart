@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../custom_driver/mock_driver.dart';
 import '../listener.dart';
 
@@ -15,7 +15,7 @@ import '../listener.dart';
 String prompt = "Help me set store a text 'hello'.";
 
 Future<void> main() async {
-  String sessionId = Uuid().v4();
+  String sessionId = uniqueId();
   ToolAgent toolAgent = ToolAgent(
       sessionId: sessionId,
       llmConfig: _buildLLMConfig(),
@@ -24,7 +24,7 @@ Future<void> main() async {
       systemPrompt: _buildSystemPrompt(),
       toolReflectPromptList: await _buildToolReflectPromptList(),
   );
-  String taskId = Uuid().v4();
+  String taskId = uniqueId();
   await toolAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 

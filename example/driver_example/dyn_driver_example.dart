@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
+import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:opentool_dart/opentool_dart.dart';
-import 'package:uuid/uuid.dart';
 import '../listener.dart';
 import 'package:opendyn_dart/opendyn_dart.dart' as od;
 
 /// [IMPORTANT] Prepare:
 /// 1. Add LLM baseUrl and apiKey to `.env` file
 
-String prompt = "帮我调用工具计算28+36的结果";
+String prompt = "help me call tools to calculate 28+36";
 
 Future<void> main() async {
-  String sessionId = Uuid().v4();
+  String sessionId = uniqueId();
   ToolAgent toolAgent = ToolAgent(
       sessionId: sessionId,
       llmConfig: _buildLLMConfig(),
@@ -21,7 +21,7 @@ Future<void> main() async {
       toolDriverList: await _buildToolDriverList(),
       systemPrompt: _buildSystemPrompt()
   );
-  String taskId = Uuid().v4();
+  String taskId = uniqueId();
   await toolAgent.userToAgent(taskId: taskId, contentList: [Content(type: ContentType.TEXT, message: prompt)]);
 }
 
@@ -71,5 +71,5 @@ AgentSession _buildSession(String sessionId) {
 /// Use Prompt engineering to design SystemPrompt
 /// https://platform.openai.com/docs/guides/prompt-engineering
 String _buildSystemPrompt() {
-  return '## 你是一个计算器调用工具，你的功能包括：\n\n1. 加法：add\n2. 乘法：multiply';
+  return '## You are a calculate tool. Your functions include: \n\n1. add\n2. multiply';
 }

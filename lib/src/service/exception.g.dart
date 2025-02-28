@@ -6,6 +6,13 @@ part of 'exception.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+Map<String, dynamic> _$SessionAgentNotFoundExceptionToJson(
+        SessionAgentNotFoundException instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+    };
+
 Map<String, dynamic> _$AgentNotFoundExceptionToJson(
         AgentNotFoundException instance) =>
     <String, dynamic>{

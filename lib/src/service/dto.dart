@@ -504,3 +504,46 @@ class AgentMessageChunkDto {
     );
   }
 }
+
+@JsonSerializable()
+class AgentIdDto {
+  String agentId;
+  AgentIdDto({required this.agentId});
+
+  factory AgentIdDto.fromJson(Map<String, dynamic> json) => _$AgentIdDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AgentIdDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AgentDto {
+  String name;
+  CapabilityDto capability;
+  AgentDto({required this.name, required this.capability});
+
+  factory AgentDto.fromJson(Map<String, dynamic> json) => _$AgentDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AgentDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class AgentInfoDto extends AgentIdDto {
+  String name;
+  CapabilityDto capability;
+  AgentInfoDto({required super.agentId, required this.name, required this.capability});
+
+  factory AgentInfoDto.fromJson(Map<String, dynamic> json) => _$AgentInfoDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AgentInfoDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class SessionAgentMessageDto {
+  String sessionId;
+  AgentMessageDto agentMessageDto;
+  SessionAgentMessageDto({required this.sessionId, required this.agentMessageDto});
+
+  factory SessionAgentMessageDto.fromJson(Map<String, dynamic> json) => _$SessionAgentMessageDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SessionAgentMessageDtoToJson(this);
+}

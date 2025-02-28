@@ -4,6 +4,7 @@ import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
 import 'package:openrpc_dart/openrpc_dart.dart';
 import '../../lite_agent_core.dart';
+import 'session_message_manage_service.dart';
 import 'dto.dart';
 import 'exception.dart';
 
@@ -13,8 +14,11 @@ class AgentService {
   List<ToolDriver> globalDriverList = [];
   Map<String, OpenToolDriver> opentoolDriverMap = {};
 
-  AgentService({List<ToolDriver> globalToolDriverList = const []}) {
+  List<SessionMessageManageService> agentMessageManageServiceList = [];
+
+  AgentService({List<ToolDriver> globalToolDriverList = const [], List<SessionMessageManageService> messageManageServiceList = const []}) {
     globalDriverList.addAll(globalToolDriverList);
+    agentMessageManageServiceList.addAll(messageManageServiceList);
   }
 
   Future<bool> testLLMConfig(String baseUrl, String apiKey) async {
@@ -40,7 +44,7 @@ class AgentService {
   
   Future<AgentMessageDto> startSimple(String sessionId, UserTaskDto userTaskDto) async {
     SimpleAgent? simpleAgent = simpleAgents[sessionId];
-    if(simpleAgent == null) throw AgentNotFoundException(sessionId: sessionId);
+    if(simpleAgent == null) throw SessionAgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
         .map((userMessageDto) => _convertToContent(userMessageDto))
         .toList();
@@ -95,7 +99,7 @@ class AgentService {
 
   Future<void> startSession(String sessionId, UserTaskDto userTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
-    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
+    if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
       .map((userMessageDto) => _convertToContent(userMessageDto))
       .toList();
@@ -116,13 +120,13 @@ class AgentService {
 
   Future<void> stopSession(SessionTaskDto sessionTaskDto) async {
     SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.id];
-    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionTaskDto.id);
+    if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionTaskDto.id);
     sessionAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
   Future<void> clearSession(String sessionId) async {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
-    if(sessionAgent == null) throw AgentNotFoundException(sessionId: sessionId);
+    if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionId);
     sessionAgent.clear();
     sessionAgents.remove(sessionId);
   }
@@ -140,7 +144,9 @@ class AgentService {
   AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) {
     AgentSession agentSession = AgentSession();
     agentSession.addAgentMessageListener((AgentMessage agentMessage) {
-      listen(sessionId, AgentMessageDto.fromModel(agentMessage));
+      AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(agentMessage);
+      _recordAgentMessage(sessionId, agentMessageDto);
+      listen(sessionId, agentMessageDto);
     });
     if(listenChunk != null) {
       agentSession.addAgentMessageChunkListener((AgentMessageChunk agentMessageChunk) {
@@ -194,13 +200,15 @@ class AgentService {
     sessionList.forEach((session) {
       SimpleAgent? simpleAgent = simpleAgents[session.id];
       SessionAgent? sessionAgent = sessionAgents[session.id];
-      if(simpleAgent == null && sessionAgent == null) throw AgentNotFoundException(sessionId: session.id);
+      if(simpleAgent == null && sessionAgent == null) throw SessionAgentNotFoundException(sessionId: session.id);
 
       if(simpleAgent != null) {
         namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.id, agent: simpleAgent));
       } else {
         void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
-          listen(session.id, AgentMessageDto.fromModel(agentMessage));
+          AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(agentMessage);
+          _recordAgentMessage(session.id, agentMessageDto);
+          listen(session.id, agentMessageDto);
         };
         sessionAgent!.agentSession.addAgentMessageListener(AgentListen);
         namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.id, agent: sessionAgent));
@@ -214,5 +222,12 @@ class AgentService {
     toolDriverList.add(simpleAgentDriver);
     toolDriverList.add(sessionAgentDriver);
     return toolDriverList;
+  }
+
+  void _recordAgentMessage(String sessionId, AgentMessageDto agentMessageDto) {
+    SessionAgentMessageDto sessionAgentMessageDto = SessionAgentMessageDto(sessionId: sessionId, agentMessageDto: agentMessageDto);
+    agentMessageManageServiceList.forEach((service) {
+      service.addMessage(sessionAgentMessageDto);
+    });
   }
 }

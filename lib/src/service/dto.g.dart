@@ -361,3 +361,52 @@ Map<String, dynamic> _$AgentMessageChunkDtoToJson(
       'part': instance.part,
       'createTime': instance.createTime.toIso8601String(),
     };
+
+AgentIdDto _$AgentIdDtoFromJson(Map<String, dynamic> json) => AgentIdDto(
+      agentId: json['agentId'] as String,
+    );
+
+Map<String, dynamic> _$AgentIdDtoToJson(AgentIdDto instance) =>
+    <String, dynamic>{
+      'agentId': instance.agentId,
+    };
+
+AgentDto _$AgentDtoFromJson(Map<String, dynamic> json) => AgentDto(
+      name: json['name'] as String,
+      capability:
+          CapabilityDto.fromJson(json['capability'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AgentDtoToJson(AgentDto instance) => <String, dynamic>{
+      'name': instance.name,
+      'capability': instance.capability.toJson(),
+    };
+
+AgentInfoDto _$AgentInfoDtoFromJson(Map<String, dynamic> json) => AgentInfoDto(
+      agentId: json['agentId'] as String,
+      name: json['name'] as String,
+      capability:
+          CapabilityDto.fromJson(json['capability'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$AgentInfoDtoToJson(AgentInfoDto instance) =>
+    <String, dynamic>{
+      'agentId': instance.agentId,
+      'name': instance.name,
+      'capability': instance.capability.toJson(),
+    };
+
+SessionAgentMessageDto _$SessionAgentMessageDtoFromJson(
+        Map<String, dynamic> json) =>
+    SessionAgentMessageDto(
+      sessionId: json['sessionId'] as String,
+      agentMessageDto: AgentMessageDto.fromJson(
+          json['agentMessageDto'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$SessionAgentMessageDtoToJson(
+        SessionAgentMessageDto instance) =>
+    <String, dynamic>{
+      'sessionId': instance.sessionId,
+      'agentMessageDto': instance.agentMessageDto.toJson(),
+    };

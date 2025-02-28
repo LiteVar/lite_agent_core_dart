@@ -4,12 +4,29 @@ import 'package:json_annotation/json_annotation.dart';
 part 'exception.g.dart';
 
 @JsonSerializable(createFactory: false)
+class SessionAgentNotFoundException implements Exception {
+  final int code = 404;
+  late String message;
+
+  SessionAgentNotFoundException({ required String sessionId }) {
+    this.message = "SessionId `${sessionId}` Agent Not Found";
+  }
+
+  Map<String, dynamic> toJson() => _$SessionAgentNotFoundExceptionToJson(this);
+
+  @override
+  String toString() {
+    return jsonEncode(this.toJson());
+  }
+}
+
+@JsonSerializable(createFactory: false)
 class AgentNotFoundException implements Exception {
   final int code = 404;
   late String message;
 
-  AgentNotFoundException({ required String sessionId }) {
-    this.message = "SessionId `${sessionId}` Agent Not Found";
+  AgentNotFoundException({ required String agentId }) {
+    this.message = "AgentId `${agentId}` Agent Not Found";
   }
 
   Map<String, dynamic> toJson() => _$AgentNotFoundExceptionToJson(this);

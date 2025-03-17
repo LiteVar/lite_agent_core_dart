@@ -20,23 +20,6 @@ class TextMessageType {
   static String REFLECTION = "reflection";
 }
 
-class ExceptionMessage implements Exception {
-  final int code;
-  final String message;
-
-  ExceptionMessage({
-    required this.code,
-    required this.message,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'code': code,
-      'message': message
-    };
-  }
-}
-
 class Reflection {
   final bool isPass;
   final MessageScore messageScore;

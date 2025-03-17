@@ -7,23 +7,23 @@ part of 'dto.dart';
 // **************************************************************************
 
 SessionDto _$SessionDtoFromJson(Map<String, dynamic> json) => SessionDto(
-      id: json['id'] as String,
+      sessionId: json['sessionId'] as String,
     );
 
 Map<String, dynamic> _$SessionDtoToJson(SessionDto instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'sessionId': instance.sessionId,
     };
 
 SessionNameDto _$SessionNameDtoFromJson(Map<String, dynamic> json) =>
     SessionNameDto(
-      id: json['id'] as String,
+      sessionId: json['sessionId'] as String,
       name: json['name'] as String?,
     );
 
 Map<String, dynamic> _$SessionNameDtoToJson(SessionNameDto instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'sessionId': instance.sessionId,
       if (instance.name case final value?) 'name': value,
     };
 
@@ -49,6 +49,7 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
       openSpecList: (json['openSpecList'] as List<dynamic>?)
           ?.map((e) => OpenSpecDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      clientOpenTool: json['clientOpenTool'] as String?,
       sessionList: (json['sessionList'] as List<dynamic>?)
           ?.map((e) => SessionNameDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -66,6 +67,7 @@ Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
       'llmConfig': instance.llmConfig,
       'systemPrompt': instance.systemPrompt,
       if (instance.openSpecList case final value?) 'openSpecList': value,
+      if (instance.clientOpenTool case final value?) 'clientOpenTool': value,
       if (instance.sessionList case final value?) 'sessionList': value,
       if (instance.reflectPromptList case final value?)
         'reflectPromptList': value,
@@ -152,18 +154,6 @@ Map<String, dynamic> _$FunctionCallDtoToJson(FunctionCallDto instance) =>
       'parameters': instance.parameters,
     };
 
-ToolReturnDto _$ToolReturnDtoFromJson(Map<String, dynamic> json) =>
-    ToolReturnDto(
-      id: json['id'] as String,
-      result: json['result'] as Map<String, dynamic>,
-    );
-
-Map<String, dynamic> _$ToolReturnDtoToJson(ToolReturnDto instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'result': instance.result,
-    };
-
 CompletionsDto _$CompletionsDtoFromJson(Map<String, dynamic> json) =>
     CompletionsDto(
       usage: TokenUsageDto.fromJson(json['usage'] as Map<String, dynamic>),
@@ -239,13 +229,13 @@ const _$UserMessageDtoTypeEnumMap = {
 
 SessionTaskDto _$SessionTaskDtoFromJson(Map<String, dynamic> json) =>
     SessionTaskDto(
-      id: json['id'] as String,
+      sessionId: json['sessionId'] as String,
       taskId: json['taskId'] as String?,
     );
 
 Map<String, dynamic> _$SessionTaskDtoToJson(SessionTaskDto instance) =>
     <String, dynamic>{
-      'id': instance.id,
+      'sessionId': instance.sessionId,
       if (instance.taskId case final value?) 'taskId': value,
     };
 
@@ -264,7 +254,7 @@ Map<String, dynamic> _$ReflectScoreDtoToJson(ReflectScoreDto instance) =>
 MessageScoreDto _$MessageScoreDtoFromJson(Map<String, dynamic> json) =>
     MessageScoreDto(
       contentList: (json['contentList'] as List<dynamic>)
-          .map((e) => Content.fromJson(e as Map<String, dynamic>))
+          .map((e) => ContentDto.fromJson(e as Map<String, dynamic>))
           .toList(),
       messageType: json['messageType'] as String,
       message: json['message'] as String,

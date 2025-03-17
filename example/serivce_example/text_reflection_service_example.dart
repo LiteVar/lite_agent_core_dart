@@ -27,19 +27,19 @@ Future<void> main() async {
 
   String taskId = uniqueId();
   UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
-  await agentService.startSession(sessionDto.id, userTaskDto);
+  await agentService.startSession(sessionDto.sessionId, userTaskDto);
 
   print("[prompt] " + prompt);
 
   await sleep(15);
 
-  SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
+  SessionTaskDto sessionTaskDto = SessionTaskDto(sessionId: sessionDto.sessionId);
   await agentService.stopSession(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);
 
-  await agentService.clearSession(sessionDto.id);
+  await agentService.clearSession(sessionDto.sessionId);
   print("[clearSession] ");
 }
 

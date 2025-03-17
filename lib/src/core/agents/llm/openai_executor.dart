@@ -72,60 +72,25 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
       StreamController<AgentMessage> agentMessageStreamController = StreamController<AgentMessage>();
 
-      DeltaAccumulation textAccumulation = TextAccumulation();
-      DeltaAccumulation functionCallAccumulation = FunctionCallAccumulation();
-      String finishReason = "";
+      DeltaAccumulation textAccumulation = _buildTextAccumulation(listenChunk, agentMessageStreamController);
+      DeltaAccumulation functionCallAccumulation = _buildFunctionCallAccumulation(agentMessageStreamController);
+      String finishReasonCache = "";
 
       chatCompletionDeltaStream.listen((chatCompletionDelta) {
         if(chatCompletionDelta.finishReason == FinishReasonType.LENGTH) throw LLMException(message: "The generation exceeded max_tokens or the conversation exceeded the max context length.");
         if(chatCompletionDelta.finishReason == FinishReasonType.CONTENT_FILTER) throw LLMException(message: "the content filtering system detects harmful content");
-        finishReason = chatCompletionDelta.finishReason??finishReason;
-        if(chatCompletionDelta.delta?.toolCalls != null || chatCompletionDelta.finishReason == FinishReasonType.TOOL_CALLS || (finishReason == FinishReasonType.TOOL_CALLS && chatCompletionDelta.completions != null)) {
-          functionCallAccumulation.appendDelta(chatCompletionDelta, <FunctionCall> (functionCallList, Completions completions) {
-            AgentMessage agentMessage = AgentMessage(
-              sessionId: _sessionId,
-              taskId: _taskId,
-              role: AgentRoleType.LLM,
-              to: AgentRoleType.AGENT,
-              type: AgentMessageType.FUNCTION_CALL_LIST,
-              message: functionCallList,
-              completions: completions
-            );
-            agentMessageStreamController.add(agentMessage);
-          });
-        } else if(chatCompletionDelta.delta?.content != null ||  chatCompletionDelta.finishReason == FinishReasonType.STOP || (finishReason == FinishReasonType.STOP && chatCompletionDelta.completions != null)) {
-
+        finishReasonCache = chatCompletionDelta.finishReason??finishReasonCache;
+        if(chatCompletionDelta.delta?.toolCalls != null || chatCompletionDelta.finishReason == FinishReasonType.TOOL_CALLS || (finishReasonCache == FinishReasonType.TOOL_CALLS && chatCompletionDelta.completions != null)) {
+          functionCallAccumulation.appendDelta(chatCompletionDelta);
+        } else if(chatCompletionDelta.delta?.content != null ||  chatCompletionDelta.finishReason == FinishReasonType.STOP || (finishReasonCache == FinishReasonType.STOP && chatCompletionDelta.completions != null)) {
           AgentMessageChunk? agentMessageChunk = _chunkDeltaToAgentMessageChunk(chatCompletionDelta);
           if(agentMessageChunk != null && listenChunk != null) listenChunk(agentMessageChunk);
-
-          textAccumulation.appendDelta(chatCompletionDelta, <String>(text, Completions completions) {
-
-            if( listenChunk != null) {
-              AgentMessageChunk chunkDoneMessageChunk = AgentMessageChunk(
-                  sessionId: _sessionId,
-                  taskId: _taskId,
-                  role: AgentRoleType.LLM,
-                  to: AgentRoleType.AGENT,
-                  type: AgentMessageType.TASK_STATUS,
-                  part: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: _taskId)
-              );
-              listenChunk(chunkDoneMessageChunk);
-            }
-
-            AgentMessage agentMessage = AgentMessage(
-              sessionId: _sessionId,
-              taskId: _taskId,
-              role: AgentRoleType.LLM,
-              to: AgentRoleType.AGENT,
-              type: AgentMessageType.TEXT,
-              message: text,
-              completions: completions
-            );
-            agentMessageStreamController.add(agentMessage);
-          });
+          textAccumulation.appendDelta(chatCompletionDelta);
         }
       },
         onDone: () {
+          textAccumulation.close();
+          functionCallAccumulation.close();
           agentMessageStreamController.close();
         },
         onError: (e) {
@@ -137,6 +102,48 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     } catch(e) {
       throw LLMException(message: e.toString());
     }
+  }
+
+  TextAccumulation _buildTextAccumulation(void Function(AgentMessageChunk)? listenChunk, StreamController<AgentMessage> agentMessageStreamController) {
+    return TextAccumulation((text, Completions? completions) {
+      if( listenChunk != null) {
+        AgentMessageChunk chunkDoneMessageChunk = AgentMessageChunk(
+            sessionId: _sessionId,
+            taskId: _taskId,
+            role: AgentRoleType.LLM,
+            to: AgentRoleType.AGENT,
+            type: AgentMessageType.TASK_STATUS,
+            part: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: _taskId)
+        );
+        listenChunk(chunkDoneMessageChunk);
+      }
+
+      AgentMessage agentMessage = AgentMessage(
+          sessionId: _sessionId,
+          taskId: _taskId,
+          role: AgentRoleType.LLM,
+          to: AgentRoleType.AGENT,
+          type: AgentMessageType.TEXT,
+          message: text,
+          completions: completions
+      );
+      agentMessageStreamController.add(agentMessage);
+    });
+  }
+
+  FunctionCallAccumulation _buildFunctionCallAccumulation(StreamController<AgentMessage> agentMessageStreamController) {
+    return FunctionCallAccumulation((functionCallList, Completions? completions) {
+      AgentMessage agentMessage = AgentMessage(
+          sessionId: _sessionId,
+          taskId: _taskId,
+          role: AgentRoleType.LLM,
+          to: AgentRoleType.AGENT,
+          type: AgentMessageType.FUNCTION_CALL_LIST,
+          message: functionCallList,
+          completions: completions
+      );
+      agentMessageStreamController.add(agentMessage);
+    });
   }
 
   OpenAIToolModel _buildOpenAIToolModel(FunctionModel functionModel) {
@@ -320,9 +327,9 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
   AgentMessage _toAgentMessage(OpenAIChatCompletionChoiceMessageModel openAIChatCompletionChoiceMessageModel, {Completions? completions}) {
     dynamic message;
 
-    // if (openAIChatCompletionChoiceMessageModel.haveToolCalls) {
-    //   return _toFunctionCallList(openAIChatCompletionChoiceMessageModel.toolCalls!, completions);
-    // }
+    if (openAIChatCompletionChoiceMessageModel.haveToolCalls) {
+      return _toFunctionCallList(openAIChatCompletionChoiceMessageModel.toolCalls!, completions);
+    }
 
     message = openAIChatCompletionChoiceMessageModel.content?.first.text;
     return AgentMessage(
@@ -335,25 +342,25 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       completions: completions
     );
   }
-  //
-  // AgentMessage _toFunctionCallList(List<OpenAIResponseToolCall> toolCalls, Completions? completions) {
-  //   List<FunctionCall> functionCallList = toolCalls.map((OpenAIResponseToolCall openAIResponseToolCall) {
-  //     String id = openAIResponseToolCall.id!;
-  //     String name = openAIResponseToolCall.function.name!;
-  //     print(openAIResponseToolCall.function.arguments);
-  //     Map<String, dynamic> parameters = jsonDecode(openAIResponseToolCall.function.arguments);
-  //     return FunctionCall(id: id, name: name, parameters: parameters);
-  //   }).toList();
-  //   return AgentMessage(
-  //       sessionId: _sessionId,
-  //       taskId: _taskId,
-  //       role: AgentRoleType.LLM,
-  //       to: AgentRoleType.AGENT,
-  //       type: AgentMessageType.FUNCTION_CALL_LIST,
-  //       message: functionCallList,
-  //       completions: completions
-  //   );
-  // }
+
+  AgentMessage _toFunctionCallList(List<OpenAIResponseToolCall> toolCalls, Completions? completions) {
+    List<FunctionCall> functionCallList = toolCalls.map((OpenAIResponseToolCall openAIResponseToolCall) {
+      String id = openAIResponseToolCall.id!;
+      String name = openAIResponseToolCall.function.name!;
+      print(openAIResponseToolCall.function.arguments);
+      Map<String, dynamic> parameters = jsonDecode(openAIResponseToolCall.function.arguments);
+      return FunctionCall(id: id, name: name, parameters: parameters);
+    }).toList();
+    return AgentMessage(
+        sessionId: _sessionId,
+        taskId: _taskId,
+        role: AgentRoleType.LLM,
+        to: AgentRoleType.AGENT,
+        type: AgentMessageType.FUNCTION_CALL_LIST,
+        message: functionCallList,
+        completions: completions
+    );
+  }
 
   AgentMessageChunk? _chunkDeltaToAgentMessageChunk(ChatCompletionDelta chatCompletionDelta) {
     String text = chatCompletionDelta.delta?.content?.first?.text??"";
@@ -372,41 +379,62 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 }
 
 abstract class DeltaAccumulation<T> {
-  Completions? completions;
-  bool finished = false;
-  void appendDelta(ChatCompletionDelta delta, void Function<T>(T accumulation, Completions completions) onComplete) {
-    if(completions == null) completions = delta.completions;
+  void Function(T accumulation, Completions? completions) onComplete;
+  late T accumulation;
+  Completions? _completions;
+  bool _finished = false;
+  bool _closed = false;
+  bool _hasCompleted = false;
+
+  DeltaAccumulation(this.onComplete);
+
+  void appendDelta(ChatCompletionDelta delta) {
+    if(_completions == null) _completions = delta.completions;
+    _checkComplete();
+  }
+
+  void close() {
+    _closed = true;
+    _checkComplete();
+  }
+
+  void _checkComplete() {
+    if(_hasCompleted == false && _finished == true && (_completions != null || _closed == true)) {
+      _hasCompleted = true;
+      onComplete(accumulation, _completions);
+    }
   }
 }
 
 class TextAccumulation extends DeltaAccumulation<String> {
-  String textAccumulation = "";
+
+  TextAccumulation(super.onComplete) {
+    accumulation = "";
+  }
 
   @override
-  void appendDelta(ChatCompletionDelta delta, void Function<T>(T accumulation, Completions completions) onComplete) {
-    super.appendDelta(delta, onComplete);
+  void appendDelta(ChatCompletionDelta delta) {
     if(delta.finishReason == null) {
-      textAccumulation += delta.delta?.content?.first?.text??"";
+      accumulation += delta.delta?.content?.first?.text??"";
     } else if(delta.finishReason == FinishReasonType.STOP) {
-      super.finished = true;
+      super._finished = true;
     }
-
-    if(super.finished && completions != null) {
-      onComplete(textAccumulation, super.completions!);
-    }
+    super.appendDelta(delta);
   }
 }
 
 class FunctionCallAccumulation extends DeltaAccumulation<List<FunctionCall>> {
-  List<FunctionCall> functionCallList = [];
   String currentId = "";
   String currentName = "";
   String currentParameters = "";
 
+  FunctionCallAccumulation(super.onComplete) {
+    accumulation = [];
+  }
+
   @override
-  void appendDelta(ChatCompletionDelta delta, void Function<T>(T accumulation, Completions completions) onComplete) {
-    super.appendDelta(delta, onComplete);
-    if(delta.finishReason == null && super.completions == null) {
+  void appendDelta(ChatCompletionDelta delta) {
+    if(delta.finishReason == null) {
       OpenAIResponseToolCall toolCall = delta.delta!.toolCalls!.first;
       if(toolCall.id != null && toolCall.id != currentId) {
         _buildFunctionCall();
@@ -416,17 +444,15 @@ class FunctionCallAccumulation extends DeltaAccumulation<List<FunctionCall>> {
       if(toolCall.function.arguments != null) currentParameters += toolCall.function.arguments!;
     } else if(delta.finishReason == FinishReasonType.TOOL_CALLS) {
       _buildFunctionCall();
-      super.finished = true;
+      super._finished = true;
     }
 
-    if(super.finished && completions != null) {
-      onComplete(functionCallList, super.completions!);
-    }
+    super.appendDelta(delta);
   }
 
   void _buildFunctionCall() {
     if(currentName.isNotEmpty && currentParameters.isNotEmpty) {
-      functionCallList.add(FunctionCall(id: currentId, name: currentName, parameters: jsonDecode(currentParameters)));
+      accumulation.add(FunctionCall(id: currentId, name: currentName, parameters: jsonDecode(currentParameters)));
       currentId = ""; currentName = ""; currentParameters = "";
     }
   }

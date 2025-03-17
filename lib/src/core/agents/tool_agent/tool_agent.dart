@@ -84,30 +84,14 @@ class ToolAgent extends TextAgent {
 
     try {
       if(super.agentSession.isStream) {
-        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList,
-            listenChunk: (AgentMessageChunk agentMessageChunk){
-              if(agentMessageChunk.type == TextMessageType.TEXT) {
-                agentMessageChunk.role = TextRoleType.AGENT;
-                agentMessageChunk.to = TextRoleType.USER;
-              } else if(agentMessageChunk.type == TextMessageType.TASK_STATUS) {
-                agentMessageChunk.role = TextRoleType.AGENT;
-                agentMessageChunk.to = TextRoleType.CLIENT;
-              }
-              agentSession.addListenAgentMessageChunk(agentMessageChunk);
-            }
-        );
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList, listenChunk: listenChunk);
         agentMessageStream.listen((newAgentMessage) {
           Command nextCommand = Command(toAgent, newAgentMessage);
           dispatcherMap.dispatch(nextCommand);
         },
           onDone: () {},
           onError: (e) {
-            ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-            pushException(
-                agentMessage.sessionId,
-                agentMessage.taskId,
-                exceptionMessage
-            );
+            pushException(agentMessage.sessionId, agentMessage.taskId, e.toString());
           }
         );
       } else {
@@ -116,12 +100,7 @@ class ToolAgent extends TextAgent {
         dispatcherMap.dispatch(nextCommand);
       }
     } on LLMException catch(e) {
-      ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-      pushException(
-          agentMessage.sessionId,
-          agentMessage.taskId,
-          exceptionMessage
-      );
+      pushException(agentMessage.sessionId, agentMessage.taskId, e.toString());
     }
   }
 

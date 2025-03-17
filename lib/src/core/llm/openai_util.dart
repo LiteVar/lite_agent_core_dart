@@ -25,9 +25,11 @@ class OpenAIUtil {
   }
 
   Future<ChatCompletion> chat({required List<OpenAIChatCompletionChoiceMessageModel> messageList, List<OpenAIToolModel>? toolList, ResponseFormat? responseFormat}) async {
+    Map<String, dynamic>? responseFormatJson = null;
+    if(responseFormat != null) responseFormatJson = responseFormat.toJson();
     OpenAIChatCompletionModel chatCompletion = await OpenAI.instance.chat.create(
       model: llmConfig.model,
-      responseFormat: responseFormat == null ? ResponseFormat(type: ResponseFormatType.TEXT).toJson() : responseFormat.toJson(),
+      responseFormat: responseFormatJson,
       seed: 6,
       messages: messageList,
       tools: toolList,
@@ -48,9 +50,11 @@ class OpenAIUtil {
   }
 
   Future<Stream<ChatCompletionDelta>> chatByStream({required List<OpenAIChatCompletionChoiceMessageModel> messageList, List<OpenAIToolModel>? toolList, ResponseFormat? responseFormat}) async {
+    Map<String, dynamic>? responseFormatJson = null;
+    if(responseFormat != null) responseFormatJson = responseFormat.toJson();
     Stream<OpenAIStreamChatCompletionModel> chatCompletionStream = await OpenAI.instance.chat.createStream(
       model: llmConfig.model,
-      responseFormat: responseFormat == null ? ResponseFormat(type: ResponseFormatType.TEXT).toJson() : responseFormat.toJson(),
+      responseFormat: responseFormatJson,
       seed: 6,
       messages: messageList,
       tools: toolList,
@@ -61,23 +65,23 @@ class OpenAIUtil {
     );
 
     return chatCompletionStream.map((OpenAIStreamChatCompletionModel streamCompletion) {
-        Completions? completions = null;
-        if(streamCompletion.usage != null) {
-          TokenUsage tokenUsage = TokenUsage(
-            promptTokens: streamCompletion.usage!.promptTokens,
-            completionTokens: streamCompletion.usage!.completionTokens,
-            totalTokens: streamCompletion.usage!.totalTokens
-          );
-          completions = Completions(tokenUsage: tokenUsage, id: streamCompletion.id, model: llmConfig.model);
-        }
-        OpenAIStreamChatCompletionChoiceDeltaModel? delta = null;
-        String? finishReason = null;
-        if(streamCompletion.choices.length > 0) {
-          delta = streamCompletion.choices.first.delta;
-          finishReason = streamCompletion.choices.first.finishReason;
-        }
+      Completions? completions = null;
+      if(streamCompletion.usage != null) {
+        TokenUsage tokenUsage = TokenUsage(
+          promptTokens: streamCompletion.usage!.promptTokens,
+          completionTokens: streamCompletion.usage!.completionTokens,
+          totalTokens: streamCompletion.usage!.totalTokens
+        );
+        completions = Completions(tokenUsage: tokenUsage, id: streamCompletion.id, model: llmConfig.model);
+      }
+      OpenAIStreamChatCompletionChoiceDeltaModel? delta = null;
+      String? finishReason = null;
+      if(streamCompletion.choices.length > 0) {
+        delta = streamCompletion.choices.first.delta;
+        finishReason = streamCompletion.choices.first.finishReason;
+      }
 
-        return ChatCompletionDelta(delta: delta, finishReason: finishReason, completions: completions);
-      });
+      return ChatCompletionDelta(delta: delta, finishReason: finishReason, completions: completions);
+    });
   }
 }

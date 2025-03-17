@@ -109,32 +109,16 @@ class TextAgent extends SessionAgent {
     List<AgentMessage> agentLLMMessageList = prepareAgentLLMMessageList(agentMessage);
     try {
       if(super.agentSession.isStream) {
-
-        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList,
-          listenChunk: (AgentMessageChunk agentMessageChunk){
-            if(agentMessageChunk.type == TextMessageType.TEXT) {
-              agentMessageChunk.role = TextRoleType.AGENT;
-              agentMessageChunk.to = TextRoleType.USER;
-            } else if(agentMessageChunk.type == TextMessageType.TASK_STATUS) {
-              agentMessageChunk.role = TextRoleType.AGENT;
-              agentMessageChunk.to = TextRoleType.CLIENT;
-            }
-            agentSession.addListenAgentMessageChunk(agentMessageChunk);
-          }
-        );
+        Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, listenChunk: listenChunk);
 
         agentMessageStream.listen((newAgentMessage) {
           Command nextCommand = Command(toAgent, newAgentMessage);
           dispatcherMap.dispatch(nextCommand);
         },
-          onDone: () {},
+          onDone: () {
+          },
           onError: (e) {
-            ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-            pushException(
-                agentMessage.sessionId,
-                agentMessage.taskId,
-                exceptionMessage
-            );
+            pushException(agentMessage.sessionId, agentMessage.taskId, e.toString());
           }
         );
       } else {
@@ -143,16 +127,11 @@ class TextAgent extends SessionAgent {
         dispatcherMap.dispatch(nextCommand);
       }
     } on LLMException catch(e) {
-      ExceptionMessage exceptionMessage = ExceptionMessage(code: e.code, message: e.message);
-      pushException(
-          agentMessage.sessionId,
-          agentMessage.taskId,
-          exceptionMessage
-      );
+      pushException(agentMessage.sessionId, agentMessage.taskId, e.toString());
     }
   }
 
-  void pushException(String sessionId, String taskId, ExceptionMessage exceptionMessage) {
+  void pushException(String sessionId, String taskId, String exceptionMessage) {
     pipeline.completeAsync(taskId);
     AgentMessage agentMessage = AgentMessage(
         sessionId: sessionId,
@@ -160,8 +139,19 @@ class TextAgent extends SessionAgent {
         role: TextRoleType.AGENT,
         to: TextRoleType.CLIENT,
         type: TextMessageType.TASK_STATUS,
-        message: TaskStatus(status:TaskStatusType.STOP, taskId: taskId, description: exceptionMessage.toJson()));
+        message: TaskStatus(status:TaskStatusType.EXCEPTION, taskId: taskId, description: {"error": exceptionMessage}));
     Command exceptionCommand = Command(toClient, agentMessage);
     dispatcherMap.stop(agentMessage.taskId, exceptionCommand);
+  }
+
+  void listenChunk(AgentMessageChunk agentMessageChunk){
+    if(agentMessageChunk.type == TextMessageType.TEXT) {
+      agentMessageChunk.role = TextRoleType.AGENT;
+      agentMessageChunk.to = TextRoleType.USER;
+    } else if(agentMessageChunk.type == TextMessageType.TASK_STATUS) {
+      agentMessageChunk.role = TextRoleType.AGENT;
+      agentMessageChunk.to = TextRoleType.CLIENT;
+    }
+    agentSession.addListenAgentMessageChunk(agentMessageChunk);
   }
 }

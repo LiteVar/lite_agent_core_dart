@@ -40,7 +40,7 @@ Future<void> main() async {
     String taskId1 = uniqueId();
     print("taskId1: $taskId1");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt1)]);
-    await agentService.startSession(sessionDto.id, userTaskDto);
+    await agentService.startSession(sessionDto.sessionId, userTaskDto);
   } on TaskRejectException catch (e) {
     print(e);
   }
@@ -49,7 +49,7 @@ Future<void> main() async {
     String taskId2 = uniqueId();
     print("taskId2: $taskId2");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt2)]);
-    await agentService.startSession(sessionDto.id, userTaskDto);
+    await agentService.startSession(sessionDto.sessionId, userTaskDto);
   } on TaskRejectException catch (e) {
     print(e);
   }
@@ -59,7 +59,7 @@ Future<void> main() async {
     print("taskId3: $taskId3");
     UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt3)]);
     await agentService.startSession(
-        sessionDto.id,
+        sessionDto.sessionId,
         userTaskDto,
     );
   } on TaskRejectException catch (e) {
@@ -68,13 +68,13 @@ Future<void> main() async {
 
   await sleep(15);
 
-  SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
+  SessionTaskDto sessionTaskDto = SessionTaskDto(sessionId: sessionDto.sessionId);
   await agentService.stopSession(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);
 
-  await agentService.clearSession(sessionDto.id);
+  await agentService.clearSession(sessionDto.sessionId);
   print("[clearSession] ");
 }
 

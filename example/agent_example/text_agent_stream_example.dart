@@ -38,7 +38,7 @@ AgentSession _buildSession(String sessionId) {
     listen(sessionId, AgentMessageDto.fromModel(agentMessage));
   });
   session.addAgentMessageChunkListener((AgentMessageChunk agentMessageChunk) {
-    listenChunk(AgentMessageChunkDto.fromModel(agentMessageChunk));
+    listenChunk(sessionId, AgentMessageChunkDto.fromModel(agentMessageChunk));
   });
   return session;
 }

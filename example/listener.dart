@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:lite_agent_core_dart/lite_agent_service.dart';
+import 'package:opentool_dart/opentool_dart.dart';
 
 void listen(String sessionId, AgentMessageDto agentMessageDto) {
   String system = "🖥DEVEL ";
@@ -22,7 +23,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
     message = jsonEncode(functionCallList);
   }
   if (agentMessageDto.type == ToolMessageType.TOOL_RETURN) {
-    message = jsonEncode(agentMessageDto.message as ToolReturnDto);
+    message = jsonEncode(agentMessageDto.message as ToolReturn);
   };
   if (agentMessageDto.type == AgentMessageType.CONTENT_LIST) {
     List<ContentDto> contentList = agentMessageDto.message as List<ContentDto>;
@@ -65,7 +66,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
 }
 
 bool hasFirst = false;
-void listenChunk(AgentMessageChunkDto agentMessageChunkDto) {
+void listenChunk(String sessionId, AgentMessageChunkDto agentMessageChunkDto) {
   String user = "🧩👤USER  ";
   String agent = "🧩🤖AGENT ";
   String client = "🧩🔗CLIENT";
@@ -92,7 +93,7 @@ void listenChunk(AgentMessageChunkDto agentMessageChunkDto) {
     hasFirst = true;
   } else if(agentMessageChunkDto.type == TextMessageType.TASK_STATUS) {
     stdout.write("\n");
-    print(("#${agentMessageChunkDto.sessionId}::${agentMessageChunkDto.taskId}# $role -> $to: [${agentMessageChunkDto.type}] $part"));
+    print(("#$sessionId::${agentMessageChunkDto.taskId}# $role -> $to: [${agentMessageChunkDto.type}] $part"));
     hasFirst = false;
   } else {
     stdout.write(agentMessageChunkDto.part);

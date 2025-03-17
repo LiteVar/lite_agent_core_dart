@@ -13,7 +13,7 @@ class AgentService {
   Map<String, SimpleAgent> simpleAgents = {};
   List<ToolDriver> globalDriverList = [];
   Map<String, OpenToolDriver> opentoolDriverMap = {};
-
+  Map<String, ClientDriver> clientDriverMap= {};
   List<SessionMessageManageService> agentMessageManageServiceList = [];
 
   AgentService({List<ToolDriver> globalToolDriverList = const [], List<SessionMessageManageService> messageManageServiceList = const []}) {
@@ -38,7 +38,7 @@ class AgentService {
     
     simpleAgents[sessionId] = simpleAgent;
 
-    SessionDto sessionDto = SessionDto(id: sessionId);
+    SessionDto sessionDto = SessionDto(sessionId: sessionId);
     return sessionDto;
   }
   
@@ -52,47 +52,63 @@ class AgentService {
     return AgentMessageDto.fromModel(agentMessage);
   }
 
-  Future<SessionDto> initSession(CapabilityDto capabilityDto, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList, void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) async {
+  Future<SessionDto> initSession(
+      CapabilityDto capabilityDto,
+      void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {
+        Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList,
+        void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk,
+        void Function(String sessionId, FunctionCall functionCall)? listenClientFunctionCall
+      }) async {
     String sessionId = uniqueId();
     String systemPrompt = capabilityDto.systemPrompt;
     LLMConfig llmConfig = capabilityDto.llmConfig.toModel();
     List<ReflectPrompt>? reflectPromptList = capabilityDto.reflectPromptList?.map((reflectPromptDto) => ReflectPrompt(llmConfig: reflectPromptDto.llmConfig.toModel(), prompt: reflectPromptDto.prompt)).toList();
 
     if(opentoolDriverMap != null) opentoolDriverMap.forEach((key, value) { this.opentoolDriverMap[key] = value;});
+    if(capabilityDto.clientOpenTool != null && listenClientFunctionCall != null) {
+      OpenTool clientOpenTool = await OpenToolLoader().load(capabilityDto.clientOpenTool!);
+
+      void Function(FunctionCall functionCall) listenFunctionCall = (FunctionCall functionCall){
+        listenClientFunctionCall(sessionId, functionCall);
+      };
+
+      clientDriverMap[sessionId] = ClientDriver(listenFunctionCall).bind(clientOpenTool) as ClientDriver;
+    }
 
     List<ToolDriver> agentToolDriverList = [];
     agentToolDriverList.addAll(globalDriverList);
     agentToolDriverList.addAll(await _buildToolDriverList(capabilityDto.openSpecList));
     agentToolDriverList.addAll(await _buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
     if(customToolDriverList != null) agentToolDriverList.addAll(customToolDriverList);
+    if(clientDriverMap[sessionId] != null) agentToolDriverList.add(clientDriverMap[sessionId]!);
 
     if(agentToolDriverList.isEmpty) {
       SessionAgent textAgent = TextAgent(
-        sessionId: sessionId,
-        llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
-        systemPrompt: systemPrompt,
-        textReflectPromptList: reflectPromptList??[],
-        timeoutSeconds: capabilityDto.timeoutSeconds,
-        taskPipelineStrategy: capabilityDto.taskPipelineStrategy
+          sessionId: sessionId,
+          llmConfig: llmConfig,
+          agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
+          systemPrompt: systemPrompt,
+          textReflectPromptList: reflectPromptList??[],
+          timeoutSeconds: capabilityDto.timeoutSeconds,
+          taskPipelineStrategy: capabilityDto.taskPipelineStrategy
       );
       sessionAgents[sessionId] = textAgent;
     } else {
       SessionAgent toolAgent = ToolAgent(
-        sessionId: sessionId,
-        llmConfig: llmConfig,
-        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
-        toolDriverList: agentToolDriverList,
-        systemPrompt: systemPrompt,
-        toolReflectPromptList: reflectPromptList??[],
-        timeoutSeconds: capabilityDto.timeoutSeconds,
-        taskPipelineStrategy: capabilityDto.taskPipelineStrategy,
-        toolPipelineStrategy: capabilityDto.toolPipelineStrategy??PipelineStrategyType.PARALLEL
+          sessionId: sessionId,
+          llmConfig: llmConfig,
+          agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
+          toolDriverList: agentToolDriverList,
+          systemPrompt: systemPrompt,
+          toolReflectPromptList: reflectPromptList??[],
+          timeoutSeconds: capabilityDto.timeoutSeconds,
+          taskPipelineStrategy: capabilityDto.taskPipelineStrategy,
+          toolPipelineStrategy: capabilityDto.toolPipelineStrategy??PipelineStrategyType.PARALLEL
       );
       sessionAgents[sessionId] = toolAgent;
     }
 
-    SessionDto sessionDto = SessionDto(id: sessionId);
+    SessionDto sessionDto = SessionDto(sessionId: sessionId);
 
     return sessionDto;
   }
@@ -119,8 +135,8 @@ class AgentService {
   }
 
   Future<void> stopSession(SessionTaskDto sessionTaskDto) async {
-    SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.id];
-    if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionTaskDto.id);
+    SessionAgent? sessionAgent = sessionAgents[sessionTaskDto.sessionId];
+    if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionTaskDto.sessionId);
     sessionAgent.stop(taskId: sessionTaskDto.taskId);
   }
 
@@ -141,7 +157,7 @@ class AgentService {
     }
   }
 
-  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {void Function(AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) {
+  AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) {
     AgentSession agentSession = AgentSession();
     agentSession.addAgentMessageListener((AgentMessage agentMessage) {
       AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(agentMessage);
@@ -150,7 +166,7 @@ class AgentService {
     });
     if(listenChunk != null) {
       agentSession.addAgentMessageChunkListener((AgentMessageChunk agentMessageChunk) {
-        listenChunk(AgentMessageChunkDto.fromModel(agentMessageChunk));
+        listenChunk(sessionId, AgentMessageChunkDto.fromModel(agentMessageChunk));
       });
     }
     return agentSession;
@@ -198,20 +214,20 @@ class AgentService {
     List<NamedSimpleAgent> namedSimpleAgentList = [];
     List<NamedSessionAgent> namedSessionAgentList = [];
     sessionList.forEach((session) {
-      SimpleAgent? simpleAgent = simpleAgents[session.id];
-      SessionAgent? sessionAgent = sessionAgents[session.id];
-      if(simpleAgent == null && sessionAgent == null) throw SessionAgentNotFoundException(sessionId: session.id);
+      SimpleAgent? simpleAgent = simpleAgents[session.sessionId];
+      SessionAgent? sessionAgent = sessionAgents[session.sessionId];
+      if(simpleAgent == null && sessionAgent == null) throw SessionAgentNotFoundException(sessionId: session.sessionId);
 
       if(simpleAgent != null) {
-        namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.id, agent: simpleAgent));
+        namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.sessionId, agent: simpleAgent));
       } else {
         void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
           AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(agentMessage);
-          _recordAgentMessage(session.id, agentMessageDto);
-          listen(session.id, agentMessageDto);
+          _recordAgentMessage(session.sessionId, agentMessageDto);
+          listen(session.sessionId, agentMessageDto);
         };
         sessionAgent!.agentSession.addAgentMessageListener(AgentListen);
-        namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.id, agent: sessionAgent));
+        namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.sessionId, agent: sessionAgent));
       }
     });
 
@@ -230,4 +246,13 @@ class AgentService {
       service.addMessage(sessionAgentMessageDto);
     });
   }
+
+  void clientDriverCallback(String sessionId, ToolReturn toolReturn) {
+    ClientDriver? clientDriver = clientDriverMap[sessionId];
+    if(clientDriver == null) {
+      throw SessionAgentNotFoundException(sessionId: sessionId);
+    }
+    clientDriver.callback(toolReturn);
+  }
+
 }

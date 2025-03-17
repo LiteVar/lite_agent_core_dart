@@ -19,6 +19,7 @@ export 'src/core/agents/pipeline/model.dart';
 export 'src/core/driver/session_agent_driver.dart';
 export 'src/core/driver/simple_agent_driver.dart';
 export 'src/core/driver/agent_driver.dart';
+export 'src/core/driver/client_driver.dart';
 export 'src/core/driver/model.dart';
 export 'src/core/llm/model.dart';
 export 'src/core/llm/openai_util.dart';

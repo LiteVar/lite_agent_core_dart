@@ -21,23 +21,23 @@ Future<void> main() async {
   SessionDto sessionDto2 = await _buildToolAgent();
 
   CapabilityDto capabilityDto = CapabilityDto(llmConfig: llmConfig, systemPrompt: systemPrompt,
-    sessionList: [SessionNameDto(id: sessionDto1.id, name: ""), SessionNameDto(id: sessionDto2.id)]
+    sessionList: [SessionNameDto(sessionId: sessionDto1.sessionId, name: ""), SessionNameDto(sessionId: sessionDto2.sessionId)]
   );
 
   SessionDto sessionDto = await agentService.initSession(capabilityDto, listen);
 
   UserTaskDto userTaskDto = UserTaskDto(contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
-  await agentService.startSession(sessionDto.id, userTaskDto);
+  await agentService.startSession(sessionDto.sessionId, userTaskDto);
 
   await sleep(20);
 
-  SessionTaskDto sessionTaskDto = SessionTaskDto(id: sessionDto.id);
+  SessionTaskDto sessionTaskDto = SessionTaskDto(sessionId: sessionDto.sessionId);
   await agentService.stopSession(sessionTaskDto);
   print("[stopSession] ");
 
   await sleep(5);
 
-  await agentService.clearSession(sessionDto.id);
+  await agentService.clearSession(sessionDto.sessionId);
   print("[clearSession] ");
 }
 

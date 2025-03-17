@@ -7,9 +7,9 @@ part 'dto.g.dart';
 
 @JsonSerializable()
 class SessionDto {
-  String id;
+  String sessionId;
 
-  SessionDto({required this.id});
+  SessionDto({required this.sessionId});
 
   factory SessionDto.fromJson(Map<String, dynamic> json) => _$SessionDtoFromJson(json);
 
@@ -22,7 +22,7 @@ class SessionNameDto extends SessionDto {
   @JsonKey(includeIfNull: false)
   String? name; // OpenAI: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
 
-  SessionNameDto({required super.id, String? name}) {
+  SessionNameDto({required super.sessionId, String? name}) {
     final regex = RegExp(r'^[a-zA-Z0-9_-]{1,64}$');
     if(name != null && !regex.hasMatch(name)) {
       throw AgentNameException(agentName: name);
@@ -55,6 +55,9 @@ class CapabilityDto extends SimpleCapabilityDto {
   List<OpenSpecDto>? openSpecList;
 
   @JsonKey(includeIfNull: false)
+  String? clientOpenTool;
+
+  @JsonKey(includeIfNull: false)
   List<SessionNameDto>? sessionList;
 
   @JsonKey(includeIfNull: false)
@@ -70,6 +73,7 @@ class CapabilityDto extends SimpleCapabilityDto {
     required super.llmConfig,
     required super.systemPrompt,
     this.openSpecList,
+    this.clientOpenTool,
     this.sessionList,
     this.reflectPromptList,
     this.timeoutSeconds = 3600,
@@ -184,9 +188,9 @@ class AgentMessageDto {
 
     switch (agentMessage.type) {
       case AgentMessageType.CONTENT_LIST: message = (agentMessage.message as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
-      case AgentMessageType.FUNCTION_CALL: message = FunctionCallDto.fromModel(agentMessage.message as FunctionCall);break;
-      case AgentMessageType.FUNCTION_CALL_LIST: message = (agentMessage.message as List<FunctionCall>).map((functionCall) => FunctionCallDto.fromModel(functionCall)).toList();break;
-      case AgentMessageType.TOOL_RETURN: message = ToolReturnDto.fromModel(agentMessage.message as ToolReturn);break;
+      case AgentMessageType.FUNCTION_CALL: message = agentMessage.message as FunctionCall;break;
+      case AgentMessageType.FUNCTION_CALL_LIST: message = (agentMessage.message as List<FunctionCall>);break;
+      case AgentMessageType.TOOL_RETURN: message = agentMessage.message as ToolReturn;break;
       case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.message as Reflection);break;
       case AgentMessageType.TASK_STATUS: message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);break;
       default: message = agentMessage.message;
@@ -212,33 +216,35 @@ class FunctionCallDto {
 
   FunctionCallDto({required this.id, required this.name, required this.parameters});
 
-  factory FunctionCallDto.fromModel(FunctionCall functionCall) => FunctionCallDto(
-    id: functionCall.id,
-    name: functionCall.name,
-    parameters: functionCall.parameters
-  );
+  // factory FunctionCallDto.fromModel(FunctionCall functionCall) => FunctionCallDto(
+  //   id: functionCall.id,
+  //   name: functionCall.name,
+  //   parameters: functionCall.parameters
+  // );
 
   factory FunctionCallDto.fromJson(Map<String, dynamic> json) => _$FunctionCallDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$FunctionCallDtoToJson(this);
 }
 
-@JsonSerializable()
-class ToolReturnDto {
-  late String id;
-  late Map<String, dynamic> result;
-
-  ToolReturnDto({required this.id, required this.result});
-
-  factory ToolReturnDto.fromModel(ToolReturn toolReturn) => ToolReturnDto(
-      id: toolReturn.id,
-      result: toolReturn.result
-  );
-
-  factory ToolReturnDto.fromJson(Map<String, dynamic> json) => _$ToolReturnDtoFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ToolReturnDtoToJson(this);
-}
+// @JsonSerializable()
+// class ToolReturnDto {
+//   late String id;
+//   late Map<String, dynamic> result;
+//
+//   ToolReturnDto({required this.id, required this.result});
+//
+//   factory ToolReturnDto.fromModel(ToolReturn toolReturn) => ToolReturnDto(
+//       id: toolReturn.id,
+//       result: toolReturn.result
+//   );
+//
+//   ToolReturn toModel() => ToolReturn(id: id, result: result);
+//
+//   factory ToolReturnDto.fromJson(Map<String, dynamic> json) => _$ToolReturnDtoFromJson(json);
+//
+//   Map<String, dynamic> toJson() => _$ToolReturnDtoToJson(this);
+// }
 
 @JsonSerializable()
 class CompletionsDto {
@@ -332,12 +338,12 @@ class UserMessageDto {
 
 @JsonSerializable()
 class SessionTaskDto {
-  String id;
+  String sessionId;
 
   @JsonKey(includeIfNull: false)
   String? taskId;
 
-  SessionTaskDto({required this.id, this.taskId});
+  SessionTaskDto({required this.sessionId, this.taskId});
 
   factory SessionTaskDto.fromJson(Map<String, dynamic> json) => _$SessionTaskDtoFromJson(json);
 
@@ -364,14 +370,14 @@ class ReflectScoreDto {
 
 @JsonSerializable()
 class MessageScoreDto {
-  List<Content> contentList;
+  List<ContentDto> contentList;
   String messageType; //Follow AgentMessage.type
   String message;
   List<ReflectScoreDto> reflectScoreList;
   MessageScoreDto({required this.contentList, required this.messageType, required this.message, required this.reflectScoreList});
 
   factory MessageScoreDto.fromModel(MessageScore messageScore) => MessageScoreDto(
-    contentList: messageScore.contentList,
+    contentList: messageScore.contentList.map((content)=>ContentDto(type: content.type, message: content.message)).toList(),
     messageType: messageScore.messageType,
     message: messageScore.message,
     reflectScoreList: messageScore.reflectScoreList.map((reflectScore)=>ReflectScoreDto(score: reflectScore.score, description: reflectScore.description)).toList()

@@ -39,7 +39,6 @@ class TokenUsage {
 
 class ChatCompletion {
   OpenAIChatCompletionChoiceMessageModel message;
-
   Completions completions;
 
   ChatCompletion({required this.message, required this.completions});

@@ -16,11 +16,11 @@ class SessionAgentDriver extends AgentDriver {
   @override
   List<FunctionModel> parse() {
     List<FunctionModel> functionModelList = [];
-    namedSessionAgents.forEach((agentModel) {
+    namedSessionAgents.forEach((namedSessionAgent) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
-          name: agentModel.name,
-          description: agentModel.agent.systemPrompt == null?"": truncateWithEllipsis(agentModel.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
+          name: namedSessionAgent.name,
+          description: namedSessionAgent.description??(namedSessionAgent.agent.systemPrompt??truncateWithEllipsis(namedSessionAgent.agent.systemPrompt!, llmFunctionDescriptionMaxLength)),
           parameters: [parameter]
       );
       functionModelList.add(functionModel);

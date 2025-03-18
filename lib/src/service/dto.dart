@@ -18,11 +18,10 @@ class SessionDto {
 
 @JsonSerializable()
 class SessionNameDto extends SessionDto {
+  @JsonKey(includeIfNull: false) String? name; // OpenAI: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
+  @JsonKey(includeIfNull: false) String? description;
 
-  @JsonKey(includeIfNull: false)
-  String? name; // OpenAI: The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64.
-
-  SessionNameDto({required super.sessionId, String? name}) {
+  SessionNameDto({required super.sessionId, String? name, this.description}) {
     final regex = RegExp(r'^[a-zA-Z0-9_-]{1,64}$');
     if(name != null && !regex.hasMatch(name)) {
       throw AgentNameException(agentName: name);
@@ -51,23 +50,13 @@ class SimpleCapabilityDto {
 
 @JsonSerializable()
 class CapabilityDto extends SimpleCapabilityDto {
-  @JsonKey(includeIfNull: false)
-  List<OpenSpecDto>? openSpecList;
-
-  @JsonKey(includeIfNull: false)
-  String? clientOpenTool;
-
-  @JsonKey(includeIfNull: false)
-  List<SessionNameDto>? sessionList;
-
-  @JsonKey(includeIfNull: false)
-  List<ReflectPromptDto>? reflectPromptList;
-
+  @JsonKey(includeIfNull: false) List<OpenSpecDto>? openSpecList;
+  @JsonKey(includeIfNull: false) ClientOpenToolDto? clientOpenTool;
+  @JsonKey(includeIfNull: false) List<SessionNameDto>? sessionList;
+  @JsonKey(includeIfNull: false) List<ReflectPromptDto>? reflectPromptList;
   int timeoutSeconds;
-
   String taskPipelineStrategy;
-
-  String? toolPipelineStrategy;
+  @JsonKey(includeIfNull: false) String? toolPipelineStrategy;
 
   CapabilityDto({
     required super.llmConfig,
@@ -97,13 +86,9 @@ class Protocol {
 @JsonSerializable()
 class OpenSpecDto {
   String openSpec;
-
-  @JsonKey(includeIfNull: false)
-  ApiKeyDto? apiKey;
+  @JsonKey(includeIfNull: false) ApiKeyDto? apiKey;
   String protocol;
-
-  @JsonKey(includeIfNull: false)
-  String? openToolId; //When protocol is open tool, this is the tool id
+  @JsonKey(includeIfNull: false) String? openToolId; //When protocol is open tool, this is the tool id
 
   OpenSpecDto({required this.openSpec, this.apiKey, required this.protocol, this.openToolId});
 
@@ -135,12 +120,12 @@ class LLMConfigDto {
   Map<String, dynamic> toJson() => _$LLMConfigDtoToJson(this);
 
   factory LLMConfigDto.fromModel(LLMConfig llmConfig) => LLMConfigDto(
-      baseUrl: llmConfig.baseUrl,
-      apiKey: llmConfig.apiKey,
-      model: llmConfig.model,
-      temperature: llmConfig.temperature,
-      maxTokens: llmConfig.maxTokens,
-      topP: llmConfig.topP
+    baseUrl: llmConfig.baseUrl,
+    apiKey: llmConfig.apiKey,
+    model: llmConfig.model,
+    temperature: llmConfig.temperature,
+    maxTokens: llmConfig.maxTokens,
+    topP: llmConfig.topP
   );
 
   LLMConfig toModel() => LLMConfig(
@@ -553,4 +538,16 @@ class SessionAgentMessageDto {
   factory SessionAgentMessageDto.fromJson(Map<String, dynamic> json) => _$SessionAgentMessageDtoFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionAgentMessageDtoToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class ClientOpenToolDto {
+  String opentool;
+  int? timeout;
+
+  ClientOpenToolDto({required this.opentool, required this.timeout});
+
+  factory ClientOpenToolDto.fromJson(Map<String, dynamic> json) => _$ClientOpenToolDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ClientOpenToolDtoToJson(this);
 }

@@ -19,12 +19,14 @@ SessionNameDto _$SessionNameDtoFromJson(Map<String, dynamic> json) =>
     SessionNameDto(
       sessionId: json['sessionId'] as String,
       name: json['name'] as String?,
+      description: json['description'] as String?,
     );
 
 Map<String, dynamic> _$SessionNameDtoToJson(SessionNameDto instance) =>
     <String, dynamic>{
       'sessionId': instance.sessionId,
       if (instance.name case final value?) 'name': value,
+      if (instance.description case final value?) 'description': value,
     };
 
 SimpleCapabilityDto _$SimpleCapabilityDtoFromJson(Map<String, dynamic> json) =>
@@ -49,7 +51,10 @@ CapabilityDto _$CapabilityDtoFromJson(Map<String, dynamic> json) =>
       openSpecList: (json['openSpecList'] as List<dynamic>?)
           ?.map((e) => OpenSpecDto.fromJson(e as Map<String, dynamic>))
           .toList(),
-      clientOpenTool: json['clientOpenTool'] as String?,
+      clientOpenTool: json['clientOpenTool'] == null
+          ? null
+          : ClientOpenToolDto.fromJson(
+              json['clientOpenTool'] as Map<String, dynamic>),
       sessionList: (json['sessionList'] as List<dynamic>?)
           ?.map((e) => SessionNameDto.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -73,7 +78,8 @@ Map<String, dynamic> _$CapabilityDtoToJson(CapabilityDto instance) =>
         'reflectPromptList': value,
       'timeoutSeconds': instance.timeoutSeconds,
       'taskPipelineStrategy': instance.taskPipelineStrategy,
-      'toolPipelineStrategy': instance.toolPipelineStrategy,
+      if (instance.toolPipelineStrategy case final value?)
+        'toolPipelineStrategy': value,
     };
 
 OpenSpecDto _$OpenSpecDtoFromJson(Map<String, dynamic> json) => OpenSpecDto(
@@ -384,4 +390,16 @@ Map<String, dynamic> _$SessionAgentMessageDtoToJson(
     <String, dynamic>{
       'sessionId': instance.sessionId,
       'agentMessageDto': instance.agentMessageDto.toJson(),
+    };
+
+ClientOpenToolDto _$ClientOpenToolDtoFromJson(Map<String, dynamic> json) =>
+    ClientOpenToolDto(
+      opentool: json['opentool'] as String,
+      timeout: (json['timeout'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$ClientOpenToolDtoToJson(ClientOpenToolDto instance) =>
+    <String, dynamic>{
+      'opentool': instance.opentool,
+      'timeout': instance.timeout,
     };

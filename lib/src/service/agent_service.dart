@@ -46,8 +46,8 @@ class AgentService {
     SimpleAgent? simpleAgent = simpleAgents[sessionId];
     if(simpleAgent == null) throw SessionAgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
-        .map((userMessageDto) => _convertToContent(userMessageDto))
-        .toList();
+      .map((userMessageDto) => _convertToContent(userMessageDto))
+      .toList();
     AgentMessage agentMessage = await simpleAgent.userToAgent(contentList: userMessageList, taskId: userTaskDto.taskId);
     return AgentMessageDto.fromModel(agentMessage);
   }
@@ -66,13 +66,13 @@ class AgentService {
 
     if(opentoolDriverMap != null) opentoolDriverMap.forEach((key, value) { this.opentoolDriverMap[key] = value;});
     if(capabilityDto.clientOpenTool != null && listenClientFunctionCall != null) {
-      OpenTool clientOpenTool = await OpenToolLoader().load(capabilityDto.clientOpenTool!);
+      OpenTool clientOpenTool = await OpenToolLoader().load(capabilityDto.clientOpenTool!.opentool);
 
       void Function(FunctionCall functionCall) listenFunctionCall = (FunctionCall functionCall){
         listenClientFunctionCall(sessionId, functionCall);
       };
 
-      clientDriverMap[sessionId] = ClientDriver(listenFunctionCall).bind(clientOpenTool) as ClientDriver;
+      clientDriverMap[sessionId] = ClientDriver(listenFunctionCall, timeout: capabilityDto.clientOpenTool?.timeout??60).bind(clientOpenTool) as ClientDriver;
     }
 
     List<ToolDriver> agentToolDriverList = [];
@@ -84,26 +84,26 @@ class AgentService {
 
     if(agentToolDriverList.isEmpty) {
       SessionAgent textAgent = TextAgent(
-          sessionId: sessionId,
-          llmConfig: llmConfig,
-          agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
-          systemPrompt: systemPrompt,
-          textReflectPromptList: reflectPromptList??[],
-          timeoutSeconds: capabilityDto.timeoutSeconds,
-          taskPipelineStrategy: capabilityDto.taskPipelineStrategy
+        sessionId: sessionId,
+        llmConfig: llmConfig,
+        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
+        systemPrompt: systemPrompt,
+        textReflectPromptList: reflectPromptList??[],
+        timeoutSeconds: capabilityDto.timeoutSeconds,
+        taskPipelineStrategy: capabilityDto.taskPipelineStrategy
       );
       sessionAgents[sessionId] = textAgent;
     } else {
       SessionAgent toolAgent = ToolAgent(
-          sessionId: sessionId,
-          llmConfig: llmConfig,
-          agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
-          toolDriverList: agentToolDriverList,
-          systemPrompt: systemPrompt,
-          toolReflectPromptList: reflectPromptList??[],
-          timeoutSeconds: capabilityDto.timeoutSeconds,
-          taskPipelineStrategy: capabilityDto.taskPipelineStrategy,
-          toolPipelineStrategy: capabilityDto.toolPipelineStrategy??PipelineStrategyType.PARALLEL
+        sessionId: sessionId,
+        llmConfig: llmConfig,
+        agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
+        toolDriverList: agentToolDriverList,
+        systemPrompt: systemPrompt,
+        toolReflectPromptList: reflectPromptList??[],
+        timeoutSeconds: capabilityDto.timeoutSeconds,
+        taskPipelineStrategy: capabilityDto.taskPipelineStrategy,
+        toolPipelineStrategy: capabilityDto.toolPipelineStrategy??PipelineStrategyType.PARALLEL
       );
       sessionAgents[sessionId] = toolAgent;
     }
@@ -213,7 +213,7 @@ class AgentService {
       if(simpleAgent == null && sessionAgent == null) throw SessionAgentNotFoundException(sessionId: session.sessionId);
 
       if(simpleAgent != null) {
-        namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.sessionId, agent: simpleAgent));
+        namedSimpleAgentList.add(NamedSimpleAgent(name: session.name??session.sessionId, description: session.description, agent: simpleAgent));
       } else {
         void Function(AgentMessage agentMessage) AgentListen = (AgentMessage agentMessage){
           AgentMessageDto agentMessageDto = AgentMessageDto.fromModel(agentMessage);
@@ -221,7 +221,7 @@ class AgentService {
           listen(session.sessionId, agentMessageDto);
         };
         sessionAgent!.agentSession.addAgentMessageListener(AgentListen);
-        namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.sessionId, agent: sessionAgent));
+        namedSessionAgentList.add(NamedSessionAgent(name: session.name??session.sessionId, description: session.description, agent: sessionAgent));
       }
     });
 
@@ -248,5 +248,4 @@ class AgentService {
     }
     clientDriver.callback(toolReturn);
   }
-
 }

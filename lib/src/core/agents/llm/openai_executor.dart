@@ -108,24 +108,24 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     return TextAccumulation((text, Completions? completions) {
       if( listenChunk != null) {
         AgentMessageChunk chunkDoneMessageChunk = AgentMessageChunk(
-            sessionId: _sessionId,
-            taskId: _taskId,
-            role: AgentRoleType.LLM,
-            to: AgentRoleType.AGENT,
-            type: AgentMessageType.TASK_STATUS,
-            part: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: _taskId)
+          sessionId: _sessionId,
+          taskId: _taskId,
+          role: AgentRoleType.LLM,
+          to: AgentRoleType.AGENT,
+          type: AgentMessageType.TASK_STATUS,
+          part: TaskStatus(status: TextStatusType.CHUNK_DONE, taskId: _taskId)
         );
         listenChunk(chunkDoneMessageChunk);
       }
 
       AgentMessage agentMessage = AgentMessage(
-          sessionId: _sessionId,
-          taskId: _taskId,
-          role: AgentRoleType.LLM,
-          to: AgentRoleType.AGENT,
-          type: AgentMessageType.TEXT,
-          message: text,
-          completions: completions
+        sessionId: _sessionId,
+        taskId: _taskId,
+        role: AgentRoleType.LLM,
+        to: AgentRoleType.AGENT,
+        type: AgentMessageType.TEXT,
+        message: text,
+        completions: completions
       );
       agentMessageStreamController.add(agentMessage);
     });
@@ -134,13 +134,13 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
   FunctionCallAccumulation _buildFunctionCallAccumulation(StreamController<AgentMessage> agentMessageStreamController) {
     return FunctionCallAccumulation((functionCallList, Completions? completions) {
       AgentMessage agentMessage = AgentMessage(
-          sessionId: _sessionId,
-          taskId: _taskId,
-          role: AgentRoleType.LLM,
-          to: AgentRoleType.AGENT,
-          type: AgentMessageType.TOOL_CALLS,
-          message: functionCallList,
-          completions: completions
+        sessionId: _sessionId,
+        taskId: _taskId,
+        role: AgentRoleType.LLM,
+        to: AgentRoleType.AGENT,
+        type: AgentMessageType.TOOL_CALLS,
+        message: functionCallList,
+        completions: completions
       );
       agentMessageStreamController.add(agentMessage);
     });
@@ -352,13 +352,13 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return FunctionCall(id: id, name: name, parameters: parameters);
     }).toList();
     return AgentMessage(
-        sessionId: _sessionId,
-        taskId: _taskId,
-        role: AgentRoleType.LLM,
-        to: AgentRoleType.AGENT,
-        type: AgentMessageType.TOOL_CALLS,
-        message: functionCallList,
-        completions: completions
+      sessionId: _sessionId,
+      taskId: _taskId,
+      role: AgentRoleType.LLM,
+      to: AgentRoleType.AGENT,
+      type: AgentMessageType.TOOL_CALLS,
+      message: functionCallList,
+      completions: completions
     );
   }
 

@@ -17,9 +17,9 @@ class SimpleAgentDriver extends AgentDriver {
     namedSimpleAgents.forEach((nameSimpleAgent) {
       Parameter parameter = Parameter(name: promptKey, description: truncateWithEllipsis(promptDescription, llmFunctionDescriptionMaxLength), schema: Schema(type: DataType.STRING), required: true);
       FunctionModel functionModel = FunctionModel(
-          name: nameSimpleAgent.name,
-          description: nameSimpleAgent.agent.systemPrompt == null?"": truncateWithEllipsis(nameSimpleAgent.agent.systemPrompt!, llmFunctionDescriptionMaxLength),
-          parameters: [parameter]
+        name: nameSimpleAgent.name,
+        description: nameSimpleAgent.description??(nameSimpleAgent.agent.systemPrompt??truncateWithEllipsis(nameSimpleAgent.agent.systemPrompt!, llmFunctionDescriptionMaxLength)),
+        parameters: [parameter]
       );
       functionModelList.add(functionModel);
     });
@@ -50,7 +50,6 @@ class SimpleAgentDriver extends AgentDriver {
     } catch(e) {
       return ToolReturn(id: functionCall.id, result: { "error": "Not Support agent `${functionCall.name}`" });
     }
-
   }
 
 }

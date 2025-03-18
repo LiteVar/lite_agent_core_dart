@@ -35,7 +35,7 @@ Future<void> main() async {
   print("[SessionDto] " + sessionDto.toJson().toString());
 
   String taskId = uniqueId();
-  UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  UserTaskDto userTaskDto = UserTaskDto(taskId: taskId, contentList: [ContentDto(type: ContentType.TEXT, message: prompt)]);
   await agentService.startSession(sessionDto.sessionId, userTaskDto);
 
   print("[prompt] " + prompt);

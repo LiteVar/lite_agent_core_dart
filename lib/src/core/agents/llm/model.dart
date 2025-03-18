@@ -22,8 +22,8 @@ class AgentRoleType {
 class AgentMessageType {
   static const String TEXT = "text"; //String
   static const String IMAGE_URL = "imageUrl"; //String
-  static const String DISPATCH = "dispatch"; //Dispatch
-  static const String FUNCTION_CALL_LIST = "functionCallList"; //List<FunctionCall>
+  // static const String DISPATCH = "dispatch"; //Dispatch
+  static const String TOOL_CALLS = "toolCalls"; //List<FunctionCall>
   static const String TOOL_RETURN = "toolReturn"; //ToolReturn
   static const String CONTENT_LIST = "contentList"; //List<Content>
   static const String REFLECTION = "reflection"; //Reflection

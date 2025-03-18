@@ -75,7 +75,7 @@ class ReflectorAgent {
 
     AgentMessage llmMessage = await llmExecutor.request(agentMessageList: agentLLMMessageList, functionModelList: reflectionDriver.parse());
     subscribeCompletions(llmMessage.completions);
-    if (llmMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
+    if (llmMessage.type == AgentMessageType.TOOL_CALLS) {
       List<FunctionCall> functionCallList = llmMessage.message as List<FunctionCall>;
       FunctionCall functionCall = functionCallList.first;
       try {

@@ -138,7 +138,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
           taskId: _taskId,
           role: AgentRoleType.LLM,
           to: AgentRoleType.AGENT,
-          type: AgentMessageType.FUNCTION_CALL_LIST,
+          type: AgentMessageType.TOOL_CALLS,
           message: functionCallList,
           completions: completions
       );
@@ -260,7 +260,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     }
 
     //LLM return function calling
-    if (agentMessage.role == AgentRoleType.LLM && agentMessage.type == AgentMessageType.FUNCTION_CALL_LIST) {
+    if (agentMessage.role == AgentRoleType.LLM && agentMessage.type == AgentMessageType.TOOL_CALLS) {
       List<FunctionCall> functionCallList =
       agentMessage.message as List<FunctionCall>;
       List<OpenAIResponseToolCall> openAIResponseToolCallList =
@@ -356,7 +356,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
         taskId: _taskId,
         role: AgentRoleType.LLM,
         to: AgentRoleType.AGENT,
-        type: AgentMessageType.FUNCTION_CALL_LIST,
+        type: AgentMessageType.TOOL_CALLS,
         message: functionCallList,
         completions: completions
     );

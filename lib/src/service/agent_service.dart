@@ -117,9 +117,9 @@ class AgentService {
     SessionAgent? sessionAgent = sessionAgents[sessionId];
     if(sessionAgent == null) throw SessionAgentNotFoundException(sessionId: sessionId);
     List<Content> userMessageList = userTaskDto.contentList
-      .map((userMessageDto) => _convertToContent(userMessageDto))
+      .map((contentDto) => _convertToContent(contentDto))
       .toList();
-    await sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList);
+    await sessionAgent.userToAgent(taskId: userTaskDto.taskId, contentList: userMessageList, stream: userTaskDto.stream);
   }
 
   Future<List<AgentMessageDto>?> getCacheHistory(String sessionId) async {
@@ -147,14 +147,8 @@ class AgentService {
     sessionAgents.remove(sessionId);
   }
 
-  Content _convertToContent(UserMessageDto userMessageDto) {
-    switch (userMessageDto.type) {
-      case UserMessageDtoType.text:
-        return Content(type: ContentType.TEXT, message: userMessageDto.message);
-      case UserMessageDtoType.imageUrl:
-        return Content(
-            type: ContentType.IMAGE_URL, message: userMessageDto.message);
-    }
+  Content _convertToContent(ContentDto contentDto) {
+    return Content(type: contentDto.type, message: contentDto.message);
   }
 
   AgentSession _buildSession(String sessionId, void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk}) {

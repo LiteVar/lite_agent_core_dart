@@ -26,8 +26,8 @@ abstract class SessionAgent {
   }) :  pipeline = PipelineAsync(taskPipelineStrategy),
         timeout = Timeout(timeoutSeconds);
 
-  Future<void> userToAgent({required List<Content> contentList, String? taskId}) async {
-
+  Future<void> userToAgent({required List<Content> contentList, String? taskId, bool? stream}) async {
+    this.agentSession.isStream = stream??false;
     if(taskId == null) taskId = uniqueId();
     dispatcherMap.create(taskId);
 
@@ -40,12 +40,12 @@ abstract class SessionAgent {
         Command clientCommand = Command(
           toClient,
           AgentMessage(
-              sessionId: sessionId,
-              taskId: taskId,
-              role: SessionRoleType.AGENT,
-              to: SessionRoleType.CLIENT,
-              type: SessionMessageType.TASK_STATUS,
-              message: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
+            sessionId: sessionId,
+            taskId: taskId,
+            role: SessionRoleType.AGENT,
+            to: SessionRoleType.CLIENT,
+            type: SessionMessageType.TASK_STATUS,
+            message: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
           ));
         dispatcherMap.dispatch(clientCommand);
       };
@@ -125,15 +125,15 @@ abstract class SessionAgent {
   void _stop(String taskId) {
     pipeline.completeAsync(taskId);
     Command clientCommand = Command(
-        toClient,
-        AgentMessage(
-          sessionId: sessionId,
-          taskId: taskId,
-          role: SessionRoleType.AGENT,
-          to: SessionRoleType.CLIENT,
-          type: SessionMessageType.TASK_STATUS,
-          message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)
-        ));
+      toClient,
+      AgentMessage(
+        sessionId: sessionId,
+        taskId: taskId,
+        role: SessionRoleType.AGENT,
+        to: SessionRoleType.CLIENT,
+        type: SessionMessageType.TASK_STATUS,
+        message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)
+      ));
     dispatcherMap.stop(taskId, clientCommand);
     timeout.start(clear);
   }

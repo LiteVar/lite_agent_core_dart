@@ -16,7 +16,7 @@ class ToolMessageType {
   static String TEXT = TextMessageType.TEXT; //String
   static String IMAGE_URL = TextMessageType.IMAGE_URL; //String
   static String CONTENT_LIST = TextMessageType.CONTENT_LIST; //List<Content>
-  static String FUNCTION_CALL_LIST = AgentMessageType.FUNCTION_CALL_LIST; //List<FunctionCall>
+  static String FUNCTION_CALL_LIST = AgentMessageType.TOOL_CALLS; //List<FunctionCall>
   static String TOOL_RETURN = AgentMessageType.TOOL_RETURN; //ToolReturn
   static String TASK_STATUS = TextMessageType.TASK_STATUS; //TaskStatus
   static String FUNCTION_CALL = AgentMessageType.FUNCTION_CALL; //FunctionCall

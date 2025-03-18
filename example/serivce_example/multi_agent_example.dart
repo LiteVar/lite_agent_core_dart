@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:io' as io;
 import 'package:dotenv/dotenv.dart';
+import 'package:lite_agent_core_dart/lite_agent_core.dart';
 import 'package:lite_agent_core_dart/lite_agent_service.dart';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../custom_driver/mock_driver.dart';
@@ -26,7 +27,7 @@ Future<void> main() async {
 
   SessionDto sessionDto = await agentService.initSession(capabilityDto, listen);
 
-  UserTaskDto userTaskDto = UserTaskDto(contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt)]);
+  UserTaskDto userTaskDto = UserTaskDto(contentList: [ContentDto(type: ContentType.TEXT, message: prompt)]);
   await agentService.startSession(sessionDto.sessionId, userTaskDto);
 
   await sleep(20);
@@ -80,14 +81,14 @@ Future<void> sleep(int seconds) async {
 }
 
 Future<List<ToolDriver>> _buildCustomDriverList() async {
-  String folder = "${Directory.current.path}${Platform.pathSeparator}example${Platform.pathSeparator}custom_driver";
+  String folder = "${io.Directory.current.path}${io.Platform.pathSeparator}example${io.Platform.pathSeparator}custom_driver";
   List<String> fileNameList = [
     "mock-tool.json"
   ];
 
   List<ToolDriver> toolDriverList = [];
   for(String fileName in fileNameList) {
-    String jsonPath = "$folder${Platform.pathSeparator}$fileName";
+    String jsonPath = "$folder${io.Platform.pathSeparator}$fileName";
     OpenTool openTool = await OpenToolLoader().loadFromFile(jsonPath);
     OpenToolDriver mockDriver = MockDriver().bind(openTool);
     toolDriverList.add(mockDriver);

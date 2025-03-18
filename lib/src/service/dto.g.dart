@@ -200,32 +200,17 @@ const _$ApiKeyTypeEnumMap = {
 UserTaskDto _$UserTaskDtoFromJson(Map<String, dynamic> json) => UserTaskDto(
       taskId: json['taskId'] as String?,
       contentList: (json['contentList'] as List<dynamic>)
-          .map((e) => UserMessageDto.fromJson(e as Map<String, dynamic>))
+          .map((e) => ContentDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      stream: json['stream'] as bool?,
     );
 
 Map<String, dynamic> _$UserTaskDtoToJson(UserTaskDto instance) =>
     <String, dynamic>{
       if (instance.taskId case final value?) 'taskId': value,
       'contentList': instance.contentList,
+      'stream': instance.stream,
     };
-
-UserMessageDto _$UserMessageDtoFromJson(Map<String, dynamic> json) =>
-    UserMessageDto(
-      type: $enumDecode(_$UserMessageDtoTypeEnumMap, json['type']),
-      message: json['message'] as String,
-    );
-
-Map<String, dynamic> _$UserMessageDtoToJson(UserMessageDto instance) =>
-    <String, dynamic>{
-      'type': _$UserMessageDtoTypeEnumMap[instance.type]!,
-      'message': instance.message,
-    };
-
-const _$UserMessageDtoTypeEnumMap = {
-  UserMessageDtoType.text: 'text',
-  UserMessageDtoType.imageUrl: 'imageUrl',
-};
 
 SessionTaskDto _$SessionTaskDtoFromJson(Map<String, dynamic> json) =>
     SessionTaskDto(

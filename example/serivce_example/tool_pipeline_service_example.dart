@@ -39,7 +39,7 @@ Future<void> main() async {
     String prompt1 = "Help me set store a text 'hello1'.";
     String taskId1 = uniqueId();
     print("taskId1: $taskId1");
-    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt1)]);
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId1, contentList: [ContentDto(type: ContentType.TEXT, message: prompt1)]);
     await agentService.startSession(sessionDto.sessionId, userTaskDto);
   } on TaskRejectException catch (e) {
     print(e);
@@ -48,7 +48,7 @@ Future<void> main() async {
     String prompt2 = "Help me set store a text 'hello22'.";
     String taskId2 = uniqueId();
     print("taskId2: $taskId2");
-    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt2)]);
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId2, contentList: [ContentDto(type: ContentType.TEXT, message: prompt2)]);
     await agentService.startSession(sessionDto.sessionId, userTaskDto);
   } on TaskRejectException catch (e) {
     print(e);
@@ -57,7 +57,7 @@ Future<void> main() async {
     String prompt3 = "Help me set store a text 'hello333'.";
     String taskId3 = uniqueId();
     print("taskId3: $taskId3");
-    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [UserMessageDto(type: UserMessageDtoType.text, message: prompt3)]);
+    UserTaskDto userTaskDto = UserTaskDto(taskId: taskId3, contentList: [ContentDto(type: ContentType.TEXT, message: prompt3)]);
     await agentService.startSession(
         sessionDto.sessionId,
         userTaskDto,

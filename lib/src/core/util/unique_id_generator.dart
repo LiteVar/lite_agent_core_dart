@@ -7,3 +7,8 @@ String uniqueId() {
   return snowflaker.nextId().toString();
   // return Uuid().v4();
 }
+
+void main() {
+  String id = uniqueId();
+  print(id);
+}

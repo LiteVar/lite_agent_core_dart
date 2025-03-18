@@ -189,7 +189,7 @@ class AgentMessageDto {
     switch (agentMessage.type) {
       case AgentMessageType.CONTENT_LIST: message = (agentMessage.message as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
       case AgentMessageType.FUNCTION_CALL: message = agentMessage.message as FunctionCall;break;
-      case AgentMessageType.FUNCTION_CALL_LIST: message = (agentMessage.message as List<FunctionCall>);break;
+      case AgentMessageType.TOOL_CALLS: message = (agentMessage.message as List<FunctionCall>);break;
       case AgentMessageType.TOOL_RETURN: message = agentMessage.message as ToolReturn;break;
       case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.message as Reflection);break;
       case AgentMessageType.TASK_STATUS: message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);break;
@@ -308,9 +308,10 @@ class ApiKeyDto {
 class UserTaskDto {
   @JsonKey(includeIfNull: false)
   String? taskId;
-  List<UserMessageDto> contentList;
+  List<ContentDto> contentList;
+  bool? stream;
 
-  UserTaskDto({this.taskId, required this.contentList});
+  UserTaskDto({this.taskId, required this.contentList, this.stream});
 
   factory UserTaskDto.fromJson(Map<String, dynamic> json) {
     if(json["taskId"] != null && (json["taskId"] as String).length > 36) {
@@ -322,19 +323,19 @@ class UserTaskDto {
   Map<String, dynamic> toJson() => _$UserTaskDtoToJson(this);
 }
 
-enum UserMessageDtoType { text, imageUrl }
+// enum UserMessageDtoType { text, imageUrl }
 
-@JsonSerializable()
-class UserMessageDto {
-  UserMessageDtoType type;
-  String message;
-
-  UserMessageDto({required this.type, required this.message});
-
-  factory UserMessageDto.fromJson(Map<String, dynamic> json) => _$UserMessageDtoFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserMessageDtoToJson(this);
-}
+// @JsonSerializable()
+// class UserMessageDto {
+//   UserMessageDtoType type;
+//   String message;
+//
+//   UserMessageDto({required this.type, required this.message});
+//
+//   factory UserMessageDto.fromJson(Map<String, dynamic> json) => _$UserMessageDtoFromJson(json);
+//
+//   Map<String, dynamic> toJson() => _$UserMessageDtoToJson(this);
+// }
 
 @JsonSerializable()
 class SessionTaskDto {
@@ -440,7 +441,7 @@ class TaskStatusDto {
 
 @JsonSerializable()
 class ContentDto {
-  String type;
+  String type; /// ContentType.TEXT ContentType.IMAGE_URL
   String message;
 
   ContentDto({required this.type, required this.message});

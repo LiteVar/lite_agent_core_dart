@@ -193,24 +193,24 @@ class AgentMessageDto {
   }
 }
 
-@JsonSerializable()
-class FunctionCallDto {
-  late String id;
-  late String name;
-  late Map<String, dynamic> parameters;
-
-  FunctionCallDto({required this.id, required this.name, required this.parameters});
-
-  // factory FunctionCallDto.fromModel(FunctionCall functionCall) => FunctionCallDto(
-  //   id: functionCall.id,
-  //   name: functionCall.name,
-  //   parameters: functionCall.parameters
-  // );
-
-  factory FunctionCallDto.fromJson(Map<String, dynamic> json) => _$FunctionCallDtoFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FunctionCallDtoToJson(this);
-}
+// @JsonSerializable()
+// class FunctionCallDto {
+//   late String id;
+//   late String name;
+//   late Map<String, dynamic> parameters;
+//
+//   FunctionCallDto({required this.id, required this.name, required this.parameters});
+//
+//   // factory FunctionCallDto.fromModel(FunctionCall functionCall) => FunctionCallDto(
+//   //   id: functionCall.id,
+//   //   name: functionCall.name,
+//   //   parameters: functionCall.parameters
+//   // );
+//
+//   factory FunctionCallDto.fromJson(Map<String, dynamic> json) => _$FunctionCallDtoFromJson(json);
+//
+//   Map<String, dynamic> toJson() => _$FunctionCallDtoToJson(this);
+// }
 
 // @JsonSerializable()
 // class ToolReturnDto {

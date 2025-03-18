@@ -19,7 +19,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   if (agentMessageDto.type == ToolMessageType.IMAGE_URL)
     message = agentMessageDto.message as String;
   if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL_LIST) {
-    List<FunctionCallDto> functionCallList = agentMessageDto.message as List<FunctionCallDto>;
+    List<FunctionCall> functionCallList = agentMessageDto.message as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
   if (agentMessageDto.type == ToolMessageType.TOOL_RETURN) {
@@ -35,7 +35,7 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
   if (agentMessageDto.type == TextMessageType.REFLECTION) {
     message = jsonEncode(agentMessageDto.message as ReflectionDto);
   } if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL) {
-    FunctionCallDto functionCall = agentMessageDto.message as FunctionCallDto;
+    FunctionCall functionCall = agentMessageDto.message as FunctionCall;
     message = jsonEncode(functionCall);
   }
 

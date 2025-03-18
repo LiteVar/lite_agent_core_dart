@@ -146,20 +146,6 @@ Map<String, dynamic> _$AgentMessageDtoToJson(AgentMessageDto instance) =>
       'createTime': instance.createTime.toIso8601String(),
     };
 
-FunctionCallDto _$FunctionCallDtoFromJson(Map<String, dynamic> json) =>
-    FunctionCallDto(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      parameters: json['parameters'] as Map<String, dynamic>,
-    );
-
-Map<String, dynamic> _$FunctionCallDtoToJson(FunctionCallDto instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'parameters': instance.parameters,
-    };
-
 CompletionsDto _$CompletionsDtoFromJson(Map<String, dynamic> json) =>
     CompletionsDto(
       usage: TokenUsageDto.fromJson(json['usage'] as Map<String, dynamic>),

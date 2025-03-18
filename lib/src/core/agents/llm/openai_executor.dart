@@ -434,7 +434,7 @@ class FunctionCallAccumulation extends DeltaAccumulation<List<FunctionCall>> {
 
   @override
   void appendDelta(ChatCompletionDelta delta) {
-    if(delta.finishReason == null) {
+    if(delta.finishReason == null && delta.delta != null) {
       OpenAIResponseToolCall toolCall = delta.delta!.toolCalls!.first;
       if(toolCall.id != null && toolCall.id != currentId) {
         _buildFunctionCall();

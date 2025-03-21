@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:opentool_dart/opentool_dart.dart';
 import '../../agents/text_agent/text_agent.dart';
+import '../../driver/client_driver.dart';
 import '../llm/exception.dart';
 import '../llm/openai_executor.dart';
 import '../model.dart';
@@ -21,10 +22,12 @@ class ToolAgent extends TextAgent {
   List<ToolDriver> toolDriverList;
   ReflectorManager toolReflectionManager = ReflectorManager();
   late Pipeline<FunctionCallParam> toolPipeLine;
+  ClientOpenTool? clientOpenTool;
 
   ToolAgent({
     required super.sessionId,
     required this.toolDriverList,
+    this.clientOpenTool,
     required super.llmConfig,
     required super.agentSession,
     String? super.systemPrompt,
@@ -80,7 +83,12 @@ class ToolAgent extends TextAgent {
     agentSession.addListenAgentMessage(agentMessage);
 
     List<AgentMessage> agentLLMMessageList = prepareAgentLLMMessageList(agentMessage);
-    List<FunctionModel>? functionModelList = await buildFunctionModelList();
+    List<FunctionModel> functionModelList = await _buildFunctionModelList();
+    if(this.clientOpenTool != null && this.clientOpenTool!.fetchClientDriver != null) {
+      ClientDriver clientDriver = await _buildClientDriver(agentMessage);
+      this.clientOpenTool!.fetchClientDriver!(agentMessage.sessionId, clientDriver);
+      functionModelList.addAll(clientDriver.parse());
+    }
 
     try {
       if(super.agentSession.isStream) {
@@ -110,7 +118,6 @@ class ToolAgent extends TextAgent {
       List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
       List<Map<String, dynamic>> functionCallJsonList = functionCallList.map((functionCall)=>functionCall.toJson()).toList();
       Reflection reflection = await toolReflectionManager.reflect(agentMessage.type, jsonEncode(functionCallJsonList));
-      // reflection.completions = currAgentReflectorCompletions;
       AgentMessage reflectionMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
           taskId: agentMessage.taskId,
@@ -127,13 +134,29 @@ class ToolAgent extends TextAgent {
     }
   }
 
-  Future<List<FunctionModel>?> buildFunctionModelList() async {
+  Future<List<FunctionModel>> _buildFunctionModelList() async {
     List<FunctionModel> functionModelList = [];
     toolDriverList.forEach((ToolDriver toolDriver) {
       functionModelList.addAll(toolDriver.parse());
     });
-    if (functionModelList.isEmpty) return null;
     return functionModelList;
+  }
+
+  Future<ClientDriver> _buildClientDriver(AgentMessage agentMessage) async {
+    OpenTool openTool = await OpenToolLoader().load(this.clientOpenTool!.opentool);
+    void Function(FunctionCall functionCall) listenClientFunctionCall = (FunctionCall functionCall) {
+      AgentMessage clientMessage = AgentMessage(
+          sessionId: agentMessage.sessionId,
+          taskId: agentMessage.taskId,
+          role: ToolRoleType.AGENT,
+          to: ToolRoleType.CLIENT,
+          type: ToolMessageType.FUNCTION_CALL,
+          message: functionCall
+      );
+      Command functionCallCommand = Command(toAgent, clientMessage);
+      dispatcherMap.dispatch(functionCallCommand);
+    };
+    return ClientDriver(listenClientFunctionCall, timeout: clientOpenTool!.timeout??60).bind(openTool) as ClientDriver;
   }
 
   Future<void> requestTools(AgentMessage agentMessage) async {
@@ -158,41 +181,6 @@ class ToolAgent extends TextAgent {
       Command command = Command(toAgent, toolDoneMessage);
       dispatcherMap.dispatch(command);
     });
-
-    // for (FunctionCall functionCall in functionCallList) {
-      // try {
-      //   ToolDriver toolDriver = toolDriverList.firstWhere((ToolDriver toolDriver) => toolDriver.hasFunction(functionCall.name));
-      //   ToolReturn toolReturn = await toolDriver.call(functionCall);
-      //   AgentMessage toolMessage = AgentMessage(
-      //     sessionId: agentMessage.sessionId,
-      //     taskId: agentMessage.taskId,
-      //     role: ToolRoleType.TOOL,
-      //     to: ToolRoleType.AGENT,
-      //     type: ToolMessageType.TOOL_RETURN,
-      //     message: toolReturn
-      //   );
-      //   Command command = Command(toAgent, toolMessage);
-      //   dispatcherMap.dispatch(command);
-      // } on ToolBreakException catch(e) {
-      //   /** When toolDriver.call throw ToolBreakException, it will break task.*/
-      //   this.dispatcherMap.breakTask(agentMessage.taskId);
-      //   throw e;
-      // } on StateError {
-      //   /** role internal/iterable: Error thrown by, e.g., [Iterable.first] when there is no result. */
-      //   Map<String, dynamic> result = FunctionNotSupportedException(functionName: functionCall.name).toJson();
-      //   ToolReturn toolReturn = ToolReturn(id: functionCall.id, result: result);
-      //   AgentMessage toolMessage = AgentMessage(
-      //     sessionId: agentMessage.sessionId,
-      //     taskId: agentMessage.taskId,
-      //     role: ToolRoleType.TOOL,
-      //     to: ToolRoleType.AGENT,
-      //     type: ToolMessageType.TOOL_RETURN,
-      //     message: toolReturn
-      //   );
-      //   Command command = Command(toAgent, toolMessage);
-      //   dispatcherMap.dispatch(command);
-      // }
-    // }
 
   }
 

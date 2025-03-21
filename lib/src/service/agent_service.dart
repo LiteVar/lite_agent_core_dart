@@ -9,11 +9,11 @@ import 'dto.dart';
 import 'exception.dart';
 
 class AgentService {
-  Map<String, SessionAgent> sessionAgents = {};
-  Map<String, SimpleAgent> simpleAgents = {};
+  Map<String, SessionAgent> sessionAgents = {}; /// Map<sessionId, SessionAgent>
+  Map<String, SimpleAgent> simpleAgents = {}; /// Map<sessionId, SimpleAgent>
   List<ToolDriver> globalDriverList = [];
-  Map<String, OpenToolDriver> opentoolDriverMap = {};
-  Map<String, ClientDriver> clientDriverMap= {};
+  Map<String, OpenToolDriver> opentoolDriverMap = {}; /// Map<sessionId, OpenToolDriver>
+  Map<String, ClientDriver> clientDriverMap= {}; /// Map<sessionId, ClientDriver>
   List<SessionMessageManageService> agentMessageManageServiceList = [];
 
   AgentService({List<ToolDriver> globalToolDriverList = const [], List<SessionMessageManageService> messageManageServiceList = const []}) {
@@ -55,9 +55,10 @@ class AgentService {
   Future<SessionDto> initSession(
       CapabilityDto capabilityDto,
       void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {
-        Map<String, OpenToolDriver>? opentoolDriverMap, List<ToolDriver>? customToolDriverList,
+        Map<String, OpenToolDriver>? opentoolDriverMap,
+        List<ToolDriver>? customToolDriverList,
         void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk,
-        void Function(String sessionId, FunctionCall functionCall)? listenClientFunctionCall
+        // void Function(String sessionId, AgentMessageDto agentMessageDto)? listenClientFunctionCall
       }) async {
     String sessionId = uniqueId();
     String systemPrompt = capabilityDto.systemPrompt;
@@ -65,24 +66,20 @@ class AgentService {
     List<ReflectPrompt>? reflectPromptList = capabilityDto.reflectPromptList?.map((reflectPromptDto) => ReflectPrompt(llmConfig: reflectPromptDto.llmConfig.toModel(), prompt: reflectPromptDto.prompt)).toList();
 
     if(opentoolDriverMap != null) opentoolDriverMap.forEach((key, value) { this.opentoolDriverMap[key] = value;});
-    if(capabilityDto.clientOpenTool != null && listenClientFunctionCall != null) {
-      OpenTool clientOpenTool = await OpenToolLoader().load(capabilityDto.clientOpenTool!.opentool);
-
-      void Function(FunctionCall functionCall) listenFunctionCall = (FunctionCall functionCall){
-        listenClientFunctionCall(sessionId, functionCall);
-      };
-
-      clientDriverMap[sessionId] = ClientDriver(listenFunctionCall, timeout: capabilityDto.clientOpenTool?.timeout??60).bind(clientOpenTool) as ClientDriver;
-    }
+    // if(capabilityDto.clientOpenTool != null && listenClientFunctionCall != null) {
+    //   OpenTool clientOpenTool = await OpenToolLoader().load(capabilityDto.clientOpenTool!.opentool);
+    //
+    //   clientDriverMap[sessionId] = ClientDriver(listenFunctionCall, timeout: capabilityDto.clientOpenTool?.timeout??60).bind(clientOpenTool) as ClientDriver;
+    // }
 
     List<ToolDriver> agentToolDriverList = [];
     agentToolDriverList.addAll(globalDriverList);
     agentToolDriverList.addAll(await _buildToolDriverList(capabilityDto.openSpecList));
     agentToolDriverList.addAll(await _buildAgentDriverList(capabilityDto.sessionList, sessionId, listen));
     if(customToolDriverList != null) agentToolDriverList.addAll(customToolDriverList);
-    if(clientDriverMap[sessionId] != null) agentToolDriverList.add(clientDriverMap[sessionId]!);
+    // if(clientDriverMap[sessionId] != null) agentToolDriverList.add(clientDriverMap[sessionId]!);
 
-    if(agentToolDriverList.isEmpty) {
+    if(agentToolDriverList.isEmpty && capabilityDto.clientOpenTool == null) {
       SessionAgent textAgent = TextAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
@@ -94,11 +91,14 @@ class AgentService {
       );
       sessionAgents[sessionId] = textAgent;
     } else {
+      ClientOpenTool? clientOpenTool = null;
+      if(capabilityDto.clientOpenTool != null) clientOpenTool = ClientOpenTool(opentool: capabilityDto.clientOpenTool!.opentool, timeout: capabilityDto.clientOpenTool!.timeout, fetchClientDriver: this.fetchClientDriver);
       SessionAgent toolAgent = ToolAgent(
         sessionId: sessionId,
         llmConfig: llmConfig,
         agentSession: _buildSession(sessionId, listen, listenChunk: listenChunk),
         toolDriverList: agentToolDriverList,
+        clientOpenTool: clientOpenTool,
         systemPrompt: systemPrompt,
         toolReflectPromptList: reflectPromptList??[],
         timeoutSeconds: capabilityDto.timeoutSeconds,
@@ -239,6 +239,10 @@ class AgentService {
     agentMessageManageServiceList.forEach((service) {
       service.addMessage(sessionAgentMessageDto);
     });
+  }
+
+  void fetchClientDriver(String sessionId, ClientDriver clientDriver) {
+    clientDriverMap[sessionId] = clientDriver;
   }
 
   void clientDriverCallback(String sessionId, ToolReturn toolReturn) {

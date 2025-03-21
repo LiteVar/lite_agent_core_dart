@@ -545,7 +545,7 @@ class ClientOpenToolDto {
   String opentool;
   int? timeout;
 
-  ClientOpenToolDto({required this.opentool, required this.timeout});
+  ClientOpenToolDto({required this.opentool, this.timeout});
 
   factory ClientOpenToolDto.fromJson(Map<String, dynamic> json) => _$ClientOpenToolDtoFromJson(json);
 

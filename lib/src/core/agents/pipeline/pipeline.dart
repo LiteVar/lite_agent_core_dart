@@ -79,7 +79,7 @@ class Pipeline<T> {
 class PipelineAsync<T> {
   final String pipelineStrategyType;
   final List<T> _jobList = [];    // for parallel
-  final Queue<T> _jobQueue = Queue<T>();   //for serial
+  final List<(String, T)> _jobQueue = [];   //for serial、reject
   late Future<void> Function(T job) process;
   bool _isProcessing = false;
 
@@ -160,52 +160,49 @@ class PipelineAsync<T> {
 
   Future<AddStatusAsync> _runSerialAsync(Future<void> Function()? onComplete, String asyncId) async {
     for (var job in _jobList) {
-      _jobQueue.add(job);
+      _jobQueue.add((asyncId, job));
     }
     _jobList.clear();
 
     Future(() async {
       await _processQueue();
-      _queueCompleterMap[asyncId]!.complete();
     });
 
     Future(() async {
-      await Future.wait([_userCompleterMap[asyncId]!.future, _queueCompleterMap[asyncId]!.future,]);
+      await Future.wait([_userCompleterMap[asyncId]!.future, _queueCompleterMap[asyncId]!.future]);
       if (onComplete != null) await onComplete();
+      _userCompleterMap.remove(asyncId);
+      _queueCompleterMap.remove(asyncId);
     });
 
     return AddStatusAsync(addStatus: AddStatus.SUCCESS, asyncId: asyncId);
   }
 
   Future<AddStatusAsync> _runRejectAsync(Future<void> Function()? onComplete, String asyncId) async {
-    if(_isProcessing) return AddStatusAsync(addStatus: AddStatus.REJECT, asyncId: asyncId);
-    _isProcessing = true;
-    for (var job in _jobList) {
-      _jobQueue.add(job);
-    }
-    _jobList.clear();
-
-    Future(() async {
-      await _processQueue();
-      _queueCompleterMap[asyncId]!.complete();
-    });
-
-    Future(() async {
-      await Future.wait([_userCompleterMap[asyncId]!.future, _queueCompleterMap[asyncId]!.future,]);
-      _isProcessing = false;
-      if (onComplete != null) await onComplete();
-    });
-
-    return  AddStatusAsync(addStatus: AddStatus.SUCCESS, asyncId: asyncId);
+    if(_jobQueue.isNotEmpty) return AddStatusAsync(addStatus: AddStatus.REJECT, asyncId: asyncId);
+    return _runSerialAsync(onComplete, asyncId);
   }
 
   Future<void> _processQueue() async {
-    while (_jobQueue.isNotEmpty) {
-      final job = _jobQueue.removeFirst();
+    if (_isProcessing || _jobQueue.isEmpty) return;
+    _isProcessing = true;
+
+    final (String asyncId, T job) = _jobQueue.first;
+    try {
       await process(job);
+    } finally {
+      if(_queueCompleterMap.containsKey(asyncId)) {
+        _queueCompleterMap[asyncId]!.complete();
+      }
+      if (_userCompleterMap.containsKey(asyncId)) {
+        await Future.wait([_userCompleterMap[asyncId]!.future]);
+      }
+
+      _jobQueue.removeAt(0);
+      _isProcessing = false;
+      _processQueue();
     }
   }
-
 }
 
 /// DEMO for pineline

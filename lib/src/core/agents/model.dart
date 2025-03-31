@@ -15,13 +15,13 @@ class Message {
 }
 
 class AgentMessageBase extends Message {
-  dynamic message;
+  dynamic content;
   AgentMessageBase({
     required super.sessionId,
     required super.role,
     required super.to,
     required super.type,
-    required this.message
+    required this.content
   });
 }
 
@@ -34,7 +34,7 @@ class AgentMessage extends AgentMessageBase {
     required super.role,
     required super.to,
     required super.type,
-    required super.message,
+    required super.content,
     this.completions
   });
 }

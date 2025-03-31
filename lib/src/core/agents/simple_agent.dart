@@ -27,7 +27,7 @@ class SimpleAgent {
         role: TextRoleType.DEVELOPER,
         to: TextRoleType.AGENT,
         type: TextMessageType.TEXT,
-        message: systemPrompt
+        content: systemPrompt
       );
       agentLlmMessageList.add(systemMessage);
     }
@@ -38,7 +38,7 @@ class SimpleAgent {
       role: TextRoleType.AGENT,
       to: TextRoleType.ASSISTANT,
       type: TextMessageType.CONTENT_LIST,
-      message: contentList
+        content: contentList
     );
     agentLlmMessageList.add(userMessage);
 

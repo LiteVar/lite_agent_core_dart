@@ -15,27 +15,27 @@ void listen(String sessionId, AgentMessageDto agentMessageDto) {
 
   String message = "";
   if (agentMessageDto.type == ToolMessageType.TEXT)
-    message = agentMessageDto.message as String;
+    message = agentMessageDto.content as String;
   if (agentMessageDto.type == ToolMessageType.IMAGE_URL)
-    message = agentMessageDto.message as String;
+    message = agentMessageDto.content as String;
   if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL_LIST) {
-    List<FunctionCall> functionCallList = agentMessageDto.message as List<FunctionCall>;
+    List<FunctionCall> functionCallList = agentMessageDto.content as List<FunctionCall>;
     message = jsonEncode(functionCallList);
   }
   if (agentMessageDto.type == ToolMessageType.TOOL_RETURN) {
-    message = jsonEncode(agentMessageDto.message as ToolReturn);
+    message = jsonEncode(agentMessageDto.content as ToolReturn);
   };
   if (agentMessageDto.type == AgentMessageType.CONTENT_LIST) {
-    List<ContentDto> contentList = agentMessageDto.message as List<ContentDto>;
+    List<ContentDto> contentList = agentMessageDto.content as List<ContentDto>;
     message = jsonEncode(contentList);
   }
   if (agentMessageDto.type == AgentMessageType.TASK_STATUS) {
-    message = jsonEncode(agentMessageDto.message as TaskStatusDto);
+    message = jsonEncode(agentMessageDto.content as TaskStatusDto);
   }
   if (agentMessageDto.type == TextMessageType.REFLECTION) {
-    message = jsonEncode(agentMessageDto.message as ReflectionDto);
+    message = jsonEncode(agentMessageDto.content as ReflectionDto);
   } if (agentMessageDto.type == ToolMessageType.FUNCTION_CALL) {
-    FunctionCall functionCall = agentMessageDto.message as FunctionCall;
+    FunctionCall functionCall = agentMessageDto.content as FunctionCall;
     message = jsonEncode(functionCall);
   }
 

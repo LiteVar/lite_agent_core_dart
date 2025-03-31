@@ -86,6 +86,7 @@ class ToolAgent extends TextAgent {
     List<FunctionModel> functionModelList = await _buildFunctionModelList();
     if(this.clientOpenTool != null && this.clientOpenTool!.fetchClientDriver != null) {
       ClientDriver clientDriver = await _buildClientDriver(agentMessage);
+      toolDriverList.add(clientDriver);
       this.clientOpenTool!.fetchClientDriver!(agentMessage.sessionId, clientDriver);
       functionModelList.addAll(clientDriver.parse());
     }
@@ -108,14 +109,14 @@ class ToolAgent extends TextAgent {
         dispatcherMap.dispatch(nextCommand);
       }
     } on LLMException catch(e) {
-      pushException(agentMessage.sessionId, agentMessage.taskId, e.toString());
+      pushException(agentMessage.sessionId, agentMessage.taskId, jsonEncode(e.toJson()));
     }
   }
 
   @override
   Future<void> toReflection(AgentMessage agentMessage) async {
     if(agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
-      List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+      List<FunctionCall> functionCallList = agentMessage.content as List<FunctionCall>;
       List<Map<String, dynamic>> functionCallJsonList = functionCallList.map((functionCall)=>functionCall.toJson()).toList();
       Reflection reflection = await toolReflectionManager.reflect(agentMessage.type, jsonEncode(functionCallJsonList));
       AgentMessage reflectionMessage = AgentMessage(
@@ -124,7 +125,7 @@ class ToolAgent extends TextAgent {
           role: TextRoleType.REFLECTION,
           to: TextRoleType.AGENT,
           type: TextMessageType.REFLECTION,
-          message: reflection,
+          content: reflection,
           completions: currAgentReflectorCompletions
       );
       Command reflectionCommand = Command(toAgent, reflectionMessage);
@@ -151,7 +152,7 @@ class ToolAgent extends TextAgent {
           role: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
           type: ToolMessageType.FUNCTION_CALL,
-          message: functionCall
+          content: functionCall
       );
       Command functionCallCommand = Command(toAgent, clientMessage);
       dispatcherMap.dispatch(functionCallCommand);
@@ -160,7 +161,7 @@ class ToolAgent extends TextAgent {
   }
 
   Future<void> requestTools(AgentMessage agentMessage) async {
-    List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+    List<FunctionCall> functionCallList = agentMessage.content as List<FunctionCall>;
 
     for (FunctionCall functionCall in functionCallList) {
       FunctionCallParam functionCallParam = FunctionCallParam(sessionId: agentMessage.sessionId, taskId: agentMessage.taskId, functionCall: functionCall);
@@ -176,7 +177,7 @@ class ToolAgent extends TextAgent {
           role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TASK_STATUS,
-          message: TaskStatus(status: ToolStatusType.DONE, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
+          content: TaskStatus(status: ToolStatusType.DONE, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
       );
       Command command = Command(toAgent, toolDoneMessage);
       dispatcherMap.dispatch(command);
@@ -194,7 +195,7 @@ class ToolAgent extends TextAgent {
           role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TOOL_RETURN,
-          message: toolReturn
+          content: toolReturn
       );
       Command command = Command(toAgent, toolMessage);
       dispatcherMap.dispatch(command);
@@ -212,7 +213,7 @@ class ToolAgent extends TextAgent {
           role: ToolRoleType.TOOL,
           to: ToolRoleType.AGENT,
           type: ToolMessageType.TOOL_RETURN,
-          message: toolReturn
+          content: toolReturn
       );
       Command command = Command(toAgent, toolMessage);
       dispatcherMap.dispatch(command);
@@ -221,7 +222,7 @@ class ToolAgent extends TextAgent {
 
   Future<void> toTool(AgentMessage agentMessage) async {
     if(agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
-      List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+      List<FunctionCall> functionCallList = agentMessage.content as List<FunctionCall>;
       List<String> functionCallIdList = functionCallList.map((functionCall) => functionCall.id).toList();
       agentSession.addListenAgentMessage(agentMessage);
       Command clientCommand = Command(
@@ -232,7 +233,7 @@ class ToolAgent extends TextAgent {
               role: ToolRoleType.AGENT,
               to: ToolRoleType.CLIENT,
               type: ToolMessageType.TASK_STATUS,
-              message: TaskStatus(status:ToolStatusType.START, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
+              content: TaskStatus(status:ToolStatusType.START, taskId: agentMessage.taskId, description: ToolStatusDescription(functionCallIdList: functionCallIdList).toJson())
           ));
       dispatcherMap.dispatch(clientCommand);
       requestTools(agentMessage);

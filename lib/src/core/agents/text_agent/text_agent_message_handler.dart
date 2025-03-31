@@ -14,14 +14,14 @@ class UserMessageHandler extends AgentMessageHandler {
 
   @override
   Command? handle(AgentMessage agentMessage) {
-    List<Content> userContentList = agentMessage.message as List<Content>;
+    List<Content> userContentList = agentMessage.content as List<Content>;
     AgentMessage newAgentMessage = AgentMessage(
       sessionId: agentMessage.sessionId,
       taskId: agentMessage.taskId,
       role: TextRoleType.AGENT,
       to: TextRoleType.ASSISTANT,
       type: TextMessageType.CONTENT_LIST,
-      message: userContentList
+      content: userContentList
     );
     if(textReflectionManager.shouldReflect) { // if Reflection, reset reflectionManager
       textReflectionManager.retry();
@@ -51,7 +51,7 @@ class LLMMessageHandler extends AgentMessageHandler {
             role: TextRoleType.AGENT,
             to: TextRoleType.REFLECTION,
             type: TextMessageType.TEXT,
-            message: agentMessage.message
+            content: agentMessage.content
         );
         return Command(toReflection, reflectionMessage); // If LLM return text, and should reflect, forward to REFLECTION.
       } else {
@@ -61,7 +61,7 @@ class LLMMessageHandler extends AgentMessageHandler {
             role: TextRoleType.AGENT,
             to: TextRoleType.USER,
             type: TextMessageType.TEXT,
-            message: agentMessage.message
+            content: agentMessage.content
         );
         return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
       }
@@ -72,9 +72,9 @@ class LLMMessageHandler extends AgentMessageHandler {
           role: TextRoleType.AGENT,
           to: TextRoleType.USER,
           type: TextMessageType.IMAGE_URL,
-          message: agentMessage.message);
+          content: agentMessage.content);
       return Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
-    } else if(agentMessage.type == TextMessageType.TASK_STATUS && agentMessage.message == TextStatusType.CHUNK_DONE) {
+    } else if(agentMessage.type == TextMessageType.TASK_STATUS && agentMessage.content == TextStatusType.CHUNK_DONE) {
       if(reflectionManager.shouldReflect) {
         AgentMessage reflectionMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
@@ -82,7 +82,7 @@ class LLMMessageHandler extends AgentMessageHandler {
             role: TextRoleType.AGENT,
             to: TextRoleType.REFLECTION,
             type: TextMessageType.TEXT,
-            message: chunkAccumulation
+            content: chunkAccumulation
         );
         return Command(toReflection, reflectionMessage); // If LLM return text, and should reflect, forward to REFLECTION.
       } else {
@@ -92,7 +92,7 @@ class LLMMessageHandler extends AgentMessageHandler {
             role: TextRoleType.AGENT,
             to: TextRoleType.USER,
             type: TextMessageType.TEXT,
-            message: chunkAccumulation
+            content: chunkAccumulation
         );
         return Command(toUser, agentUserMessage); // If LLM return text and NOT reflect, forward to USER.
       }
@@ -112,7 +112,7 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
 
   @override
   Command? handle(AgentMessage agentMessage) {
-    Reflection reflection = agentMessage.message as Reflection;
+    Reflection reflection = agentMessage.content as Reflection;
     if(reflection.isPass || reflection.count == reflection.maxCount) {
       AgentMessage agentUserMessage = AgentMessage(
         sessionId: agentMessage.sessionId,
@@ -120,7 +120,7 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
         role: TextRoleType.AGENT,
         to: TextRoleType.USER,
         type: TextMessageType.TEXT,
-        message: reflection.messageScore.message
+        content: reflection.messageScore.message
       );
       return Command(toUser, agentUserMessage); // If Reflection pass or maxCount, forward to USER.
     } else {
@@ -131,7 +131,7 @@ class TextReflectionMessageHandler extends AgentMessageHandler {
         role: TextRoleType.AGENT,
         to: TextRoleType.ASSISTANT,
         type: TextMessageType.CONTENT_LIST,
-        message: userContentList
+        content: userContentList
       );
       if(reflectionManager.shouldReflect) {
         if(onTextRetry != null) onTextRetry!(agentMessage);

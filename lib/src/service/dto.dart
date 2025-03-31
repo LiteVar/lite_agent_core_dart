@@ -145,7 +145,7 @@ class AgentMessageDto {
   String role;
   String to;
   String type;
-  dynamic message;
+  dynamic content;
 
   @JsonKey(includeIfNull: false)
   CompletionsDto? completions; //When role is llm, this is current llm calling token usage
@@ -158,7 +158,7 @@ class AgentMessageDto {
     required this.role,
     required this.to,
     required this.type,
-    required this.message,
+    required this.content,
     this.completions,
     required this.createTime
   });
@@ -172,13 +172,13 @@ class AgentMessageDto {
     dynamic message;
 
     switch (agentMessage.type) {
-      case AgentMessageType.CONTENT_LIST: message = (agentMessage.message as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
-      case AgentMessageType.FUNCTION_CALL: message = agentMessage.message as FunctionCall;break;
-      case AgentMessageType.TOOL_CALLS: message = (agentMessage.message as List<FunctionCall>);break;
-      case AgentMessageType.TOOL_RETURN: message = agentMessage.message as ToolReturn;break;
-      case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.message as Reflection);break;
-      case AgentMessageType.TASK_STATUS: message = TaskStatusDto.fromModel(agentMessage.message as TaskStatus);break;
-      default: message = agentMessage.message;
+      case AgentMessageType.CONTENT_LIST: message = (agentMessage.content as List<Content>).map((content) => ContentDto.fromModel(content)).toList();break;
+      case AgentMessageType.FUNCTION_CALL: message = agentMessage.content as FunctionCall;break;
+      case AgentMessageType.TOOL_CALLS: message = (agentMessage.content as List<FunctionCall>);break;
+      case AgentMessageType.TOOL_RETURN: message = agentMessage.content as ToolReturn;break;
+      case AgentMessageType.REFLECTION: message = ReflectionDto.fromModel(agentMessage.content as Reflection);break;
+      case AgentMessageType.TASK_STATUS: message = TaskStatusDto.fromModel(agentMessage.content as TaskStatus);break;
+      default: message = agentMessage.content;
     }
 
     return AgentMessageDto(
@@ -187,7 +187,7 @@ class AgentMessageDto {
       role: agentMessage.role,
       to: agentMessage.to,
       type: agentMessage.type,
-      message: message,
+      content: message,
       completions: agentMessage.completions == null ? null : CompletionsDto.fromModel(agentMessage.completions!),
       createTime: agentMessage.createTime);
   }

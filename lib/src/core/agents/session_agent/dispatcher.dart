@@ -46,7 +46,7 @@ class DispatcherMap {
           role: message.role,
           to: message.to,
           type: message.type,
-          message: message.message
+          content: message.content
         );
         Command currStopCommand = Command(stopFunc, currAgentMessage);
         stop(taskId, currStopCommand);
@@ -88,7 +88,7 @@ class Dispatcher {
     if(
         sessionMessage.to == SessionRoleType.AGENT &&
         sessionMessage.type == SessionMessageType.TEXT &&
-        (sessionMessage.message as String) == TaskStatusType.DONE
+        (sessionMessage.content as String) == TaskStatusType.DONE
     ) {
       _isTaskDone = true;
     }

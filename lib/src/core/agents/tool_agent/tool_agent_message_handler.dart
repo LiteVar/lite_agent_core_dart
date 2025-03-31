@@ -21,7 +21,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
   @override
   Command? handle(AgentMessage agentMessage) {
     if (agentMessage.type == ToolMessageType.FUNCTION_CALL_LIST) {
-      List<FunctionCall> functionCallList = agentMessage.message as List<FunctionCall>;
+      List<FunctionCall> functionCallList = agentMessage.content as List<FunctionCall>;
       if(reflectionManager.shouldReflect) {
         AgentMessage reflectionMessage = AgentMessage(
             sessionId: agentMessage.sessionId,
@@ -29,7 +29,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
             role: ToolRoleType.AGENT,
             to: ToolRoleType.REFLECTION,
             type: ToolMessageType.FUNCTION_CALL_LIST,
-            message: functionCallList
+            content: functionCallList
         );
         return Command(toReflection, reflectionMessage); // If LLM return function call, and should reflect, forward to REFLECTION.
       } else {
@@ -39,7 +39,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
             role: ToolRoleType.AGENT,
             to: ToolRoleType.TOOL,
             type: ToolMessageType.FUNCTION_CALL_LIST,
-            message: agentMessage.message
+            content: agentMessage.content
           );
           return Command(toTool, agentToolMessage); // If LLM call function, forward to TOOL.
       }
@@ -50,7 +50,7 @@ class LLMFunctionCallingMessageHandler extends AgentMessageHandler {
           role: ToolRoleType.AGENT,
           to: ToolRoleType.USER,
           type: agentMessage.type,
-          message: agentMessage.message);
+          content: agentMessage.content);
       return Command(toUser, agentUserMessage); // If LLM return image, forward to USER.
     }
     return null;
@@ -75,14 +75,14 @@ class ToolMessageHandler extends AgentMessageHandler {
         role: ToolRoleType.AGENT,
         to: ToolRoleType.ASSISTANT,
         type: ToolMessageType.TOOL_RETURN,
-        message: agentMessage.message
+        content: agentMessage.content
       );
       // nextCommand = Command(toLLM, agentLLMMessage);
       // Only push to listener, NOT forward to LLM until ToolsStatus.DONE
       if(onToolReturn != null ) onToolReturn!(agentLLMMessage);
     } else if (agentMessage.type == ToolMessageType.TASK_STATUS) {
       // If TOOL return DONE status, forward to LLM
-      TaskStatus taskStatus = agentMessage.message as TaskStatus;
+      TaskStatus taskStatus = agentMessage.content as TaskStatus;
       if (taskStatus.status == ToolStatusType.DONE) {
         AgentMessage agentToolMessage = AgentMessage(
           sessionId: agentMessage.sessionId,
@@ -90,7 +90,7 @@ class ToolMessageHandler extends AgentMessageHandler {
           role: ToolRoleType.AGENT,
           to: ToolRoleType.CLIENT,
           type: ToolMessageType.TASK_STATUS,
-          message: agentMessage.message
+          content: agentMessage.content
         );
         return Command(toLLM, agentToolMessage);
       }
@@ -111,7 +111,7 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
 
   @override
   Command? handle(AgentMessage agentMessage) {
-    Reflection reflection = agentMessage.message as Reflection;
+    Reflection reflection = agentMessage.content as Reflection;
     if(reflection.isPass || reflection.count == reflection.maxCount) {
       List<dynamic> jsonList = jsonDecode(reflection.messageScore.message);
       List<FunctionCall> functionCallList = jsonList.map((json)=>FunctionCall.fromJson(json)).toList();
@@ -121,7 +121,7 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
           role: ToolRoleType.AGENT,
           to: ToolRoleType.TOOL,
           type: ToolMessageType.FUNCTION_CALL_LIST,
-          message: functionCallList
+          content: functionCallList
       );
       return Command(toTool, agentUserMessage); // If Reflection pass or maxCount, forward to TOOL.
     } else {
@@ -132,7 +132,7 @@ class ToolReflectionMessageHandler extends AgentMessageHandler {
           role: ToolRoleType.AGENT,
           to: ToolRoleType.ASSISTANT,
           type: ToolMessageType.CONTENT_LIST,
-          message: userContentList
+          content: userContentList
       );
       if(toolReflectionManager.shouldReflect) {
         if(onToolRetry != null) onToolRetry!(agentMessage);

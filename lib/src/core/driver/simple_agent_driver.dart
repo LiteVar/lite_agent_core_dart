@@ -44,7 +44,7 @@ class SimpleAgentDriver extends AgentDriver {
 
       AgentMessage agentMessage = await agentModel.agent.userToAgent(contentList: [content]);
 
-      String result = agentMessage.message as String;
+      String result = agentMessage.content as String;
 
       return ToolReturn(id: functionCall.id, result: { resultKey: result });
     } catch(e) {

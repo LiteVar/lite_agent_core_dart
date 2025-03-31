@@ -125,7 +125,7 @@ AgentMessageDto _$AgentMessageDtoFromJson(Map<String, dynamic> json) =>
       role: json['role'] as String,
       to: json['to'] as String,
       type: json['type'] as String,
-      message: json['message'],
+      content: json['content'],
       completions: json['completions'] == null
           ? null
           : CompletionsDto.fromJson(
@@ -140,7 +140,7 @@ Map<String, dynamic> _$AgentMessageDtoToJson(AgentMessageDto instance) =>
       'role': instance.role,
       'to': instance.to,
       'type': instance.type,
-      'message': instance.message,
+      'content': instance.content,
       if (instance.completions?.toJson() case final value?)
         'completions': value,
       'createTime': instance.createTime.toIso8601String(),

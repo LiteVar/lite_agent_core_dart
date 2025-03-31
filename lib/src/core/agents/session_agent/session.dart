@@ -25,7 +25,6 @@ class AgentSession {
 
   void addAgentMessageChunkListener(void Function(AgentMessageChunk) agentMessageChunkListener) {
     _agentMessageChunkListenerList.add(agentMessageChunkListener);
-    this.isStream = _agentMessageChunkListenerList.isNotEmpty;
   }
 
   Future<void> addListenAgentMessage(AgentMessage agentMessage) async {

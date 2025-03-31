@@ -45,7 +45,7 @@ abstract class SessionAgent {
             role: SessionRoleType.AGENT,
             to: SessionRoleType.CLIENT,
             type: SessionMessageType.TASK_STATUS,
-            message: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
+            content: TaskStatus(status: TaskStatusType.START, taskId: taskId, description: TaskRejectException(taskId: taskId, strategy: pipeline.pipelineStrategyType).toJson())
           ));
         dispatcherMap.dispatch(clientCommand);
       };
@@ -63,7 +63,7 @@ abstract class SessionAgent {
         role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
-        message: TaskStatus(status: TaskStatusType.START, taskId: contentsTask.taskId)
+        content: TaskStatus(status: TaskStatusType.START, taskId: contentsTask.taskId)
       ));
     dispatcherMap.dispatch(clientCommand);
 
@@ -73,7 +73,7 @@ abstract class SessionAgent {
       role: SessionRoleType.USER,
       to: SessionRoleType.AGENT,
       type: SessionMessageType.CONTENT_LIST,
-      message: contentsTask.contentList
+      content: contentsTask.contentList
     );
 
     if ( systemPrompt == null || agentSession.hasSystemMessage ) {
@@ -93,7 +93,7 @@ abstract class SessionAgent {
         role: SessionRoleType.SYSTEM,
         to: SessionRoleType.AGENT,
         type: SessionMessageType.TEXT,
-        message: systemPrompt
+        content: systemPrompt
       );
       agentSession.addTaskDoneAgentMessageList([systemMessage]);
       agentSession.hasSystemMessage = true;
@@ -114,7 +114,7 @@ abstract class SessionAgent {
         role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
-        message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId??"")
+        content: TaskStatus(status: TaskStatusType.STOP, taskId: taskId??"")
       );
       dispatcherMap.stopAll(toClient, stopMessage);
     } else {
@@ -132,7 +132,7 @@ abstract class SessionAgent {
         role: SessionRoleType.AGENT,
         to: SessionRoleType.CLIENT,
         type: SessionMessageType.TASK_STATUS,
-        message: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)
+        content: TaskStatus(status: TaskStatusType.STOP, taskId: taskId)
       ));
     dispatcherMap.stop(taskId, clientCommand);
     timeout.start(clear);

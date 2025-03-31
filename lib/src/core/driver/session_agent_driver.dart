@@ -57,7 +57,7 @@ class SessionAgentDriver extends AgentDriver {
       await namedSessionAgent.agent.userToAgent(contentList: [content], taskId: taskId);
 
       AgentMessage agentMessage = await completer.future;
-      String result = agentMessage.message as String;
+      String result = agentMessage.content as String;
 
       return ToolReturn(id: functionCall.id, result: { resultKey: result });
     } catch(e) {

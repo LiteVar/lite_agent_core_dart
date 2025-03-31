@@ -55,7 +55,7 @@ class ReflectorAgent {
           role: TextRoleType.DEVELOPER,
           to: TextRoleType.AGENT,
           type: TextMessageType.TEXT,
-          message: systemPrompt
+          content: systemPrompt
       );
       agentLLMMessageList.add(systemMessage);
     }
@@ -66,7 +66,7 @@ class ReflectorAgent {
         role: TextRoleType.AGENT,
         to: TextRoleType.ASSISTANT,
         type: TextMessageType.CONTENT_LIST,
-        message: reflectContentList
+        content: reflectContentList
     );
 
     agentLLMMessageList.add(reflectMessage);
@@ -76,7 +76,7 @@ class ReflectorAgent {
     AgentMessage llmMessage = await llmExecutor.request(agentMessageList: agentLLMMessageList, functionModelList: reflectionDriver.parse());
     subscribeCompletions(llmMessage.completions);
     if (llmMessage.type == AgentMessageType.TOOL_CALLS) {
-      List<FunctionCall> functionCallList = llmMessage.message as List<FunctionCall>;
+      List<FunctionCall> functionCallList = llmMessage.content as List<FunctionCall>;
       FunctionCall functionCall = functionCallList.first;
       try {
         ReflectScore reflectScore = ReflectScore.fromJson(functionCall.parameters);

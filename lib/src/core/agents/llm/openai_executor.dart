@@ -124,7 +124,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
         role: AgentRoleType.LLM,
         to: AgentRoleType.AGENT,
         type: AgentMessageType.TEXT,
-        message: text,
+        content: text,
         completions: completions
       );
       agentMessageStreamController.add(agentMessage);
@@ -139,7 +139,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
         role: AgentRoleType.LLM,
         to: AgentRoleType.AGENT,
         type: AgentMessageType.TOOL_CALLS,
-        message: functionCallList,
+        content: functionCallList,
         completions: completions
       );
       agentMessageStreamController.add(agentMessage);
@@ -238,7 +238,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.system,
         content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.content as String)
         ]);
     }
 
@@ -247,7 +247,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.assistant,
         content: [
-          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+          OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.content as String)
         ]);
     }
 
@@ -255,14 +255,14 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     if (agentMessage.role == AgentRoleType.LLM && agentMessage.type == AgentMessageType.IMAGE_URL) {
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.assistant,
-        content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.message as String)
+        content: [OpenAIChatCompletionChoiceMessageContentItemModel.imageUrl(agentMessage.content as String)
         ]);
     }
 
     //LLM return function calling
     if (agentMessage.role == AgentRoleType.LLM && agentMessage.type == AgentMessageType.TOOL_CALLS) {
       List<FunctionCall> functionCallList =
-      agentMessage.message as List<FunctionCall>;
+      agentMessage.content as List<FunctionCall>;
       List<OpenAIResponseToolCall> openAIResponseToolCallList =
       functionCallList.map((FunctionCall functionCall) {
         return _toOpenAIResponseToolCall(functionCall);
@@ -277,7 +277,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
     //AGENT return TOOL result
     if (agentMessage.role == AgentRoleType.TOOL && agentMessage.type == AgentMessageType.TOOL_RETURN) {
-      ToolReturn toolReturn = agentMessage.message as ToolReturn;
+      ToolReturn toolReturn = agentMessage.content as ToolReturn;
       return OpenAIChatCompletionChoiceMessageModel(
         role: OpenAIChatMessageRole.tool,
         content: [
@@ -288,7 +288,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
 
     //AGENT forward USER messages
     if (agentMessage.role == AgentRoleType.AGENT && agentMessage.type == AgentMessageType.CONTENT_LIST) {
-      List<LLMContent> contentList = agentMessage.message as List<LLMContent>;
+      List<LLMContent> contentList = agentMessage.content as List<LLMContent>;
 
       List<OpenAIChatCompletionChoiceMessageContentItemModel>
       openAIContentList = contentList.map((content) {
@@ -309,7 +309,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
     return OpenAIChatCompletionChoiceMessageModel(
       role: OpenAIChatMessageRole.user,
       content: [
-        OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.message as String)
+        OpenAIChatCompletionChoiceMessageContentItemModel.text(agentMessage.content as String)
       ]);
   }
 
@@ -338,7 +338,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       role: AgentRoleType.LLM,
       to: AgentRoleType.AGENT,
       type: AgentMessageType.TEXT,
-      message: message,
+      content: message,
       completions: completions
     );
   }
@@ -357,7 +357,7 @@ class OpenAIExecutor extends OpenAIUtil implements LLMExecutor {
       role: AgentRoleType.LLM,
       to: AgentRoleType.AGENT,
       type: AgentMessageType.TOOL_CALLS,
-      message: functionCallList,
+      content: functionCallList,
       completions: completions
     );
   }

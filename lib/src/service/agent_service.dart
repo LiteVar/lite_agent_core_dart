@@ -57,8 +57,7 @@ class AgentService {
       void Function(String sessionId, AgentMessageDto agentMessageDto) listen, {
         Map<String, OpenToolDriver>? opentoolDriverMap,
         List<ToolDriver>? customToolDriverList,
-        void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk,
-        // void Function(String sessionId, AgentMessageDto agentMessageDto)? listenClientFunctionCall
+        void Function(String sessionId, AgentMessageChunkDto agentMessageChunkDto)? listenChunk
       }) async {
     String sessionId = uniqueId();
     String systemPrompt = capabilityDto.systemPrompt;

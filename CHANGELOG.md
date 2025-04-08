@@ -1,6 +1,7 @@
 ## 0.8.0
 
 - add MCP stdio tools support
+- add Client callback tool return support
 
 ## 0.7.0
 

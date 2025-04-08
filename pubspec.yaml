@@ -1,6 +1,6 @@
 name: lite_agent_core_dart
 description: LLM AI Agent sessions service in Dart.
-version: 0.7.0
+version: 0.8.0
 repository: https://github.com/LiteVar/lite_agent_core_dart
 
 environment:
@@ -15,7 +15,7 @@ dependencies:
   dart_openai_sdk: ^5.2.0
 
   # OpenSpec support
-  opentool_dart: ^0.3.0
+  opentool_dart: ^0.4.0
   openapi_dart: ^0.1.3
   openrpc_dart: ^0.1.3
   openmodbus_dart: ^0.2.0

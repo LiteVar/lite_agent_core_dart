@@ -81,6 +81,7 @@ class Protocol {
   static const String JSONRPCHTTP = "jsonrpcHttp";
   static const String OPENTOOL = "opentool";
   static const String SERIALPORT = "serialport";
+  static const String MCP_STDIO_TOOLS = "mcpStdioTools";
 }
 
 @JsonSerializable()

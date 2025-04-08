@@ -91,6 +91,8 @@ class ToolAgent extends TextAgent {
       functionModelList.addAll(clientDriver.parse());
     }
 
+    toolDriverList.forEach((driver)=>driver.init());
+
     try {
       if(super.agentSession.isStream) {
         Stream<AgentMessage> agentMessageStream = await OpenAIExecutor(llmConfig).requestByStream(agentMessageList: agentLLMMessageList, functionModelList: functionModelList, listenChunk: listenChunk);

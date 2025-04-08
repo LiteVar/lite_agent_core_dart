@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:opentool_dart/opentool_dart.dart';
 import 'package:openapi_dart/openapi_dart.dart';
 import 'package:openmodbus_dart/openmodbus_dart.dart';
@@ -197,6 +198,10 @@ class AgentService {
       } else if (openSpecDto.protocol == Protocol.SERIALPORT) {
         SerialPortDriver serialPortDriver = SerialPortDriver();
         toolDriverList.add(serialPortDriver);
+      } else if (openSpecDto.protocol == Protocol.MCP_STDIO_TOOLS) {
+        OpenMCP openMCP = OpenMCP.fromJson(jsonDecode(openSpecDto.openSpec));
+        McpStdioDriver mcpStdioDriver = McpStdioDriver(openMCP);
+        toolDriverList.add(mcpStdioDriver);
       }
     }
     return toolDriverList;

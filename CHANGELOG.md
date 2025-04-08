@@ -1,3 +1,7 @@
+## 0.8.0
+
+- add MCP stdio tools support
+
 ## 0.7.0
 
 - add serial port driver supported
